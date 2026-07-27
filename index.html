@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAFETEE — Help Reaches You Faster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#050912;
+    --bg-1:#0A1120;
+    --bg-2:#0F1830;
+    --panel:#101B33;
+    --panel-line:rgba(255,255,255,0.07);
+    --blue:#3E7BFA;
+    --blue-soft:rgba(62,123,250,0.14);
+    --blue-glow:rgba(62,123,250,0.35);
+    --red:#FF4747;
+    --red-soft:rgba(255,71,71,0.14);
+    --green:#2FD180;
+    --green-soft:rgba(47,209,128,0.14);
+    --amber:#F5A623;
+    --amber-soft:rgba(245,166,35,0.14);
+    --purple:#9B7BFF;
+    --purple-soft:rgba(155,123,255,0.14);
+    --text-0:#F3F6FC;
+    --text-1:#AAB4CC;
+    --text-2:#6E7994;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --maxw:1240px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0);
+    color:var(--text-0);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img,svg{display:block; max-width:100%;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--blue);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 4px var(--blue-soft);
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif; font-weight:600; line-height:1.12; letter-spacing:-0.01em;}
+  .section-tag{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);}
+
+  /* background ambience */
+  body::before{
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(60% 45% at 78% 6%, rgba(62,123,250,0.16), transparent 60%),
+      radial-gradient(45% 35% at 10% 30%, rgba(155,123,255,0.08), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ============ NAV ============ */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(5,9,18,0.72);
+    backdrop-filter:blur(16px) saturate(140%);
+    border-bottom:1px solid var(--panel-line);
+  }
+  nav{
+    max-width:var(--maxw); margin:0 auto; padding:0 32px;
+    height:74px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px;}
+  .logo .mark{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(150deg,var(--blue),#7C4DFF);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 18px var(--blue-glow);
+  }
+  .nav-links{display:flex; align-items:center; gap:36px;}
+  .nav-links a{font-size:14.5px; color:var(--text-1); font-weight:500; transition:color .2s;}
+  .nav-links a:hover{color:var(--text-0);}
+  .nav-cta{display:flex; align-items:center; gap:20px;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 22px; border-radius:999px; font-weight:600; font-size:14.5px;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),#6B8CFF); color:#fff; box-shadow:0 8px 24px -8px var(--blue-glow);}
+  .btn-primary:hover{box-shadow:0 10px 30px -6px var(--blue-glow); transform:translateY(-1px);}
+  .btn-ghost{background:transparent; border:1px solid var(--panel-line); color:var(--text-0);}
+  .btn-ghost:hover{border-color:rgba(255,255,255,0.22); background:rgba(255,255,255,0.03);}
+  .login-link{font-size:14.5px; color:var(--text-1); font-weight:500;}
+  .login-link:hover{color:var(--text-0);}
+  .menu-toggle{display:none; width:36px; height:36px; align-items:center; justify-content:center;}
+  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after{
+    content:''; display:block; width:20px; height:2px; background:var(--text-0); position:relative; transition:.2s;
+  }
+  .menu-toggle span::before{position:absolute; top:-6px;}
+  .menu-toggle span::after{position:absolute; top:6px;}
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative; z-index:1;
+    padding:158px 0 90px;
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1fr 0.92fr; gap:40px; align-items:center;
+  }
+  .hero-copy h1{font-size:56px; color:var(--text-0);}
+  .hero-copy h1 .accent{
+    background:linear-gradient(100deg,var(--blue) 10%,#8FB4FF 60%,var(--purple) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero-copy .eyebrow{margin-bottom:22px;}
+  .hero-copy p.lead{
+    margin-top:22px; font-size:17px; line-height:1.7; color:var(--text-1); max-width:480px;
+  }
+  .hero-actions{display:flex; align-items:center; gap:16px; margin-top:34px;}
+  .btn-lg{padding:15px 28px; font-size:15.5px;}
+  .btn-play{
+    width:20px; height:20px; border-radius:50%; background:var(--blue-soft); display:flex; align-items:center; justify-content:center;
+  }
+  .btn-play svg{width:9px; height:9px;}
+  .hero-proof{display:flex; align-items:center; gap:14px; margin-top:44px;}
+  .avatar-stack{display:flex;}
+  .avatar-stack img{
+    width:38px; height:38px; border-radius:50%; border:2.5px solid var(--bg-0); object-fit:cover; margin-left:-10px; background:var(--panel);
+  }
+  .avatar-stack img:first-child{margin-left:0;}
+  .proof-text{font-size:13.5px; color:var(--text-1); line-height:1.4;}
+  .proof-text .stars{color:var(--amber); font-size:13px; letter-spacing:1px;}
+  .proof-text b{color:var(--text-0); font-weight:600;}
+
+  /* phone mock */
+  .hero-visual{position:relative; display:flex; justify-content:center; align-items:center; min-height:640px;}
+  .radar{
+    position:absolute; width:600px; height:600px; border-radius:50%;
+    border:1px solid rgba(62,123,250,0.14);
+  }
+  .radar::before, .radar::after{
+    content:''; position:absolute; inset:60px; border-radius:50%; border:1px solid rgba(62,123,250,0.10);
+  }
+  .radar::after{inset:130px; border-color:rgba(62,123,250,0.16);}
+  .radar-ping{
+    position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at center, rgba(255,71,71,0.10), transparent 55%);
+    animation:pingGrow 3.2s ease-out infinite;
+  }
+  @keyframes pingGrow{
+    0%{transform:scale(0.3); opacity:0.9;}
+    80%{opacity:0;}
+    100%{transform:scale(1); opacity:0;}
+  }
+  .phone-shell{
+    position:relative; width:288px; height:588px; border-radius:42px;
+    background:linear-gradient(160deg,#111d38,#0a1226);
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 40px 90px -30px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03) inset, 0 0 80px -10px var(--blue-glow);
+    padding:12px;
+    z-index:2;
+  }
+  .phone-screen{
+    width:100%; height:100%; border-radius:32px; background:linear-gradient(175deg,#0C1730,#070D1C);
+    position:relative; overflow:hidden; padding:18px 16px;
+  }
+  .status-row{display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-1);}
+  .greet-row{display:flex; justify-content:space-between; align-items:flex-start; margin-top:16px;}
+  .greet-row .hi{font-size:11px; color:var(--text-2);}
+  .greet-row .name{font-size:15px; font-weight:600; color:var(--text-0); font-family:'Space Grotesk',sans-serif;}
+  .greet-row .pfp{width:30px; height:30px; border-radius:50%; object-fit:cover;}
+  .sos-zone{display:flex; flex-direction:column; align-items:center; margin:26px 0 18px;}
+  .sos-btn{
+    width:128px; height:128px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 65%, #c31c1c 100%);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    box-shadow:0 0 0 10px rgba(255,71,71,0.08), 0 0 0 22px rgba(255,71,71,0.05), 0 20px 40px -12px rgba(255,71,71,0.55);
+    animation:sosPulse 2.4s ease-in-out infinite;
+    color:#fff;
+  }
+  @keyframes sosPulse{
+    0%,100%{box-shadow:0 0 0 10px rgba(255,71,71,0.08), 0 0 0 22px rgba(255,71,71,0.05), 0 20px 40px -12px rgba(255,71,71,0.55);}
+    50%{box-shadow:0 0 0 14px rgba(255,71,71,0.12), 0 0 0 30px rgba(255,71,71,0.06), 0 20px 44px -8px rgba(255,71,71,0.7);}
+  }
+  .sos-btn span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; letter-spacing:.02em;}
+  .sos-hint{font-size:10.5px; color:var(--text-2); margin-top:10px; font-family:'JetBrains Mono',monospace;}
+  .info-card{
+    background:rgba(255,255,255,0.035); border:1px solid var(--panel-line); border-radius:12px;
+    padding:10px 12px; display:flex; align-items:center; gap:10px; margin-top:8px;
+  }
+  .info-card .ic{
+    width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .info-card .tx{font-size:10.5px; color:var(--text-2); line-height:1.3;}
+  .info-card .tx b{display:block; font-size:12px; color:var(--text-0); font-weight:600; font-family:'Inter',sans-serif;}
+  .info-row-2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .tab-bar{position:absolute; bottom:10px; left:16px; right:16px; display:flex; justify-content:space-around; align-items:center; padding-top:10px; border-top:1px solid var(--panel-line);}
+  .tab-bar .dot{width:18px; height:18px; border-radius:50%; opacity:.35;}
+  .tab-bar .dot.active{opacity:1; background:var(--blue); box-shadow:0 0 0 6px var(--blue-soft);}
+
+  .float-chip{
+    position:absolute; background:rgba(15,22,42,0.85); backdrop-filter:blur(10px);
+    border:1px solid var(--panel-line); border-radius:12px; padding:9px 13px;
+    display:flex; align-items:center; gap:9px; font-size:12px; box-shadow:0 12px 30px -10px rgba(0,0,0,0.6);
+    animation:floaty 5s ease-in-out infinite;
+    z-index:3;
+  }
+  .float-chip b{font-size:12.5px; font-weight:600; color:var(--text-0); display:block;}
+  .float-chip .sub{font-size:10px; color:var(--text-2);}
+  @keyframes floaty{0%,100%{transform:translateY(0);} 50%{transform:translateY(-9px);}}
+  .chip-battery{top:78px; left:-6px; animation-delay:.2s;}
+  .chip-signal{top:78px; right:-10px; animation-delay:.6s;}
+  .chip-shield{top:225px; right:-40px; animation-delay:1.1s;}
+  .chip-status{top:335px; right:-56px; animation-delay:.4s;}
+  .chip-pin-a{top:150px; left:-58px; animation-delay:.9s; padding:8px; border-radius:50%;}
+  .chip-pin-b{top:300px; left:-70px; animation-delay:1.4s; padding:8px; border-radius:50%;}
+
+  /* ============ TRUST BAR ============ */
+  .trustbar{position:relative; z-index:1; padding:44px 0; border-top:1px solid var(--panel-line); border-bottom:1px solid var(--panel-line);}
+  .trustbar .wrap{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:28px;}
+  .trust-label{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2); white-space:nowrap;}
+  .trust-logos{display:flex; align-items:center; gap:42px; flex-wrap:wrap; opacity:.6;}
+  .trust-logos .tl{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; color:var(--text-1); display:flex; align-items:center; gap:7px; letter-spacing:.01em;}
+  .trust-logos .tl small{font-family:'JetBrains Mono',monospace; font-weight:400; font-size:10px; color:var(--text-2); letter-spacing:.05em;}
+
+  /* ============ SECTION GENERIC ============ */
+  section{position:relative; z-index:1;}
+  .section-pad{padding:110px 0;}
+  .section-head{max-width:640px; margin:0 auto 60px; text-align:center;}
+  .section-head h2{font-size:38px; margin-top:14px; color:var(--text-0);}
+  .section-head p{margin-top:16px; color:var(--text-1); font-size:16px; line-height:1.7;}
+  .section-head.left{margin:0 0 50px; text-align:left;}
+
+  /* divider heartbeat */
+  .pulse-divider{width:100%; height:40px; opacity:.5;}
+
+  /* ============ FEATURES ============ */
+  .feat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .feat-card{
+    background:linear-gradient(160deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+    border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:30px 26px;
+    transition:transform .25s ease, border-color .25s ease, background .25s ease;
+  }
+  .feat-card:hover{transform:translateY(-5px); border-color:rgba(255,255,255,0.16); background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));}
+  .feat-icon{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;}
+  .feat-card h3{font-size:17px; color:var(--text-0); margin-bottom:9px; font-weight:600;}
+  .feat-card p{font-size:14px; color:var(--text-1); line-height:1.65;}
+
+  /* ============ HOW IT WORKS ============ */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; position:relative;}
+  .step-card{
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:32px 28px; position:relative;
+  }
+  .step-num{
+    width:34px; height:34px; border-radius:10px; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px; margin-bottom:22px;
+  }
+  .step-card h3{font-size:17px; margin-bottom:8px;}
+  .step-card p{font-size:14px; color:var(--text-1); line-height:1.6;}
+  .step-visual{margin-top:20px; border-radius:12px; overflow:hidden; border:1px solid var(--panel-line); background:rgba(0,0,0,0.2); padding:16px; display:flex; align-items:center; justify-content:center; min-height:110px;}
+
+  /* ============ DASHBOARD ============ */
+  .dash-wrap{
+    background:linear-gradient(150deg, rgba(62,123,250,0.10), rgba(155,123,255,0.04));
+    border:1px solid var(--panel-line); border-radius:28px; overflow:hidden;
+    display:grid; grid-template-columns:0.85fr 1.4fr 0.85fr;
+  }
+  .dash-side{padding:38px 32px; display:flex; flex-direction:column; justify-content:center; gap:18px;}
+  .dash-side h3{font-size:26px; color:var(--text-0);}
+  .dash-side > p{font-size:14.5px; color:var(--text-1); line-height:1.6; margin-top:4px;}
+  .dash-check{display:flex; align-items:flex-start; gap:10px; font-size:13.5px; color:var(--text-1);}
+  .dash-check svg{flex:none; margin-top:2px;}
+  .dash-map{
+    position:relative; background:
+      linear-gradient(160deg, rgba(15,24,48,0.9), rgba(8,13,26,0.95)),
+      repeating-linear-gradient(0deg, transparent 0 38px, rgba(255,255,255,0.035) 38px 39px),
+      repeating-linear-gradient(90deg, transparent 0 38px, rgba(255,255,255,0.035) 38px 39px);
+    min-height:420px; border-left:1px solid var(--panel-line); border-right:1px solid var(--panel-line);
+  }
+  .map-float{
+    position:absolute; background:rgba(10,16,32,0.88); backdrop-filter:blur(10px); border:1px solid var(--panel-line);
+    border-radius:12px; padding:12px 14px; font-size:12px; box-shadow:0 14px 30px -12px rgba(0,0,0,0.6);
+  }
+  .map-float.tl{top:22px; left:22px;}
+  .map-float.br{bottom:22px; right:22px;}
+  .map-float b{font-size:13px; color:var(--text-0); display:block; margin-bottom:2px;}
+  .map-float .row{display:flex; justify-content:space-between; gap:16px; margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-1);}
+  .map-float .row b{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-0);}
+  .map-pin{position:absolute; width:16px; height:16px; border-radius:50%; box-shadow:0 0 0 6px;}
+  .dash-cta{display:flex; align-items:center; gap:8px; color:var(--blue); font-weight:600; font-size:14px; margin-top:8px;}
+
+  /* ============ WHY SENTINEL ============ */
+  .why-wrap{display:grid; grid-template-columns:0.85fr 1.15fr; gap:60px; align-items:center;}
+  .why-visual{position:relative; display:flex; justify-content:center; align-items:center; min-height:380px;}
+  .why-list{display:grid; grid-template-columns:1fr 1fr; gap:28px 36px;}
+  .why-item{display:flex; gap:14px;}
+  .why-ic{width:42px; height:42px; border-radius:11px; flex:none; display:flex; align-items:center; justify-content:center;}
+  .why-item h4{font-size:15.5px; color:var(--text-0); margin-bottom:5px;}
+  .why-item p{font-size:13.5px; color:var(--text-1); line-height:1.55;}
+
+  .stat-bar{margin-top:70px; display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--panel-line); border-radius:var(--radius-lg); overflow:hidden;}
+  .stat-cell{padding:30px 24px; text-align:center; border-right:1px solid var(--panel-line);}
+  .stat-cell:last-child{border-right:none;}
+  .stat-cell .num{font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700; color:var(--text-0);}
+  .stat-cell .lbl{font-size:12.5px; color:var(--text-2); margin-top:6px;}
+
+  /* ============ TESTIMONIALS ============ */
+  .test-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .test-card{
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:28px 26px;
+    display:flex; flex-direction:column; gap:16px; position:relative;
+  }
+  .test-card.popular{border-color:rgba(62,123,250,0.4); box-shadow:0 0 0 1px rgba(62,123,250,0.15), 0 20px 40px -20px rgba(62,123,250,0.35);}
+  .test-badge{position:absolute; top:-11px; right:22px; background:var(--blue); color:#fff; font-size:10.5px; font-weight:600; padding:4px 12px; border-radius:999px; letter-spacing:.02em;}
+  .stars-row{color:var(--amber); font-size:13px; letter-spacing:2px;}
+  .test-card p.quote{font-size:14.5px; color:var(--text-1); line-height:1.65;}
+  .test-who{display:flex; align-items:center; gap:12px; margin-top:auto;}
+  .test-who img{width:42px; height:42px; border-radius:50%; object-fit:cover;}
+  .test-who b{font-size:14px; color:var(--text-0); display:block;}
+  .test-who span{font-size:12px; color:var(--text-2);}
+
+  /* ============ PRICING ============ */
+  .price-toggle{display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:50px;}
+  .toggle-pill{
+    display:inline-flex; background:var(--panel); border:1px solid var(--panel-line); border-radius:999px; padding:4px; position:relative;
+  }
+  .toggle-pill button{
+    padding:9px 22px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--text-1); position:relative; z-index:1; transition:color .2s;
+  }
+  .toggle-pill button.active{color:#fff;}
+  .toggle-slide{position:absolute; top:4px; left:4px; height:calc(100% - 8px); width:calc(50% - 4px); background:linear-gradient(135deg,var(--blue),#6B8CFF); border-radius:999px; transition:transform .28s cubic-bezier(.65,0,.35,1); z-index:0;}
+  .save-tag{font-size:11.5px; color:var(--green); font-family:'JetBrains Mono',monospace; background:var(--green-soft); padding:4px 10px; border-radius:999px;}
+
+  .price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; align-items:stretch;}
+  .price-card{
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:34px 30px;
+    display:flex; flex-direction:column; position:relative; transition:transform .25s, border-color .25s;
+  }
+  .price-card.feat{
+    background:linear-gradient(165deg, rgba(62,123,250,0.16), rgba(15,24,48,0.6));
+    border-color:rgba(62,123,250,0.45);
+    transform:scale(1.02);
+  }
+  .price-tag{position:absolute; top:-12px; left:30px; background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:5px 14px; border-radius:999px;}
+  .price-card .plan-name{font-size:13px; color:var(--text-2); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.08em;}
+  .price-card h3{font-size:22px; margin-top:10px; color:var(--text-0);}
+  .price-card .plan-desc{font-size:13.5px; color:var(--text-1); margin-top:6px; min-height:36px;}
+  .price-amt{display:flex; align-items:baseline; gap:6px; margin:22px 0 6px;}
+  .price-amt .cur{font-size:20px; color:var(--text-1); font-family:'Space Grotesk',sans-serif;}
+  .price-amt .num{font-size:42px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--text-0);}
+  .price-amt .per{font-size:13px; color:var(--text-2);}
+  .price-list{margin:26px 0 30px; display:flex; flex-direction:column; gap:13px;}
+  .price-list li{display:flex; gap:10px; font-size:13.5px; color:var(--text-1); align-items:flex-start;}
+  .price-list li svg{flex:none; margin-top:2px;}
+  .price-card .btn{margin-top:auto; width:100%;}
+
+  /* ============ CTA BANNER ============ */
+  .cta-banner{
+    background:linear-gradient(120deg, #1a3a8f, #2451c9 45%, #6b3fd1);
+    border-radius:28px; padding:52px 56px; display:flex; align-items:center; justify-content:space-between; gap:30px;
+    position:relative; overflow:hidden;
+  }
+  .cta-banner::before{
+    content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(90deg, transparent 0 40px, rgba(255,255,255,0.04) 40px 41px);
+  }
+  .cta-banner h3{font-size:28px; color:#fff; position:relative;}
+  .cta-banner p{font-size:14.5px; color:rgba(255,255,255,0.8); margin-top:8px; position:relative;}
+  .cta-actions{display:flex; gap:14px; flex:none; position:relative;}
+  .cta-banner .btn-ghost{border-color:rgba(255,255,255,0.35); color:#fff;}
+  .cta-banner .btn-ghost:hover{background:rgba(255,255,255,0.1);}
+  .cta-banner .btn-primary{background:#fff; color:#12224d; box-shadow:none;}
+  .cta-banner .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 22px -6px rgba(0,0,0,0.35);}
+
+  /* ============ FOOTER ============ */
+  footer{border-top:1px solid var(--panel-line); padding:70px 0 30px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr; gap:36px;}
+  .foot-brand p{font-size:13.5px; color:var(--text-2); line-height:1.6; margin-top:14px; max-width:230px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:34px; height:34px; border-radius:9px; background:rgba(255,255,255,0.04); border:1px solid var(--panel-line); display:flex; align-items:center; justify-content:center; transition:background .2s;}
+  .foot-social a:hover{background:rgba(255,255,255,0.09);}
+  .foot-col h5{font-size:13px; color:var(--text-0); margin-bottom:16px; font-weight:600;}
+  .foot-col a{display:block; font-size:13.5px; color:var(--text-2); margin-bottom:11px; transition:color .2s;}
+  .foot-col a:hover{color:var(--text-0);}
+  .foot-form{display:flex; margin-top:14px; border:1px solid var(--panel-line); border-radius:10px; overflow:hidden; background:rgba(255,255,255,0.03);}
+  .foot-form input{flex:1; background:none; border:none; padding:11px 14px; color:var(--text-0); font-size:13px; outline:none;}
+  .foot-form button{background:var(--blue); color:#fff; padding:0 16px; font-size:13px; font-weight:600;}
+  .foot-bottom{margin-top:56px; padding-top:26px; border-top:1px solid var(--panel-line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;}
+  .foot-bottom p{font-size:12.5px; color:var(--text-2);}
+  .foot-legal{display:flex; gap:22px;}
+  .foot-legal a{font-size:12.5px; color:var(--text-2);}
+  .foot-legal a:hover{color:var(--text-0);}
+
+  /* ============ UTIL ============ */
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+  :focus-visible{outline:2px solid var(--blue); outline-offset:3px; border-radius:6px;}
+
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-visual{order:-1; min-height:520px; margin-bottom:10px;}
+    .hero-copy h1{font-size:42px;}
+    .feat-grid, .steps, .test-grid, .price-grid{grid-template-columns:repeat(2,1fr);}
+    .why-wrap{grid-template-columns:1fr; gap:40px;}
+    .dash-wrap{grid-template-columns:1fr;}
+    .dash-map{min-height:320px; order:-1;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .stat-bar{grid-template-columns:repeat(2,1fr);}
+    .stat-cell:nth-child(2){border-right:none;}
+    .stat-cell{border-bottom:1px solid var(--panel-line);}
+  }
+  @media (max-width:720px){
+    .nav-links{display:none;}
+    .login-link{display:none;}
+    .menu-toggle{display:flex;}
+    .hero{padding:130px 0 60px;}
+    .hero-copy h1{font-size:34px;}
+    .hero-actions{flex-wrap:wrap;}
+    .feat-grid, .steps, .test-grid, .price-grid, .foot-grid{grid-template-columns:1fr;}
+    .trustbar .wrap{flex-direction:column; align-items:flex-start;}
+    .cta-banner{flex-direction:column; text-align:center; padding:40px 28px;}
+    .cta-banner .wrap{padding:0;}
+    .phone-shell{width:250px; height:510px;}
+    .price-card.feat{transform:none;}
+    .foot-bottom{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#" class="logo">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12.5L11 15l4.5-5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      SAFETEE
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">About</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#footer">Contact</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#" class="login-link">Log in</a>
+      <a href="#" class="btn btn-primary">Sign up</a>
+      <button class="menu-toggle" aria-label="Menu"><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">AI-powered personal safety platform</span>
+      <h1>Stay safe.<br>Stay connected.<br><span class="accent">Help reaches you faster.</span></h1>
+      <p class="lead">Protect yourself and the people you love with one-tap SOS alerts, live location sharing, journey monitoring, and AI emergency coordination — online or off.</p>
+      <div class="hero-actions">
+        <a href="#pricing" class="btn btn-primary btn-lg">Get started free
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#how" class="btn btn-ghost btn-lg">
+          <span class="btn-play"><svg viewBox="0 0 10 10" fill="#3E7BFA"><polygon points="1,0 10,5 1,10"/></svg></span>
+          Watch demo
+        </a>
+      </div>
+      <div class="hero-proof">
+        <div class="avatar-stack">
+          <img src="https://i.pravatar.cc/80?img=32" alt="">
+          <img src="https://i.pravatar.cc/80?img=47" alt="">
+          <img src="https://i.pravatar.cc/80?img=12" alt="">
+        </div>
+        <div class="proof-text"><span class="stars">★★★★★</span> <b>5.0</b> rating<br>Trusted by families, schools &amp; businesses</div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="radar"><div class="radar-ping"></div></div>
+
+      <div class="float-chip chip-battery">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#2FD180" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#2FD180"/><path d="M22 10v4" stroke="#2FD180" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div><b>82%</b><span class="sub">Battery</span></div>
+      </div>
+      <div class="float-chip chip-signal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#2FD180"/></svg>
+        <div><b>Strong</b><span class="sub">Signal</span></div>
+      </div>
+      <div class="float-chip chip-shield">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#3E7BFA" stroke-width="1.6"/></svg>
+        <div><b>Protected</b><span class="sub">24/7 monitoring</span></div>
+      </div>
+      <div class="float-chip chip-status">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2FD180" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><b>All clear</b><span class="sub">Emergency status</span></div>
+      </div>
+      <div class="float-chip chip-pin-a" style="background:rgba(62,123,250,0.16); border-color:rgba(62,123,250,0.3);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#3E7BFA"/><circle cx="12" cy="9" r="2.4" fill="#0A1120"/></svg>
+      </div>
+      <div class="chip-pin-b" style="position:absolute;">
+        <div class="float-chip" style="background:rgba(155,123,255,0.16); border-color:rgba(155,123,255,0.3);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#9B7BFF"/><circle cx="12" cy="9" r="2.4" fill="#0A1120"/></svg>
+        </div>
+      </div>
+
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="status-row">
+            <span>9:41</span>
+            <span style="display:flex; gap:5px; align-items:center;">
+              <svg width="14" height="10" viewBox="0 0 24 18" fill="#AAB4CC"><rect x="1" y="9" width="3" height="8"/><rect x="7" y="6" width="3" height="11"/><rect x="13" y="3" width="3" height="14"/><rect x="19" y="0" width="3" height="17"/></svg>
+              <svg width="18" height="10" viewBox="0 0 30 16" fill="none"><rect x="1" y="1" width="24" height="12" rx="3" stroke="#AAB4CC" stroke-width="1.4"/><rect x="3" y="3" width="19" height="8" rx="1.5" fill="#2FD180"/><rect x="26.5" y="5" width="2.5" height="4" rx="1" fill="#AAB4CC"/></svg>
+            </span>
+          </div>
+          <div class="greet-row">
+            <div>
+              <div class="hi">Good morning</div>
+              <div class="name">Alex Johnson</div>
+            </div>
+            <img class="pfp" src="https://i.pravatar.cc/80?img=15" alt="">
+          </div>
+
+          <div class="sos-zone">
+            <div class="sos-btn"><span>SOS</span></div>
+            <div class="sos-hint">HOLD 2S FOR EMERGENCY</div>
+          </div>
+
+          <div class="info-card">
+            <div class="ic" style="background:var(--blue-soft);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#3E7BFA" stroke-width="1.7"/><circle cx="12" cy="9" r="2.2" fill="#3E7BFA"/></svg>
+            </div>
+            <div class="tx">Live location<b>Lagos, Nigeria · 5m accuracy</b></div>
+          </div>
+          <div class="info-row-2">
+            <div class="info-card">
+              <div class="ic" style="background:var(--purple-soft);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#9B7BFF" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="#9B7BFF" stroke-width="1.7" stroke-linecap="round"/></svg>
+              </div>
+              <div class="tx">Journey timer<b>00:45:32</b></div>
+            </div>
+            <div class="info-card">
+              <div class="ic" style="background:var(--amber-soft);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#F5A623" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="tx">Contacts<b>3 online</b></div>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="ic" style="background:var(--green-soft);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2a4 4 0 00-4 4v4a4 4 0 008 0V6a4 4 0 00-4-4z" stroke="#2FD180" stroke-width="1.6"/><path d="M5 11v1a7 7 0 0014 0v-1M12 19v3" stroke="#2FD180" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+            <div class="tx">AI monitoring<b>All systems active</b></div>
+          </div>
+
+          <div class="tab-bar">
+            <span class="dot active" style="background:var(--blue);"></span>
+            <span class="dot" style="background:var(--text-2);"></span>
+            <span class="dot" style="background:var(--red);"></span>
+            <span class="dot" style="background:var(--text-2);"></span>
+            <span class="dot" style="background:var(--text-2);"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trustbar">
+  <div class="wrap">
+    <span class="trust-label">Relied on by families, schools &amp; response teams</span>
+    <div class="trust-logos">
+      <span class="tl">Lagos Metro <small>GOV</small></span>
+      <span class="tl">Global Child Fund</span>
+      <span class="tl">Access Point</span>
+      <span class="tl">Union Trust <small>BANK</small></span>
+      <span class="tl">National Response <small>AGENCY</small></span>
+      <span class="tl">Redcross Alliance</span>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="section-tag">Core capabilities</span>
+      <h2>Everything an emergency needs, in one tap</h2>
+      <p>SAFETEE combines instant alerts, live tracking and AI monitoring into a single system built to work even when infrastructure doesn't.</p>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--red-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4747" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="#FF4747"/></svg>
+        </div>
+        <h3>One-tap SOS</h3>
+        <p>Instantly alert your trusted contacts and emergency responders with a single press — no menus, no delay.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--blue-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#3E7BFA" stroke-width="1.8"/><circle cx="12" cy="9" r="2.4" fill="#3E7BFA"/></svg>
+        </div>
+        <h3>Live GPS tracking</h3>
+        <p>Share real-time location with pinpoint accuracy and let loved ones follow your movement live on the map.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--purple-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#9B7BFF" stroke-width="1.8"/><path d="M12 7v5l3.5 2" stroke="#9B7BFF" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Journey monitoring</h3>
+        <p>Automatic check-ins and smart alerts trigger if you don't reach your destination on schedule.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--amber-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#F5A623" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Trusted contacts</h3>
+        <p>Family and friends get notified instantly with your live location and status the moment SOS fires.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--green-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#2FD180" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0014 0v-1M12 19v3" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Emergency recording</h3>
+        <p>Record audio and capture time-stamped evidence automatically during an active emergency.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon" style="background:var(--blue-soft);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="#3E7BFA" stroke-width="1.6"/><path d="M4 4l16 16" stroke="#3E7BFA" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Offline SMS relay</h3>
+        <p>Alerts still reach responders over SMS when there's no data connection — built for real network conditions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="how" style="padding-top:20px;">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="section-tag">How it works</span>
+      <h2>From open app to help arriving</h2>
+      <p>Three moves stand between you and a coordinated emergency response.</p>
+    </div>
+    <div class="steps">
+      <div class="step-card reveal">
+        <div class="step-num">01</div>
+        <h3>Open SAFETEE</h3>
+        <p>Launch the app and allow location access once — SAFETEE keeps tracking accurate in the background.</p>
+        <div class="step-visual">
+          <svg width="70" height="90" viewBox="0 0 70 90" fill="none"><rect x="1" y="1" width="68" height="88" rx="14" stroke="#3E7BFA" stroke-width="2"/><circle cx="35" cy="45" r="14" stroke="#3E7BFA" stroke-width="2"/><path d="M35 39v6l4 2" stroke="#3E7BFA" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">02</div>
+        <h3>Tap SOS</h3>
+        <p>Press and hold the large SOS button the moment something feels wrong. No confirmation dialogs to fight through.</p>
+        <div class="step-visual">
+          <div style="width:56px; height:56px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#ff6b6b,#FF4747 65%,#c31c1c 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; box-shadow:0 0 0 8px rgba(255,71,71,0.12);">SOS</div>
+        </div>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">03</div>
+        <h3>Help is on the way</h3>
+        <p>Trusted contacts and response teams receive your live location and status in under a second.</p>
+        <div class="step-visual">
+          <svg width="90" height="70" viewBox="0 0 90 70" fill="none"><path d="M5 55c15-10 30 5 45-8s25-2 35-15" stroke="#3E7BFA" stroke-width="2" stroke-dasharray="4 5"/><circle cx="5" cy="55" r="5" fill="#FF4747"/><circle cx="85" cy="32" r="5" fill="#3E7BFA"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="wrap">
+    <div class="dash-wrap reveal">
+      <div class="dash-side">
+        <span class="section-tag">Live tracking dashboard</span>
+        <h3>Real-time insight.<br>Real-time protection.</h3>
+        <p>Every device on your account reports position, speed and risk signals continuously to a single command view.</p>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Live location updates every second
+        </div>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Smart route tracking and live ETA
+        </div>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Risk detection with safe-zone alerts
+        </div>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Emergency responder coordination
+        </div>
+        <a href="#" class="dash-cta">Explore dashboard
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#3E7BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <div class="dash-map">
+        <svg width="100%" height="100%" viewBox="0 0 520 420" style="position:absolute; inset:0;" preserveAspectRatio="none">
+          <path d="M60,340 C140,300 160,250 230,230 C300,210 320,150 420,90" stroke="#3E7BFA" stroke-width="3" fill="none" stroke-dasharray="10 8" opacity="0.85"/>
+        </svg>
+        <div class="map-pin" style="top:325px; left:48px; background:#FF4747; box-shadow:0 0 0 6px rgba(255,71,71,0.18);"></div>
+        <div class="map-pin" style="top:78px; left:410px; background:#3E7BFA; box-shadow:0 0 0 6px rgba(62,123,250,0.2);"></div>
+        <div class="map-float tl">
+          <b>Alex Johnson</b>
+          <span style="color:#2FD180; font-size:11px;">● Moving</span>
+          <div class="row"><span>ETA</span><b>12 min</b></div>
+          <div class="row"><span>Distance</span><b>4.2 km</b></div>
+          <div class="row"><span>Speed</span><b>32 km/h</b></div>
+        </div>
+        <div class="map-float br">
+          <b>Route overview</b>
+          <span style="font-size:11px; color:var(--text-2);">Optimal route · Low traffic</span>
+          <div class="row"><span>ETA</span><b>12 min</b></div>
+          <div class="row"><span>Distance</span><b>4.2 km</b></div>
+        </div>
+      </div>
+
+      <div class="dash-side">
+        <span class="section-tag">Emergency contacts</span>
+        <div style="display:flex; align-items:center; gap:-8px; margin-top:6px;">
+          <div class="avatar-stack">
+            <img src="https://i.pravatar.cc/80?img=5" alt="">
+            <img src="https://i.pravatar.cc/80?img=8" alt="">
+            <img src="https://i.pravatar.cc/80?img=20" alt="">
+          </div>
+          <span style="font-size:12.5px; color:var(--text-2); margin-left:8px;">+2 notified</span>
+        </div>
+        <p style="margin-top:0;">All contacts confirmed receipt of the last check-in within 8 seconds.</p>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3E7BFA22"/><path d="M12 7v5l3.5 2" stroke="#3E7BFA" stroke-width="2" stroke-linecap="round"/></svg>
+          Journey timer: 00:12:41
+        </div>
+        <div class="dash-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#F5A62322"/><path d="M12 8v5M12 16h.01" stroke="#F5A623" stroke-width="2" stroke-linecap="round"/></svg>
+          Safe-zone exit at 4:52 PM
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="wrap">
+    <div class="why-wrap">
+      <div class="why-visual reveal">
+        <svg width="360" height="360" viewBox="0 0 360 360" fill="none">
+          <circle cx="180" cy="180" r="170" stroke="#3E7BFA" stroke-opacity="0.12"/>
+          <circle cx="180" cy="180" r="120" stroke="#3E7BFA" stroke-opacity="0.18"/>
+          <circle cx="180" cy="180" r="70" fill="#3E7BFA" fill-opacity="0.08"/>
+          <path d="M180 130a50 50 0 00-50 50c0 35 50 70 50 70s50-35 50-70a50 50 0 00-50-50z" stroke="#3E7BFA" stroke-width="2.4" fill="rgba(62,123,250,0.08)"/>
+          <path d="M150 180l14 14 24-30" stroke="#3E7BFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="70" cy="90" r="6" fill="#9B7BFF"/>
+          <circle cx="300" cy="100" r="6" fill="#2FD180"/>
+          <circle cx="60" cy="270" r="6" fill="#F5A623"/>
+          <circle cx="300" cy="270" r="6" fill="#FF4747"/>
+        </svg>
+      </div>
+      <div>
+        <span class="section-tag">Why SAFETEE</span>
+        <h2 style="font-size:34px; margin:14px 0 34px;">Built for the moment that matters</h2>
+        <div class="why-list">
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--blue-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#3E7BFA"/></svg></div>
+            <div><h4>Lightning fast alerts</h4><p>Help dispatched in seconds, not minutes.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--red-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4747" stroke-width="1.8" stroke-dasharray="3 4"/></svg></div>
+            <div><h4>Hidden SOS mode</h4><p>Discreet trigger for silent emergencies.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--green-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V5l8-3z" stroke="#2FD180" stroke-width="1.8"/></svg></div>
+            <div><h4>Military-grade encryption</h4><p>Your data stays fully secure and private.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--purple-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="#9B7BFF" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#9B7BFF" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div><h4>AI risk monitoring</h4><p>Smart detection flags danger before it escalates.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--blue-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#3E7BFA" stroke-width="1.8"/></svg></div>
+            <div><h4>Real-time GPS</h4><p>Accurate location tracking you can trust.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <div class="why-ic" style="background:var(--amber-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="#F5A623" stroke-width="1.6"/><path d="M4 4l16 16" stroke="#F5A623" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+            <div><h4>Offline mode</h4><p>Keeps working with no internet connection.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-bar reveal">
+      <div class="stat-cell"><div class="num" data-count="250">0</div><div class="lbl">Protected users (000s)</div></div>
+      <div class="stat-cell"><div class="num" data-count="120">0</div><div class="lbl">Partner organizations</div></div>
+      <div class="stat-cell"><div class="num" data-count="99.98" data-decimal="2">0</div><div class="lbl">Delivery success %</div></div>
+      <div class="stat-cell"><div class="num">24/7</div><div class="lbl">AI monitoring</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="section-tag">Testimonials</span>
+      <h2>What people say about SAFETEE</h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <div class="stars-row">★★★★★</div>
+        <p class="quote">SAFETEE gives me peace of mind knowing my kids are safe even when I'm not with them.</p>
+        <div class="test-who">
+          <img src="https://i.pravatar.cc/80?img=45" alt="">
+          <div><b>Adeola Johnson</b><span>Parent</span></div>
+        </div>
+      </div>
+      <div class="test-card reveal">
+        <div class="stars-row">★★★★★</div>
+        <p class="quote">We rolled SAFETEE out campus-wide and it's measurably improved how fast we respond to student incidents.</p>
+        <div class="test-who">
+          <img src="https://i.pravatar.cc/80?img=52" alt="">
+          <div><b>Michael Brown</b><span>School Administrator</span></div>
+        </div>
+      </div>
+      <div class="test-card popular reveal">
+        <span class="test-badge">Most helpful</span>
+        <div class="stars-row">★★★★★</div>
+        <p class="quote">A powerful tool for our field teams — the offline SMS relay has genuinely saved lives on low-signal routes.</p>
+        <div class="test-who">
+          <img src="https://i.pravatar.cc/80?img=48" alt="">
+          <div><b>Esther Okafor</b><span>NGO Director</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" id="pricing">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="section-tag">Pricing</span>
+      <h2>Simple, transparent pricing</h2>
+      <p>Start free. Upgrade whenever your family or organization needs more coverage.</p>
+    </div>
+
+    <div class="price-toggle">
+      <div class="toggle-pill">
+        <div class="toggle-slide" id="toggleSlide"></div>
+        <button class="active" id="btnMonthly">Monthly</button>
+        <button id="btnYearly">Yearly</button>
+      </div>
+      <span class="save-tag">Save 20% yearly</span>
+    </div>
+
+    <div class="price-grid">
+      <div class="price-card reveal">
+        <span class="plan-name">Free</span>
+        <h3>Individual</h3>
+        <p class="plan-desc">For individuals getting started with basic protection.</p>
+        <div class="price-amt"><span class="cur mono">₦</span><span class="num">0</span><span class="per">/month</span></div>
+        <ul class="price-list">
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>One-tap SOS</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Live location sharing</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 3 trusted contacts</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Offline SMS alerts</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">Get started</a>
+      </div>
+
+      <div class="price-card feat reveal">
+        <span class="price-tag">Most popular</span>
+        <span class="plan-name">Personal</span>
+        <h3>Family</h3>
+        <p class="plan-desc">Everything in Free, tuned for individuals and families.</p>
+        <div class="price-amt"><span class="cur mono">₦</span><span class="num price-value" data-monthly="1,500" data-yearly="1,200">1,500</span><span class="per">/month</span></div>
+        <ul class="price-list">
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Everything in Free</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Journey monitoring</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Audio recording</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Get started</a>
+      </div>
+
+      <div class="price-card reveal">
+        <span class="plan-name">Business</span>
+        <h3>Organization</h3>
+        <p class="plan-desc">Everything in Personal, built for teams and organizations.</p>
+        <div class="price-amt"><span class="cur mono">₦</span><span class="num price-value" data-monthly="4,500" data-yearly="3,600">4,500</span><span class="per">/month</span></div>
+        <ul class="price-list">
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team dashboard</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced analytics</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>API access</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>24/7 priority support</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <h3>Every second matters.<br>Join SAFETEE today.</h3>
+        <p>Protect yourself, your loved ones and your organization — free to start.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="#pricing" class="btn btn-primary btn-lg">Start free</a>
+        <a href="#" class="btn btn-ghost btn-lg">Book a demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo">
+          <span class="mark" style="width:30px; height:30px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </span>
+          SAFETEE
+        </a>
+        <p>An AI-powered safety platform designed to get real, coordinated help to you faster — wherever you are.</p>
+        <p style="margin-top:8px;"><a href="https://getsafetee.com" style="color:var(--blue); font-size:13.5px; font-weight:500;">getsafetee.com</a></p>
+        <div class="foot-social">
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#AAB4CC"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#AAB4CC" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h5>Product</h5>
+        <a href="#">Features</a>
+        <a href="#">How it works</a>
+        <a href="#">Pricing</a>
+        <a href="#">Updates</a>
+      </div>
+      <div class="foot-col">
+        <h5>Company</h5>
+        <a href="#">About us</a>
+        <a href="#">Careers</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h5>Resources</h5>
+        <a href="#">Help center</a>
+        <a href="#">Safety guides</a>
+        <a href="#">API docs</a>
+        <a href="#">Community</a>
+      </div>
+      <div class="foot-col">
+        <h5>Stay connected</h5>
+        <p style="font-size:13px; color:var(--text-2); margin-bottom:12px;">Get safety tips and product updates.</p>
+        <div class="foot-form">
+          <input type="email" placeholder="Enter your email">
+          <button>Join</button>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p>© 2026 SAFETEE · getsafetee.com — All rights reserved.</p>
+      <div class="foot-legal">
+        <a href="#">Privacy policy</a>
+        <a href="#">Terms of service</a>
+        <a href="#">Data protection</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // mobile menu toggle (simple show/hide of nav links as a dropdown)
+  const toggle = document.querySelector('.menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  toggle.addEventListener('click', () => {
+    const open = navLinks.style.display === 'flex';
+    navLinks.style.display = open ? 'none' : 'flex';
+    navLinks.style.position = 'absolute';
+    navLinks.style.top = '74px';
+    navLinks.style.left = '0';
+    navLinks.style.right = '0';
+    navLinks.style.flexDirection = 'column';
+    navLinks.style.background = 'rgba(5,9,18,0.98)';
+    navLinks.style.padding = '20px 32px';
+    navLinks.style.borderBottom = '1px solid var(--panel-line)';
+    navLinks.style.gap = '18px';
+  });
+
+  // reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => io.observe(el));
+
+  // animated counters
+  const counters = document.querySelectorAll('.num[data-count]');
+  const counterIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.getAttribute('data-count'));
+        const decimals = parseInt(el.getAttribute('data-decimal') || '0');
+        let cur = 0;
+        const steps = 40;
+        const inc = target / steps;
+        const timer = setInterval(() => {
+          cur += inc;
+          if (cur >= target) { cur = target; clearInterval(timer); }
+          el.textContent = decimals ? cur.toFixed(decimals) : Math.round(cur).toLocaleString();
+        }, 30);
+        counterIO.unobserve(el);
+      }
+    });
+  }, { threshold: 0.4 });
+  counters.forEach(el => counterIO.observe(el));
+
+  // pricing toggle
+  const btnMonthly = document.getElementById('btnMonthly');
+  const btnYearly = document.getElementById('btnYearly');
+  const slide = document.getElementById('toggleSlide');
+  const priceValues = document.querySelectorAll('.price-value');
+  const perLabels = document.querySelectorAll('.price-amt .per');
+
+  function setYearly(isYearly) {
+    slide.style.transform = isYearly ? 'translateX(100%)' : 'translateX(0)';
+    btnMonthly.classList.toggle('active', !isYearly);
+    btnYearly.classList.toggle('active', isYearly);
+    priceValues.forEach(el => {
+      el.textContent = isYearly ? el.getAttribute('data-yearly') : el.getAttribute('data-monthly');
+    });
+  }
+  btnMonthly.addEventListener('click', () => setYearly(false));
+  btnYearly.addEventListener('click', () => setYearly(true));
+</script>
+
+</body>
+</html>
