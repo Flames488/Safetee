@@ -248,6 +248,96 @@
 
   .page-note{max-width:390px; margin:0 auto 18px; text-align:center; font-size:12.5px; color:var(--text-2); position:relative; z-index:1;}
 
+  /* ============ EMERGENCY MODE OVERLAY ============ */
+  .em-overlay{
+    display:none; position:absolute; inset:0; z-index:50; overflow-y:auto; scrollbar-width:none;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255,71,71,0.16), transparent 60%),
+      linear-gradient(180deg,#180a0f,#0a0810 45%);
+    padding:18px 16px 26px;
+  }
+  .em-overlay::-webkit-scrollbar{display:none;}
+  .em-overlay.active{display:block;}
+  .em-head{display:flex; align-items:center; gap:12px; margin-top:8px;}
+  .em-shield{
+    width:46px; height:46px; border-radius:50%; flex:none; background:rgba(255,71,71,0.14);
+    border:1px solid rgba(255,71,71,0.4); display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 6px rgba(255,71,71,0.08);
+  }
+  .em-head h2{font-size:16px; color:var(--text-0);}
+  .em-head p{font-size:11px; color:var(--text-2); margin-top:2px;}
+  .em-timer{
+    margin-left:auto; text-align:center; background:rgba(255,71,71,0.1); border:1px solid rgba(255,71,71,0.35);
+    border-radius:12px; padding:7px 12px; flex:none;
+  }
+  .em-timer .t{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; color:var(--red);}
+  .em-timer .l{font-size:8.5px; color:var(--text-2); margin-top:1px;}
+
+  .em-status-card{
+    margin-top:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,71,71,0.25); border-radius:16px; padding:14px;
+  }
+  .em-status-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .em-status-top span{font-size:12px; font-weight:600; color:var(--text-0);}
+  .em-active-pill{display:flex; align-items:center; gap:5px; background:rgba(255,71,71,0.16); color:var(--red); font-size:10px; font-weight:700; padding:4px 9px; border-radius:999px;}
+  .em-active-pill .d{width:5px; height:5px; border-radius:50%; background:var(--red); animation:blink 1.2s infinite;}
+  .em-status-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; text-align:center;}
+  .em-status-grid .ic{width:30px; height:30px; border-radius:9px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; margin:0 auto 6px;}
+  .em-status-grid .lbl{font-size:8px; color:var(--text-2); line-height:1.2;}
+  .em-status-grid .val{font-size:9px; font-weight:700; color:var(--green); margin-top:1px;}
+
+  .em-sos-zone{display:flex; flex-direction:column; align-items:center; margin:26px 0 6px;}
+  .em-sos-btn{
+    width:118px; height:118px; border-radius:50%;
+    background:radial-gradient(circle at 35% 28%, #ff7a7a, var(--red) 62%, #b81818 100%);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; letter-spacing:.02em;
+    box-shadow:0 0 0 10px rgba(255,71,71,0.08), 0 0 0 22px rgba(255,71,71,0.05), 0 20px 40px -12px rgba(255,71,71,0.55);
+    animation:sosPulse 2.4s ease-in-out infinite;
+  }
+  .em-sos-caption{text-align:center; margin-top:12px;}
+  .em-sos-caption b{font-size:13px; color:var(--text-0); display:block;}
+  .em-sos-caption span{font-size:11px; color:var(--text-2); margin-top:3px; display:block;}
+
+  .em-card{background:var(--panel-2); border:1px solid var(--panel-line); border-radius:16px; padding:14px; margin-top:14px;}
+  .em-card .card-head h3{font-size:13px;}
+  .em-people-item{display:flex; align-items:center; gap:10px; padding:7px 0;}
+  .em-people-item img{width:34px; height:34px; border-radius:50%; object-fit:cover; flex:none;}
+  .em-people-item .nm{font-size:12px; font-weight:600; color:var(--text-0);}
+  .em-people-item .st{font-size:10px; color:var(--green); margin-top:1px;}
+  .em-people-item .tm{margin-left:auto; font-size:9.5px; color:var(--text-2); font-family:'JetBrains Mono',monospace; flex:none;}
+
+  .em-rec-row{display:flex; align-items:center; gap:12px;}
+  .em-mic{
+    width:46px; height:46px; border-radius:50%; flex:none; background:rgba(62,123,250,0.14);
+    border:1px solid rgba(62,123,250,0.4); display:flex; align-items:center; justify-content:center;
+  }
+  .em-rec-info{flex:1; min-width:0;}
+  .em-rec-info .dur{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--text-0);}
+  .em-rec-info .sub{font-size:10px; color:var(--text-2); margin-top:2px; display:flex; align-items:center; gap:5px;}
+
+  .em-services{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px;}
+  .em-svc-btn{
+    border-radius:13px; padding:12px 6px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-size:10.5px; font-weight:600; color:#fff; text-align:center;
+  }
+  .em-svc-btn .n{font-size:9px; opacity:.85; font-weight:500;}
+
+  .em-safe-btn{
+    width:100%; margin-top:18px; padding:15px; border-radius:14px; background:linear-gradient(135deg,var(--green),#22b46a);
+    color:#052013; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 12px 26px -12px rgba(47,209,128,0.5);
+  }
+  .em-cancel-btn{
+    width:100%; margin-top:10px; padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid var(--panel-line);
+    color:var(--text-1); font-weight:600; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .em-cancel-btn small{font-size:10px; color:var(--text-2); font-weight:400;}
+
+  @media (max-width:390px){
+    .em-status-grid{grid-template-columns:repeat(5,1fr); gap:4px;}
+    .em-status-grid .ic{width:26px; height:26px;}
+  }
+
   @media (max-width:480px){
     body{padding:60px 10px 20px;}
     .phone-shell{border-radius:36px;}
@@ -274,6 +364,101 @@
 <div class="phone-shell">
   <div class="phone-notch"></div>
   <div class="phone-screen" id="scr">
+
+    <!-- EMERGENCY MODE ACTIVATED OVERLAY -->
+    <div class="em-overlay" id="emOverlay">
+      <div class="em-head">
+        <div class="em-shield">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#FF4747" stroke-width="1.8"/></svg>
+        </div>
+        <div>
+          <h2>Emergency Mode Activated</h2>
+          <p>Your trusted contacts are being notified.</p>
+        </div>
+        <div class="em-timer">
+          <div class="t" id="emTimer">00:00</div>
+          <div class="l">TIMER</div>
+        </div>
+      </div>
+
+      <div class="em-status-card">
+        <div class="em-status-top">
+          <span>Emergency Status</span>
+          <span class="em-active-pill"><span class="d"></span>ACTIVE</span>
+        </div>
+        <div class="em-status-grid">
+          <div><div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#3E7BFA"/></svg></div><div class="lbl">GPS</div><div class="val">LIVE</div></div>
+          <div><div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2a4 4 0 00-4 4v4a4 4 0 008 0V6a4 4 0 00-4-4z" fill="#FF4747"/></svg></div><div class="lbl">Audio</div><div class="val">ON</div></div>
+          <div><div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 7a16 16 0 0122 0M5 11a10 10 0 0114 0M9 15a4 4 0 016 0" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round"/></svg></div><div class="lbl">Internet</div><div class="val">OK</div></div>
+          <div><div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#2FD180" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#2FD180"/></svg></div><div class="lbl">Battery</div><div class="val">92%</div></div>
+          <div><div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#2FD180"/></svg></div><div class="lbl">Signal</div><div class="val">Good</div></div>
+        </div>
+      </div>
+
+      <div class="em-sos-zone">
+        <div class="em-sos-btn">SOS</div>
+        <div class="em-sos-caption">
+          <b>Emergency Alert Sent</b>
+          <span>Trusted contacts have been notified.</span>
+        </div>
+      </div>
+
+      <div class="em-card">
+        <div class="card-head"><h3>Live Location</h3><span class="live-tag"><span class="live-dot"></span>LIVE</span></div>
+        <div class="map-box" style="height:100px;">
+          <span class="map-lbl a">VICTORIA ISLAND</span>
+          <div class="map-pin"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#FF4747"/><circle cx="12" cy="9" r="2.2" fill="#0B1428"/></svg></div>
+        </div>
+        <div class="addr-line" style="margin-bottom:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="margin-top:1px; flex:none;"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#FF4747" stroke-width="1.7"/></svg>
+          123 Adeola Odeku St, Victoria Island, Lagos
+        </div>
+      </div>
+
+      <div class="em-card">
+        <div class="card-head"><h3>People Notified</h3><span style="font-size:11px; color:var(--text-2);">4</span></div>
+        <div class="em-people-item"><img src="https://i.pravatar.cc/60?img=44" alt=""><div><div class="nm">Mother</div><div class="st">✓ Alert delivered</div></div><span class="tm">2m ago</span></div>
+        <div class="em-people-item"><img src="https://i.pravatar.cc/60?img=51" alt=""><div><div class="nm">Father</div><div class="st">✓ Viewing location</div></div><span class="tm">1m ago</span></div>
+        <div class="em-people-item"><img src="https://i.pravatar.cc/60?img=25" alt=""><div><div class="nm">Best Friend</div><div class="st">✓ On the way</div></div><span class="tm">3m ago</span></div>
+        <div class="em-people-item"><img src="https://i.pravatar.cc/60?img=59" alt=""><div><div class="nm">Brother</div><div class="st">✓ Confirmed</div></div><span class="tm">1m ago</span></div>
+      </div>
+
+      <div class="em-card">
+        <div class="card-head"><h3>Emergency Recording</h3><span class="live-tag"><span class="live-dot"></span>REC</span></div>
+        <div class="em-rec-row">
+          <div class="em-mic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2a4 4 0 00-4 4v4a4 4 0 008 0V6a4 4 0 00-4-4z" stroke="#3E7BFA" stroke-width="1.7"/><path d="M5 11v1a7 7 0 0014 0v-1M12 19v3" stroke="#3E7BFA" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <div class="em-rec-info">
+            <div class="dur" id="emRecDur">00:00</div>
+            <div class="sub"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6E7994" stroke-width="1.6"/><path d="M8 11V8a4 4 0 118 0v3" stroke="#6E7994" stroke-width="1.6"/></svg>Encrypted &amp; stored securely</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="em-services">
+        <button class="em-svc-btn" style="background:linear-gradient(135deg,#2451c9,#3E7BFA);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.7"/></svg>
+          Police<span class="n">112</span>
+        </button>
+        <button class="em-svc-btn" style="background:linear-gradient(135deg,#c92424,#FF4747);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" stroke="#fff" stroke-width="1.6"/></svg>
+          Ambulance<span class="n">112</span>
+        </button>
+        <button class="em-svc-btn" style="background:linear-gradient(135deg,#c97a24,#F5A623);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2s-6 6-6 11a6 6 0 0012 0c0-2-1-3.5-2-4.5.2 2-1 3-1 3-.3-3-3-4-3-9.5z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          Fire<span class="n">112</span>
+        </button>
+      </div>
+
+      <button class="em-safe-btn" id="emSafeBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" fill="#052013"/></svg>
+        I Am Safe — End Emergency Mode
+      </button>
+      <button class="em-cancel-btn" id="emCancelBtn">
+        Cancel Alert
+        <small>Face ID or PIN required</small>
+      </button>
+    </div>
+
     <div class="status-row">
       <span>9:41</span>
       <span style="display:flex; gap:5px; align-items:center;">
@@ -326,7 +511,7 @@
       <div class="sos-zone">
         <div class="sos-ring r1"></div>
         <div class="sos-ring r2"></div>
-        <div class="sos-btn">
+        <div class="sos-btn" id="sosBtn" role="button" tabindex="0" aria-label="Hold to trigger emergency SOS">
           <span class="txt">SOS</span>
           <span class="hold">Hold for 3 seconds</span>
         </div>
@@ -520,6 +705,65 @@
       requestAnimationFrame(()=> requestAnimationFrame(()=> c.setAttribute('stroke-dashoffset', target)));
     });
   });
+
+  // ============ SOS hold-to-activate + Emergency Mode overlay ============
+  (function(){
+    const sosBtn = document.getElementById('sosBtn');
+    const overlay = document.getElementById('emOverlay');
+    const scr = document.getElementById('scr');
+    const timerEl = document.getElementById('emTimer');
+    const recEl = document.getElementById('emRecDur');
+    const safeBtn = document.getElementById('emSafeBtn');
+    const cancelBtn = document.getElementById('emCancelBtn');
+
+    let holdTimeout = null, tickInterval = null, seconds = 0;
+
+    function fmt(s){
+      const m = Math.floor(s/60).toString().padStart(2,'0');
+      const r = (s%60).toString().padStart(2,'0');
+      return m+':'+r;
+    }
+
+    function activateEmergency(){
+      overlay.classList.add('active');
+      scr.scrollTop = 0;
+      seconds = 0;
+      timerEl.textContent = fmt(seconds);
+      recEl.textContent = fmt(seconds);
+      clearInterval(tickInterval);
+      tickInterval = setInterval(() => {
+        seconds++;
+        timerEl.textContent = fmt(seconds);
+        recEl.textContent = fmt(seconds);
+      }, 1000);
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+    }
+
+    function deactivateEmergency(){
+      overlay.classList.remove('active');
+      clearInterval(tickInterval);
+    }
+
+    function startHold(){
+      sosBtn.style.transform = 'scale(0.94)';
+      holdTimeout = setTimeout(() => {
+        sosBtn.style.transform = '';
+        activateEmergency();
+      }, 1200);
+    }
+    function cancelHold(){
+      sosBtn.style.transform = '';
+      clearTimeout(holdTimeout);
+    }
+
+    sosBtn.addEventListener('pointerdown', startHold);
+    sosBtn.addEventListener('pointerup', cancelHold);
+    sosBtn.addEventListener('pointerleave', cancelHold);
+    sosBtn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activateEmergency(); } });
+
+    safeBtn.addEventListener('click', deactivateEmergency);
+    cancelBtn.addEventListener('click', deactivateEmergency);
+  })();
 </script>
 
 </body>

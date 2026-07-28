@@ -421,7 +421,7 @@
 
   @media (max-width:980px){
     .hero-grid{grid-template-columns:1fr;}
-    .hero-visual{order:-1; min-height:520px; margin-bottom:10px;}
+    .hero-visual{order:-1; min-height:460px; margin-bottom:10px;}
     .hero-copy h1{font-size:42px;}
     .feat-grid, .steps, .test-grid, .price-grid{grid-template-columns:repeat(2,1fr);}
     .why-wrap{grid-template-columns:1fr; gap:40px;}
@@ -431,6 +431,11 @@
     .stat-bar{grid-template-columns:repeat(2,1fr);}
     .stat-cell:nth-child(2){border-right:none;}
     .stat-cell{border-bottom:1px solid var(--panel-line);}
+    /* floating chips are tuned for the wide desktop layout and start
+       overlapping the phone mockup content once it stacks on mobile —
+       hide them here and let the phone mockup speak for itself */
+    .float-chip, .chip-pin-b{display:none;}
+    .radar{width:420px; height:420px;}
   }
   @media (max-width:720px){
     .nav-links{display:none;}
@@ -443,7 +448,9 @@
     .trustbar .wrap{flex-direction:column; align-items:flex-start;}
     .cta-banner{flex-direction:column; text-align:center; padding:40px 28px;}
     .cta-banner .wrap{padding:0;}
+    .hero-visual{min-height:420px;}
     .phone-shell{width:250px; height:510px;}
+    .radar{width:320px; height:320px;}
     .price-card.feat{transform:none;}
     .foot-bottom{flex-direction:column; align-items:flex-start;}
   }
@@ -468,6 +475,9 @@
     .price-amt .num{font-size:34px;}
     .foot-grid{grid-template-columns:1fr;}
     .logo{font-size:17px;}
+    .hero-visual{min-height:380px;}
+    .phone-shell{width:220px; height:450px;}
+    .radar{width:280px; height:280px;}
   }
 </style>
 </head>
@@ -484,7 +494,7 @@
     <ul class="nav-links">
       <li><a href="#">Home</a></li>
       <li><a href="features.html">Features</a></li>
-      <li><a href="#how">About</a></li>
+      <li><a href="about.html">About</a></li>
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="#footer">Contact</a></li>
     </ul>
@@ -988,7 +998,7 @@
       </div>
       <div class="foot-col">
         <h5>Company</h5>
-        <a href="#">About us</a>
+        <a href="about.html">About us</a>
         <a href="#">Careers</a>
         <a href="#">Blog</a>
         <a href="#">Contact</a>

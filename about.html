@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAFETEE — About Us</title>
+<meta name="description" content="SAFETEE exists to help people get help faster during emergencies — AI-powered safety, real-time GPS, trusted contacts and rapid emergency coordination.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#050912;
+    --bg-1:#0A1120;
+    --bg-2:#0F1830;
+    --panel:#101B33;
+    --panel-line:rgba(255,255,255,0.07);
+    --blue:#3E7BFA;
+    --blue-soft:rgba(62,123,250,0.14);
+    --blue-glow:rgba(62,123,250,0.35);
+    --red:#FF4747;
+    --red-soft:rgba(255,71,71,0.14);
+    --green:#2FD180;
+    --green-soft:rgba(47,209,128,0.14);
+    --amber:#F5A623;
+    --amber-soft:rgba(245,166,35,0.14);
+    --purple:#9B7BFF;
+    --purple-soft:rgba(155,123,255,0.14);
+    --text-0:#F3F6FC;
+    --text-1:#AAB4CC;
+    --text-2:#6E7994;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --maxw:1240px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0); color:var(--text-0); font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  img,svg{display:block; max-width:100%;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 32px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--blue); display:inline-flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--blue); box-shadow:0 0 0 4px var(--blue-soft);}
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif; font-weight:600; line-height:1.14; letter-spacing:-0.01em;}
+
+  body::before{
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(60% 45% at 78% 6%, rgba(62,123,250,0.16), transparent 60%),
+      radial-gradient(45% 35% at 10% 30%, rgba(155,123,255,0.08), transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ============ NAV ============ */
+  header{position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(5,9,18,0.72); backdrop-filter:blur(16px) saturate(140%); border-bottom:1px solid var(--panel-line);}
+  nav{max-width:var(--maxw); margin:0 auto; padding:0 32px; height:74px; display:flex; align-items:center; justify-content:space-between;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px;}
+  .logo .mark{width:34px; height:34px; border-radius:9px; background:linear-gradient(150deg,var(--blue),#7C4DFF); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 18px var(--blue-glow);}
+  .nav-links{display:flex; align-items:center; gap:36px;}
+  .nav-links a{font-size:14.5px; color:var(--text-1); font-weight:500; transition:color .2s;}
+  .nav-links a:hover, .nav-links a.on{color:var(--text-0);}
+  .nav-cta{display:flex; align-items:center; gap:20px;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 22px; border-radius:999px; font-weight:600; font-size:14.5px; transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease; white-space:nowrap;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),#6B8CFF); color:#fff; box-shadow:0 8px 24px -8px var(--blue-glow);}
+  .btn-primary:hover{box-shadow:0 10px 30px -6px var(--blue-glow); transform:translateY(-1px);}
+  .btn-ghost{background:transparent; border:1px solid var(--panel-line); color:var(--text-0);}
+  .btn-ghost:hover{border-color:rgba(255,255,255,0.22); background:rgba(255,255,255,0.03);}
+  .btn-lg{padding:15px 28px; font-size:15.5px;}
+  .login-link{font-size:14.5px; color:var(--text-1); font-weight:500;}
+  .login-link:hover{color:var(--text-0);}
+  .menu-toggle{display:none; width:36px; height:36px; align-items:center; justify-content:center;}
+  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after{content:''; display:block; width:20px; height:2px; background:var(--text-0); position:relative; transition:.2s;}
+  .menu-toggle span::before{position:absolute; top:-6px;}
+  .menu-toggle span::after{position:absolute; top:6px;}
+
+  section{position:relative; z-index:1;}
+  .section-pad{padding:110px 0;}
+  .section-head{max-width:640px; margin:0 auto 60px; text-align:center;}
+  .section-head h2{font-size:38px; margin-top:14px; color:var(--text-0);}
+  .section-head p{margin-top:16px; color:var(--text-1); font-size:16px; line-height:1.7;}
+
+  /* ============ ABOUT HERO ============ */
+  .about-hero{padding:158px 0 40px;}
+  .about-hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
+  .about-hero-copy h1{font-size:50px; color:var(--text-0); margin-top:20px;}
+  .about-hero-copy h1 .accent{background:linear-gradient(100deg,var(--blue) 10%,#8FB4FF 60%,var(--purple) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .about-hero-copy p.lead{margin-top:20px; font-size:16.5px; line-height:1.75; color:var(--text-1); max-width:480px;}
+  .about-badges{display:flex; gap:12px; margin-top:30px; flex-wrap:wrap;}
+  .about-badge{display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.035); border:1px solid var(--panel-line); border-radius:999px; padding:9px 16px 9px 10px; font-size:13px; color:var(--text-1);}
+  .about-badge .ic{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;}
+
+  /* original illustration: shield + trusted network */
+  .about-visual{position:relative; display:flex; align-items:center; justify-content:center; min-height:420px;}
+  .av-ring{position:absolute; border-radius:50%; border:1px solid rgba(62,123,250,0.14);}
+  .av-ring.r1{width:420px; height:420px;}
+  .av-ring.r2{width:320px; height:320px; border-color:rgba(62,123,250,0.1);}
+  .av-ring.r3{width:220px; height:220px; border-color:rgba(62,123,250,0.18);}
+  .av-core{position:relative; z-index:2; width:150px; height:150px; border-radius:38px; background:linear-gradient(150deg, rgba(62,123,250,0.22), rgba(124,77,255,0.14)); border:1px solid rgba(62,123,250,0.4); display:flex; align-items:center; justify-content:center; box-shadow:0 30px 70px -20px rgba(62,123,250,0.45);}
+  .av-node{position:absolute; display:flex; align-items:center; gap:8px; background:rgba(15,22,42,0.88); backdrop-filter:blur(10px); border:1px solid var(--panel-line); border-radius:999px; padding:8px 14px 8px 8px; box-shadow:0 14px 30px -12px rgba(0,0,0,0.6); z-index:3; animation:avFloat 5s ease-in-out infinite;}
+  .av-node img{width:26px; height:26px; border-radius:50%; object-fit:cover;}
+  .av-node span{font-size:12px; font-weight:600; color:var(--text-0); white-space:nowrap;}
+  .av-node.n1{top:2%; left:2%; animation-delay:.1s;}
+  .av-node.n2{top:8%; right:0%; animation-delay:.5s;}
+  .av-node.n3{bottom:14%; left:-4%; animation-delay:.9s;}
+  .av-node.n4{bottom:4%; right:6%; animation-delay:1.3s;}
+  @keyframes avFloat{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
+  .av-pulse-line{position:absolute; inset:0; z-index:1; opacity:.9;}
+
+  /* ============ SPLIT (story) ============ */
+  .story-wrap{display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:center;}
+  .story-visual{position:relative; display:flex; justify-content:center;}
+  .mini-phone{width:270px; border-radius:34px; background:linear-gradient(160deg,#111d38,#0a1226); border:1px solid rgba(255,255,255,0.08); box-shadow:0 40px 90px -30px rgba(0,0,0,0.7), 0 0 80px -10px var(--blue-glow); padding:10px;}
+  .mini-screen{border-radius:26px; background:linear-gradient(175deg,#0C1730,#070D1C); padding:16px 14px 18px; position:relative; overflow:hidden;}
+  .mini-alert{display:flex; align-items:center; gap:10px; background:rgba(255,71,71,0.1); border:1px solid rgba(255,71,71,0.3); border-radius:12px; padding:10px 12px; margin-bottom:10px;}
+  .mini-alert .dot{width:8px; height:8px; border-radius:50%; background:var(--red); flex:none; box-shadow:0 0 0 3px rgba(255,71,71,0.25);}
+  .mini-alert b{font-size:12px; display:block; color:var(--text-0);}
+  .mini-alert span{font-size:10.5px; color:var(--text-2);}
+  .mini-row{display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.035); border:1px solid var(--panel-line); border-radius:12px; padding:9px 12px; margin-bottom:9px;}
+  .mini-row img{width:30px; height:30px; border-radius:50%; object-fit:cover; flex:none;}
+  .mini-row .txt{flex:1; min-width:0;}
+  .mini-row b{font-size:12px; display:block; color:var(--text-0);}
+  .mini-row span{font-size:10.5px; color:var(--green);}
+  .mini-row svg{flex:none;}
+  .story-eyebrow{margin-bottom:14px;}
+  .story-copy h2{font-size:32px; margin-top:2px;}
+  .story-copy p{margin-top:16px; font-size:15px; line-height:1.75; color:var(--text-1);}
+  .story-copy p + p{margin-top:14px;}
+  .story-link{display:inline-flex; align-items:center; gap:8px; margin-top:20px; color:var(--blue); font-weight:600; font-size:14px;}
+
+  /* ============ MISSION / VISION ============ */
+  .mv-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  .mv-card{background:linear-gradient(160deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:34px;}
+  .mv-ic{width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+  .mv-card .tag{font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);}
+  .mv-card h3{font-size:22px; margin-top:8px; color:var(--text-0);}
+  .mv-card p{font-size:14.5px; color:var(--text-1); margin-top:10px; line-height:1.65;}
+
+  /* ============ VALUES ============ */
+  .values-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .value-card{background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:28px 24px; transition:transform .25s ease, border-color .25s ease;}
+  .value-card:hover{transform:translateY(-4px); border-color:rgba(255,255,255,0.16);}
+  .value-ic{width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+  .value-card h4{font-size:15.5px; color:var(--text-0); margin-bottom:7px;}
+  .value-card p{font-size:13.5px; color:var(--text-1); line-height:1.6;}
+
+  /* ============ TRUST SPLIT ============ */
+  .trust-split{display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:center;}
+  .trust-checklist{margin-top:22px; display:grid; grid-template-columns:1fr 1fr; gap:14px 24px;}
+  .trust-checkline{display:flex; align-items:flex-start; gap:10px; font-size:14px; color:var(--text-1);}
+  .trust-checkline svg{flex:none; margin-top:2px;}
+  .connect-visual{position:relative; display:flex; align-items:center; justify-content:center; gap:26px; min-height:300px;}
+  .connect-phone{width:110px; height:220px; border-radius:22px; background:linear-gradient(160deg,#111d38,#0a1226); border:1px solid rgba(255,255,255,0.08); box-shadow:0 30px 70px -24px rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; position:relative;}
+  .connect-phone::before{content:''; position:absolute; inset:6px; border-radius:16px; background:linear-gradient(175deg,#0C1730,#070D1C);}
+  .connect-phone .pin{position:relative; z-index:1;}
+  .connect-lock{position:relative; width:74px; height:74px; border-radius:50%; background:rgba(62,123,250,0.14); border:1px solid rgba(62,123,250,0.35); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 10px rgba(62,123,250,0.06);}
+  .connect-line{position:absolute; top:50%; height:1px; background:repeating-linear-gradient(90deg, rgba(62,123,250,0.5) 0 6px, transparent 6px 11px); z-index:0;}
+  .connect-line.l1{left:16%; width:20%;}
+  .connect-line.l2{right:16%; width:20%;}
+  .connect-label{position:absolute; bottom:-30px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--text-2); font-family:'JetBrains Mono',monospace; white-space:nowrap;}
+
+  /* ============ JOURNEY TIMELINE ============ */
+  .journey-track{position:relative; display:grid; grid-template-columns:repeat(6,1fr); gap:16px;}
+  .journey-track::before{content:''; position:absolute; top:24px; left:0; right:0; height:1px; background:repeating-linear-gradient(90deg, rgba(62,123,250,0.35) 0 8px, transparent 8px 14px); z-index:0;}
+  .journey-step{position:relative; z-index:1; text-align:center;}
+  .journey-dot{width:48px; height:48px; border-radius:50%; background:var(--panel); border:1px solid var(--panel-line); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;}
+  .journey-step h5{font-size:13.5px; color:var(--text-0); font-weight:600;}
+  .journey-step .yr{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--blue); margin-top:2px;}
+  .journey-step p{font-size:12px; color:var(--text-2); margin-top:8px; line-height:1.5;}
+
+  /* ============ IMPACT STATS ============ */
+  .stat-bar{display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--panel-line); border-radius:var(--radius-lg); overflow:hidden;}
+  .stat-cell{padding:32px 24px; text-align:center; border-right:1px solid var(--panel-line);}
+  .stat-cell:last-child{border-right:none;}
+  .stat-cell .num{font-family:'Space Grotesk',sans-serif; font-size:34px; font-weight:700; color:var(--text-0);}
+  .stat-cell .lbl{font-size:12.5px; color:var(--text-2); margin-top:6px;}
+
+  /* ============ TEAM ============ */
+  .team-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  .team-card{background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:26px 20px; text-align:center; transition:transform .25s ease, border-color .25s ease;}
+  .team-card:hover{transform:translateY(-4px); border-color:rgba(255,255,255,0.16);}
+  .team-card img{width:76px; height:76px; border-radius:50%; object-fit:cover; margin:0 auto 16px; border:2px solid var(--panel-line);}
+  .team-card h5{font-size:15px; color:var(--text-0);}
+  .team-card .role{font-size:12.5px; color:var(--blue); margin-top:3px; font-weight:500;}
+  .team-card p{font-size:12.5px; color:var(--text-2); margin-top:10px; line-height:1.55;}
+  .team-social{display:flex; justify-content:center; gap:8px; margin-top:14px;}
+  .team-social a{width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--panel-line); display:flex; align-items:center; justify-content:center;}
+
+  /* ============ COMMUNITY MAP ============ */
+  .community-wrap{background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-lg); padding:44px; display:grid; grid-template-columns:0.9fr 1.1fr; gap:44px; align-items:center; overflow:hidden;}
+  .community-copy h3{font-size:26px;}
+  .community-copy p{font-size:14.5px; color:var(--text-1); margin-top:12px; line-height:1.65;}
+  .community-tags{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px;}
+  .community-tag{display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.035); border:1px solid var(--panel-line); border-radius:999px; padding:8px 14px; font-size:12.5px; color:var(--text-1);}
+  .globe-wrap{position:relative; min-height:220px; display:flex; align-items:center; justify-content:center;}
+
+  /* ============ FAQ ============ */
+  .faq-list{max-width:820px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
+  .faq-item{background:var(--panel); border:1px solid var(--panel-line); border-radius:var(--radius-md); overflow:hidden;}
+  .faq-q{width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; text-align:left; font-size:15px; font-weight:600; color:var(--text-0);}
+  .faq-q .plus{flex:none; width:22px; height:22px; border-radius:50%; background:var(--blue-soft); display:flex; align-items:center; justify-content:center; position:relative; transition:transform .25s;}
+  .faq-q .plus svg{transition:transform .25s;}
+  .faq-item.open .faq-q .plus svg{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height .3s ease;}
+  .faq-a p{padding:0 24px 20px; font-size:14px; color:var(--text-1); line-height:1.7;}
+
+  /* ============ CTA ============ */
+  .cta-banner{background:linear-gradient(120deg, #1a3a8f, #2451c9 45%, #6b3fd1); border-radius:28px; padding:52px 56px; display:flex; align-items:center; justify-content:space-between; gap:30px; position:relative; overflow:hidden;}
+  .cta-banner::before{content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0 40px, rgba(255,255,255,0.04) 40px 41px);}
+  .cta-banner h3{font-size:28px; color:#fff; position:relative;}
+  .cta-banner p{font-size:14.5px; color:rgba(255,255,255,0.8); margin-top:8px; position:relative;}
+  .cta-actions{display:flex; gap:14px; flex:none; position:relative;}
+  .cta-banner .btn-ghost{border-color:rgba(255,255,255,0.35); color:#fff;}
+  .cta-banner .btn-ghost:hover{background:rgba(255,255,255,0.1);}
+  .cta-banner .btn-primary{background:#fff; color:#12224d; box-shadow:none;}
+  .cta-banner .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 22px -6px rgba(0,0,0,0.35);}
+
+  /* ============ FOOTER ============ */
+  footer{border-top:1px solid var(--panel-line); padding:70px 0 30px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1.3fr; gap:36px;}
+  .foot-brand p{font-size:13.5px; color:var(--text-2); line-height:1.6; margin-top:14px; max-width:230px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:34px; height:34px; border-radius:9px; background:rgba(255,255,255,0.04); border:1px solid var(--panel-line); display:flex; align-items:center; justify-content:center; transition:background .2s;}
+  .foot-social a:hover{background:rgba(255,255,255,0.09);}
+  .foot-col h5{font-size:13px; color:var(--text-0); margin-bottom:16px; font-weight:600;}
+  .foot-col a{display:block; font-size:13.5px; color:var(--text-2); margin-bottom:11px; transition:color .2s;}
+  .foot-col a:hover{color:var(--text-0);}
+  .foot-form{display:flex; margin-top:14px; border:1px solid var(--panel-line); border-radius:10px; overflow:hidden; background:rgba(255,255,255,0.03);}
+  .foot-form input{flex:1; background:none; border:none; padding:11px 14px; color:var(--text-0); font-size:13px; outline:none;}
+  .foot-form button{background:var(--blue); color:#fff; padding:0 16px; font-size:13px; font-weight:600;}
+  .foot-bottom{margin-top:56px; padding-top:26px; border-top:1px solid var(--panel-line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;}
+  .foot-bottom p{font-size:12.5px; color:var(--text-2);}
+  .foot-legal{display:flex; gap:22px;}
+  .foot-legal a{font-size:12.5px; color:var(--text-2);}
+  .foot-legal a:hover{color:var(--text-0);}
+
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+  :focus-visible{outline:2px solid var(--blue); outline-offset:3px; border-radius:6px;}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1080px){
+    .team-grid{grid-template-columns:repeat(2,1fr);}
+    .journey-track{grid-template-columns:repeat(3,1fr); row-gap:36px;}
+    .journey-track::before{display:none;}
+  }
+  @media (max-width:980px){
+    .about-hero-grid{grid-template-columns:1fr;}
+    .about-visual{order:-1; min-height:340px;}
+    .about-hero-copy h1{font-size:38px;}
+    .story-wrap, .trust-split{grid-template-columns:1fr; gap:40px;}
+    .story-visual, .connect-visual{order:-1;}
+    .mv-grid{grid-template-columns:1fr;}
+    .values-grid{grid-template-columns:repeat(2,1fr);}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .stat-bar{grid-template-columns:repeat(2,1fr);}
+    .stat-cell:nth-child(2){border-right:none;}
+    .stat-cell{border-bottom:1px solid var(--panel-line);}
+    .community-wrap{grid-template-columns:1fr; text-align:center; padding:36px 28px;}
+    .community-tags{justify-content:center;}
+  }
+  @media (max-width:720px){
+    .nav-links{display:none;}
+    .login-link{display:none;}
+    .menu-toggle{display:flex;}
+    .about-hero{padding:130px 0 20px;}
+    .about-hero-copy h1{font-size:32px;}
+    .section-pad{padding:80px 0;}
+    .values-grid{grid-template-columns:1fr;}
+    .journey-track{grid-template-columns:repeat(2,1fr);}
+    .team-grid{grid-template-columns:1fr 1fr;}
+    .cta-banner{flex-direction:column; text-align:center; padding:40px 28px;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .foot-bottom{flex-direction:column; align-items:flex-start;}
+    .trust-checklist{grid-template-columns:1fr;}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 20px;}
+    nav{padding:0 20px;}
+    .section-head h2{font-size:27px;}
+    .about-hero-copy h1{font-size:27px;}
+    .about-hero-copy p.lead{font-size:15px;}
+    .story-copy h2{font-size:25px;}
+    .mv-card{padding:24px;}
+    .team-grid{grid-template-columns:1fr;}
+    .journey-track{grid-template-columns:1fr;}
+    .stat-cell{padding:22px 14px;}
+    .stat-cell .num{font-size:26px;}
+    .cta-banner h3{font-size:22px;}
+    .cta-actions{flex-direction:column; width:100%;}
+    .cta-actions .btn{width:100%;}
+    .foot-grid{grid-template-columns:1fr;}
+    .logo{font-size:17px;}
+    .connect-visual{gap:14px;}
+    .connect-phone{width:88px; height:180px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="index.html" class="logo">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12.5L11 15l4.5-5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      SAFETEE
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="#" class="on">About</a></li>
+      <li><a href="index.html#pricing">Pricing</a></li>
+      <li><a href="index.html#footer">Contact</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="login.html" class="login-link">Log in</a>
+      <a href="login.html" class="btn btn-primary">Sign up</a>
+      <button class="menu-toggle" aria-label="Menu"><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<!-- ============ ABOUT HERO ============ -->
+<section class="about-hero">
+  <div class="wrap about-hero-grid">
+    <div class="about-hero-copy">
+      <span class="eyebrow">Our mission</span>
+      <h1>Building a safer world <span class="accent">through technology.</span></h1>
+      <p class="lead">SAFETEE exists to help people get help faster during emergencies — by combining intelligent technology, trusted contacts, real-time GPS, and rapid coordination when every second counts.</p>
+      <div class="about-badges">
+        <div class="about-badge"><span class="ic" style="background:var(--blue-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2a4 4 0 00-4 4v4a4 4 0 008 0V6a4 4 0 00-4-4z" stroke="#3E7BFA" stroke-width="1.7"/><path d="M5 11v1a7 7 0 0014 0v-1" stroke="#3E7BFA" stroke-width="1.7" stroke-linecap="round"/></svg></span>AI powered</div>
+        <div class="about-badge"><span class="ic" style="background:var(--green-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2FD180" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="#2FD180" stroke-width="1.7" stroke-linecap="round"/></svg></span>Real time, always on</div>
+        <div class="about-badge"><span class="ic" style="background:var(--purple-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#9B7BFF" stroke-width="1.7"/></svg></span>Trusted by families &amp; teams</div>
+      </div>
+    </div>
+
+    <div class="about-visual">
+      <div class="av-ring r1"></div>
+      <div class="av-ring r2"></div>
+      <div class="av-ring r3"></div>
+      <svg class="av-pulse-line" viewBox="0 0 420 420" fill="none">
+        <path d="M60 210 C130 130, 150 300, 210 210 S 300 120, 360 210" stroke="rgba(62,123,250,0.35)" stroke-width="1.4" stroke-dasharray="3 6"/>
+      </svg>
+      <div class="av-core">
+        <svg width="58" height="58" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#8FB4FF" stroke-width="1.5"/><path d="M6 12h3l1.5-4 3 8 1.5-4H18" stroke="#8FB4FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="av-node n1"><img src="https://i.pravatar.cc/60?img=32" alt=""><span>Family</span></div>
+      <div class="av-node n2"><img src="https://i.pravatar.cc/60?img=47" alt=""><span>Friends</span></div>
+      <div class="av-node n3"><img src="https://i.pravatar.cc/60?img=12" alt=""><span>Responders</span></div>
+      <div class="av-node n4"><img src="https://i.pravatar.cc/60?img=59" alt=""><span>Community</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OUR STORY ============ -->
+<section class="section-pad">
+  <div class="wrap story-wrap">
+    <div class="story-visual">
+      <div class="mini-phone">
+        <div class="mini-screen">
+          <div class="mini-alert">
+            <span class="dot"></span>
+            <div><b>SOS Alert · Alex Johnson</b><span>Emergency triggered — now</span></div>
+          </div>
+          <div class="mini-row">
+            <img src="https://i.pravatar.cc/60?img=44" alt="">
+            <div class="txt"><b>Mother</b><span>Live location received</span></div>
+          </div>
+          <div class="mini-row">
+            <img src="https://i.pravatar.cc/60?img=51" alt="">
+            <div class="txt"><b>Father</b><span>On the way</span></div>
+          </div>
+          <div class="mini-row">
+            <img src="https://i.pravatar.cc/60?img=25" alt="">
+            <div class="txt"><b>Emergency contact</b><span>Responding to location</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="story-copy">
+      <span class="eyebrow story-eyebrow">Our story</span>
+      <h2>Why we started</h2>
+      <p>Every day, families face uncertainty — assault, unsafe commutes, missing persons and emergencies happen in communities everywhere. In too many situations, help arrives too late.</p>
+      <p>We realised that lives could be saved if loved ones and responders were alerted instantly, with accurate information — location, context and a direct line to the people who care most.</p>
+      <p>That's why we built SAFETEE — an intelligent safety platform designed to cut emergency response time and give people the peace of mind they deserve.</p>
+      <a href="#" class="story-link">Because every second matters
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#3E7BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MISSION / VISION ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap mv-grid">
+    <div class="mv-card reveal">
+      <div class="mv-ic" style="background:var(--blue-soft);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#3E7BFA" stroke-width="1.7"/><circle cx="12" cy="12" r="4.5" stroke="#3E7BFA" stroke-width="1.7"/><circle cx="12" cy="12" r="1" fill="#3E7BFA"/></svg>
+      </div>
+      <span class="tag">Our mission</span>
+      <h3>To make emergency response faster, smarter, and accessible to everyone.</h3>
+      <p>We build simple, reliable tools that connect people in danger to the people and services who can help — instantly, and without friction.</p>
+    </div>
+    <div class="mv-card reveal">
+      <div class="mv-ic" style="background:var(--purple-soft);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="#9B7BFF" stroke-width="1.7"/><circle cx="12" cy="12" r="3" stroke="#9B7BFF" stroke-width="1.7"/></svg>
+      </div>
+      <span class="tag">Our vision</span>
+      <h3>A future where no one faces danger alone.</h3>
+      <p>We imagine a world where every person — regardless of location or means — has an intelligent safety net watching over them and the people they love.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VALUES ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Our values</span>
+      <h2>What drives everything we build.</h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--amber-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 5.7 6.2.6-4.7 4.2 1.4 6.1L12 15.8 6.5 18.6l1.4-6.1L3.2 8.3l6.2-.6z" fill="#F5A623"/></svg></div>
+        <h4>Trust</h4>
+        <p>We build trust through transparency, integrity and accountability in everything we ship.</p>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--blue-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.7.5 1 1.3 1 2.3h6c0-1 .3-1.8 1-2.3A7 7 0 0012 2z" stroke="#3E7BFA" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h4>Innovation</h4>
+        <p>We embrace creativity and technology to solve real-world safety problems.</p>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--green-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#2FD180" stroke-width="1.6"/><path d="M8 11V8a4 4 0 118 0v3" stroke="#2FD180" stroke-width="1.6"/></svg></div>
+        <h4>Privacy</h4>
+        <p>Your data is yours. We protect it with advanced encryption, always.</p>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--purple-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#9B7BFF" stroke-width="1.6"/><path d="M8 12.5l2.5 3 5.5-6" stroke="#9B7BFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h4>Reliability</h4>
+        <p>We deliver systems people can depend on, day or night, online or off.</p>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--red-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6.5 5.5 5.5 0 0121.5 12c-2.5 4.5-9.5 9-9.5 9z" stroke="#FF4747" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h4>Compassion</h4>
+        <p>We care deeply about people and the communities we serve.</p>
+      </div>
+      <div class="value-card reveal">
+        <div class="value-ic" style="background:var(--blue-soft);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2" stroke="#3E7BFA" stroke-width="1.6"/><path d="M8 10V7a4 4 0 118 0v3" stroke="#3E7BFA" stroke-width="1.6"/></svg></div>
+        <h4>Security</h4>
+        <p>We use industry-leading security to keep you safe at all times.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST / PRIVACY SPLIT ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap trust-split">
+    <div class="connect-visual">
+      <div class="connect-line l1"></div>
+      <div class="connect-line l2"></div>
+      <div class="connect-phone"><div class="pin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#3E7BFA"/><circle cx="12" cy="9" r="2.4" fill="#0A1120"/></svg></div>
+        <span class="connect-label">Your device</span>
+      </div>
+      <div class="connect-lock">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#3E7BFA" stroke-width="1.7"/><path d="M8 11V8a4 4 0 118 0v3" stroke="#3E7BFA" stroke-width="1.7"/></svg>
+        <span class="connect-label" style="bottom:-52px;">Secure connection<br>End-to-end encrypted</span>
+      </div>
+      <div class="connect-phone"><div class="pin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="#2FD180" stroke-width="1.7"/><path d="M13.7 21a2 2 0 01-3.4 0" stroke="#2FD180" stroke-width="1.7"/></svg></div>
+        <span class="connect-label">Trusted contacts</span>
+      </div>
+    </div>
+    <div>
+      <span class="eyebrow">Why people trust SAFETEE</span>
+      <h2 style="font-size:32px; margin-top:12px;">Security. Privacy. Peace of mind.</h2>
+      <p style="margin-top:14px; font-size:15px; color:var(--text-1); line-height:1.7; max-width:480px;">We use advanced technology and strict security standards to ensure you and your loved ones are always protected.</p>
+      <div class="trust-checklist">
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Military-grade encryption</div>
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Real-time GPS with accuracy</div>
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Hidden SOS activation</div>
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Trusted contacts &amp; responders</div>
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Offline emergency support via SMS</div>
+        <div class="trust-checkline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Privacy-first design &amp; data protection</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JOURNEY ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Our journey</span>
+      <h2>From idea to global impact.</h2>
+    </div>
+    <div class="journey-track">
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.7.5 1 1.3 1 2.3h6c0-1 .3-1.8 1-2.3A7 7 0 0012 2z" stroke="#3E7BFA" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h5>Idea</h5><div class="yr">2019</div>
+        <p>A simple idea to help save more lives, faster.</p>
+      </div>
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9B7BFF" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke="#9B7BFF" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <h5>Research</h5><div class="yr">2020</div>
+        <p>We studied real emergency cases across communities.</p>
+      </div>
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 6L2 12l6 6M16 6l6 6-6 6" stroke="#F5A623" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h5>Development</h5><div class="yr">2021</div>
+        <p>Built the platform with intelligent, AI-assisted coordination.</p>
+      </div>
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#2FD180" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h5>Testing</h5><div class="yr">2022</div>
+        <p>Rigorous testing for real-world safety scenarios.</p>
+      </div>
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#F5A623"/></svg></div>
+        <h5>Launch</h5><div class="yr">2023</div>
+        <p>SAFETEE goes live to help protect the world.</p>
+      </div>
+      <div class="journey-step reveal">
+        <div class="journey-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4747" stroke-width="1.6"/><path d="M3 12h18M12 3a14 14 0 010 18 14 14 0 010-18z" stroke="#FF4747" stroke-width="1.6"/></svg></div>
+        <h5>Growth</h5><div class="yr">2024+</div>
+        <p>Expanding to more countries, communities and lives.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IMPACT STATS ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="stat-bar reveal">
+      <div class="stat-cell"><div class="num">250,000+</div><div class="lbl">People protected</div></div>
+      <div class="stat-cell"><div class="num">120+</div><div class="lbl">Organizations</div></div>
+      <div class="stat-cell"><div class="num">18</div><div class="lbl">Countries</div></div>
+      <div class="stat-cell"><div class="num">99.98%</div><div class="lbl">Alert delivery success</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEAM ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Meet the team</span>
+      <h2>The people behind SAFETEE.</h2>
+    </div>
+    <div class="team-grid">
+      <div class="team-card reveal">
+        <img src="https://i.pravatar.cc/160?img=13" alt="">
+        <h5>David Okafor</h5>
+        <div class="role">Founder &amp; CEO</div>
+        <p>Passionate about using technology to make the world safer for everyone.</p>
+        <div class="team-social">
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/></svg></a>
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+      <div class="team-card reveal">
+        <img src="https://i.pravatar.cc/160?img=47" alt="">
+        <h5>Sarah Chen</h5>
+        <div class="role">Lead Engineer</div>
+        <p>Building scalable, intelligent systems that save lives every day.</p>
+        <div class="team-social">
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/></svg></a>
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+      <div class="team-card reveal">
+        <img src="https://i.pravatar.cc/160?img=51" alt="">
+        <h5>Michael Turner</h5>
+        <div class="role">Security Expert</div>
+        <p>Cybersecurity specialist ensuring your data is always protected.</p>
+        <div class="team-social">
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/></svg></a>
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+      <div class="team-card reveal">
+        <img src="https://i.pravatar.cc/160?img=45" alt="">
+        <h5>Aisha Bello</h5>
+        <div class="role">Community Lead</div>
+        <p>Building strong communities and spreading awareness about personal safety.</p>
+        <div class="team-social">
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/></svg></a>
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMUNITY ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="community-wrap reveal">
+      <div class="community-copy">
+        <span class="eyebrow">Our community</span>
+        <h3 style="margin-top:12px;">Safety is stronger together.</h3>
+        <p>SAFETEE connects families, schools, businesses and communities to create a safer world. Together, we look out for one another.</p>
+        <div class="community-tags">
+          <span class="community-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.2" stroke="#3E7BFA" stroke-width="1.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="#3E7BFA" stroke-width="1.5"/><circle cx="17.5" cy="9" r="2.6" stroke="#3E7BFA" stroke-width="1.5"/></svg>Families</span>
+          <span class="community-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z" stroke="#2FD180" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 10.5V16c0 1.5 3 3.5 7 3.5s7-2 7-3.5v-5.5" stroke="#2FD180" stroke-width="1.5"/></svg>Schools</span>
+          <span class="community-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="13" rx="1.5" stroke="#F5A623" stroke-width="1.5"/><path d="M8 8V5a2 2 0 012-2h4a2 2 0 012 2v3" stroke="#F5A623" stroke-width="1.5"/></svg>Businesses</span>
+          <span class="community-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="#9B7BFF" stroke-width="1.5"/><path d="M9 11.5l2 2 3.5-4" stroke="#9B7BFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>NGOs</span>
+          <span class="community-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="8" r="2.6" stroke="#FF4747" stroke-width="1.5"/><circle cx="17" cy="8" r="2.6" stroke="#FF4747" stroke-width="1.5"/><path d="M2 20c0-3 2.2-5.2 5-5.2s5 2.2 5 5.2M12 20c0-3 2.2-5.2 5-5.2s5 2.2 5 5.2" stroke="#FF4747" stroke-width="1.5"/></svg>Communities</span>
+        </div>
+      </div>
+      <div class="globe-wrap">
+        <svg width="100%" height="220" viewBox="0 0 460 220" fill="none">
+          <circle cx="230" cy="150" r="120" stroke="#3E7BFA" stroke-opacity="0.15"/>
+          <ellipse cx="230" cy="150" rx="120" ry="42" stroke="#3E7BFA" stroke-opacity="0.2"/>
+          <ellipse cx="230" cy="150" rx="60" ry="120" stroke="#3E7BFA" stroke-opacity="0.15"/>
+          <circle cx="140" cy="90" r="4" fill="#2FD180"/>
+          <circle cx="300" cy="70" r="4" fill="#3E7BFA"/>
+          <circle cx="360" cy="150" r="4" fill="#F5A623"/>
+          <circle cx="120" cy="180" r="4" fill="#9B7BFF"/>
+          <circle cx="250" cy="200" r="4" fill="#FF4747"/>
+          <path d="M140 90 Q220 40 300 70" stroke="#3E7BFA" stroke-width="1" stroke-dasharray="3 5" opacity="0.6"/>
+          <path d="M300 70 Q340 100 360 150" stroke="#3E7BFA" stroke-width="1" stroke-dasharray="3 5" opacity="0.6"/>
+          <path d="M140 90 Q100 140 120 180" stroke="#3E7BFA" stroke-width="1" stroke-dasharray="3 5" opacity="0.6"/>
+          <path d="M120 180 Q180 210 250 200" stroke="#3E7BFA" stroke-width="1" stroke-dasharray="3 5" opacity="0.6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Frequently asked questions</span>
+      <h2>Still curious?</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">Is SAFETEE free?<span class="plus"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Yes. SAFETEE offers a free plan with core SOS, GPS and trusted-contact features. Family and organization plans unlock journey monitoring, audio recording and advanced analytics.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I use SAFETEE offline?<span class="plus"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Yes. When you lose internet connectivity, SAFETEE automatically falls back to offline SMS alerts so your trusted contacts still receive your emergency and location.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">How does the SOS feature work?<span class="plus"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Hold the SOS button for two seconds to trigger emergency mode. This instantly shares your live location, starts audio recording, and notifies your trusted contacts and, if enabled, local responders.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Who receives my emergency alerts?<span class="plus"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Only the trusted contacts you choose during setup, plus emergency services if you opt in. You control exactly who is notified and what information they can see.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="section-pad" style="padding-top:0;">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <h3>Join the movement to make<br>every second count.</h3>
+        <p>Whether you're protecting yourself, your family, or your organization — SAFETEE is built to help when every second matters.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="login.html" class="btn btn-primary btn-lg">Get started free</a>
+        <a href="index.html#footer" class="btn btn-ghost btn-lg">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="index.html" class="logo">
+          <span class="mark" style="width:30px; height:30px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </span>
+          SAFETEE
+        </a>
+        <p>An AI-powered safety platform designed to get real, coordinated help to you faster — wherever you are.</p>
+        <p style="margin-top:8px;"><a href="https://getsafetee.com" style="color:var(--blue); font-size:13.5px; font-weight:500;">getsafetee.com</a></p>
+        <div class="foot-social">
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#AAB4CC"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#AAB4CC"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#AAB4CC" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#AAB4CC" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#AAB4CC"/></svg></a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h5>Product</h5>
+        <a href="features.html">Features</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="#">Updates</a>
+      </div>
+      <div class="foot-col">
+        <h5>Company</h5>
+        <a href="#" class="on">About us</a>
+        <a href="#">Careers</a>
+        <a href="#">Blog</a>
+        <a href="index.html#footer">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h5>Resources</h5>
+        <a href="#">Help center</a>
+        <a href="#">Safety guides</a>
+        <a href="#">API docs</a>
+        <a href="#">Community</a>
+      </div>
+      <div class="foot-col">
+        <h5>Stay connected</h5>
+        <p style="font-size:13px; color:var(--text-2); margin-bottom:12px;">Get safety tips and product updates.</p>
+        <div class="foot-form">
+          <input type="email" placeholder="Enter your email">
+          <button>Join</button>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p>© 2026 SAFETEE · getsafetee.com — All rights reserved.</p>
+      <div class="foot-legal">
+        <a href="#">Privacy policy</a>
+        <a href="#">Terms of service</a>
+        <a href="#">Data protection</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const toggle = document.querySelector('.menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  toggle.addEventListener('click', () => {
+    const open = navLinks.style.display === 'flex';
+    navLinks.style.display = open ? 'none' : 'flex';
+    Object.assign(navLinks.style, {position:'absolute', top:'74px', left:'0', right:'0', flexDirection:'column', background:'rgba(5,9,18,0.98)', padding:'20px 32px', borderBottom:'1px solid var(--panel-line)', gap:'18px'});
+  });
+
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => io.observe(el));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; });
+      if (!isOpen) { item.classList.add('open'); a.style.maxHeight = a.scrollHeight + 'px'; }
+    });
+  });
+</script>
+
+</body>
+</html>
