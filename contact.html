@@ -10,32 +10,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FFFFFF;
-    --paper-1:#F6F8FC;
-    --paper-2:#EEF2F9;
-    --line:rgba(16,24,43,0.10);
-    --line-strong:rgba(16,24,43,0.16);
-    --ink:#0E1526;
-    --ink-1:#525C72;
-    --ink-2:#8991A3;
+    --paper:#050912;
+    --paper-1:#0A1120;
+    --paper-2:#0F1830;
+    --line:rgba(255,255,255,0.07);
+    --line-strong:rgba(255,255,255,0.14);
+    --ink:#F3F6FC;
+    --ink-1:#AAB4CC;
+    --ink-2:#6E7994;
     --blue:#3E7BFA;
-    --blue-deep:#2451C9;
-    --blue-soft:rgba(62,123,250,0.09);
-    --blue-line:rgba(62,123,250,0.30);
-    --red:#E23B3B;
-    --red-soft:rgba(226,59,59,0.09);
-    --green:#18A672;
-    --green-soft:rgba(24,166,114,0.10);
-    --amber:#D6890F;
-    --amber-soft:rgba(214,137,15,0.12);
-    --purple:#7C5CFA;
-    --purple-soft:rgba(124,92,250,0.10);
+    --blue-deep:#8FB2FF;
+    --blue-soft:rgba(62,123,250,0.14);
+    --blue-line:rgba(62,123,250,0.35);
+    --red:#FF4747;
+    --red-soft:rgba(255,71,71,0.14);
+    --green:#2FD180;
+    --green-soft:rgba(47,209,128,0.14);
+    --amber:#F5A623;
+    --amber-soft:rgba(245,166,35,0.14);
+    --purple:#9B7BFF;
+    --purple-soft:rgba(155,123,255,0.14);
     --radius-lg:20px;
     --radius-md:14px;
     --radius-sm:10px;
     --maxw:1240px;
-    --shadow-card:0 1px 2px rgba(16,24,43,0.04), 0 12px 28px -18px rgba(16,24,43,0.14);
-    --shadow-lift:0 20px 46px -18px rgba(16,24,43,0.22);
+    --shadow-card:0 1px 2px rgba(0,0,0,0.20), 0 12px 28px -18px rgba(0,0,0,0.55);
+    --shadow-lift:0 20px 46px -18px rgba(0,0,0,0.65);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
@@ -82,7 +82,7 @@
   /* ============ NAV ============ */
   header{
     position:fixed; top:0; left:0; right:0; z-index:100;
-    background:rgba(255,255,255,0.82);
+    background:rgba(5,9,18,0.78);
     backdrop-filter:blur(16px) saturate(140%);
     border-bottom:1px solid var(--line);
   }
@@ -109,7 +109,7 @@
   .btn-primary:hover{box-shadow:0 12px 26px -6px rgba(62,123,250,0.6); transform:translateY(-1px);}
   .btn-ghost{background:transparent; border:1px solid var(--line-strong); color:var(--ink);}
   .btn-ghost:hover{border-color:var(--ink-2); background:var(--paper-1);}
-  .btn-dark{background:var(--ink); color:#fff;}
+  .btn-dark{background:var(--paper-2); color:var(--ink);}
   .btn-dark:hover{transform:translateY(-1px); box-shadow:0 12px 26px -10px rgba(14,21,38,0.5);}
   .login-link{font-size:14.5px; color:var(--ink-1); font-weight:500;}
   .login-link:hover{color:var(--ink);}
@@ -125,8 +125,8 @@
   .hero::before{
     content:''; position:absolute; top:0; left:0; right:0; height:640px; z-index:-1;
     background:
-      radial-gradient(50% 60% at 82% 0%, rgba(62,123,250,0.10), transparent 65%),
-      radial-gradient(40% 45% at 6% 20%, rgba(124,92,250,0.06), transparent 60%);
+      radial-gradient(50% 60% at 82% 0%, rgba(62,123,250,0.18), transparent 65%),
+      radial-gradient(40% 45% at 6% 20%, rgba(124,92,250,0.13), transparent 60%);
   }
   .hero-grid{display:grid; grid-template-columns:1fr 0.92fr; gap:40px; align-items:center;}
   .hero-copy h1{font-size:56px; color:var(--ink);}
@@ -142,7 +142,7 @@
   .btn-play svg{width:9px; height:9px;}
   .hero-proof{display:flex; align-items:center; gap:14px; margin-top:44px;}
   .avatar-stack{display:flex;}
-  .avatar-stack img{width:38px; height:38px; border-radius:50%; border:2.5px solid var(--paper); object-fit:cover; margin-left:-10px; background:var(--paper-2); box-shadow:0 1px 4px rgba(16,24,43,0.15);}
+  .avatar-stack img{width:38px; height:38px; border-radius:50%; border:2.5px solid var(--paper); object-fit:cover; margin-left:-10px; background:var(--paper-2); box-shadow:0 1px 4px rgba(0,0,0,0.35);}
   .avatar-stack img:first-child{margin-left:0;}
   .proof-text{font-size:13.5px; color:var(--ink-1); line-height:1.4;}
   .proof-text .stars{color:var(--amber); font-size:13px; letter-spacing:1px;}
@@ -161,7 +161,7 @@
   .phone-shell{
     position:relative; width:280px; height:572px; border-radius:40px;
     background:linear-gradient(160deg,#0F1729,#0A0F1E);
-    border:1px solid rgba(16,24,43,0.08);
+    border:1px solid rgba(255,255,255,0.08);
     box-shadow:var(--shadow-lift);
     padding:12px; z-index:2;
   }
@@ -176,12 +176,12 @@
     width:128px; height:128px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 65%, #b52424 100%);
     display:flex; align-items:center; justify-content:center; flex-direction:column;
-    box-shadow:0 0 0 10px rgba(226,59,59,0.10), 0 0 0 22px rgba(226,59,59,0.06), 0 20px 40px -12px rgba(226,59,59,0.5);
+    box-shadow:0 0 0 10px rgba(255,71,71,0.10), 0 0 0 22px rgba(255,71,71,0.06), 0 20px 40px -12px rgba(255,71,71,0.5);
     animation:sosPulse 2.4s ease-in-out infinite; color:#fff;
   }
   @keyframes sosPulse{
-    0%,100%{box-shadow:0 0 0 10px rgba(226,59,59,0.10), 0 0 0 22px rgba(226,59,59,0.06), 0 20px 40px -12px rgba(226,59,59,0.5);}
-    50%{box-shadow:0 0 0 14px rgba(226,59,59,0.14), 0 0 0 30px rgba(226,59,59,0.07), 0 20px 44px -8px rgba(226,59,59,0.65);}
+    0%,100%{box-shadow:0 0 0 10px rgba(255,71,71,0.10), 0 0 0 22px rgba(255,71,71,0.06), 0 20px 40px -12px rgba(255,71,71,0.5);}
+    50%{box-shadow:0 0 0 14px rgba(255,71,71,0.14), 0 0 0 30px rgba(255,71,71,0.07), 0 20px 44px -8px rgba(255,71,71,0.65);}
   }
   .sos-btn span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; letter-spacing:.02em;}
   .sos-hint{font-size:10.5px; color:#6C7690; margin-top:10px; font-family:'JetBrains Mono',monospace;}
@@ -370,12 +370,12 @@
 
   @media (max-width:980px){
     .hero-grid{grid-template-columns:1fr;}
-    .hero-visual{order:-1; min-height:460px; margin-bottom:10px;}
+    .hero-visual{min-height:460px; margin-bottom:10px;}
     .hero-copy h1{font-size:42px;}
     .feat-grid, .steps, .test-grid, .price-grid{grid-template-columns:repeat(2,1fr);}
     .why-wrap{grid-template-columns:1fr; gap:40px;}
     .dash-wrap{grid-template-columns:1fr;}
-    .dash-map{min-height:320px; order:-1;}
+    .dash-map{min-height:320px;}
     .foot-grid{grid-template-columns:1fr 1fr;}
     .stat-bar{grid-template-columns:repeat(2,1fr);}
     .stat-cell:nth-child(2){border-right:none;}
@@ -448,7 +448,7 @@
   .page-hero{padding:158px 0 30px; text-align:center; position:relative;}
   .page-hero::before{
     content:''; position:absolute; top:0; left:0; right:0; height:420px; z-index:-1;
-    background:radial-gradient(55% 60% at 50% 0%, rgba(62,123,250,0.10), transparent 65%);
+    background:radial-gradient(55% 60% at 50% 0%, rgba(62,123,250,0.18), transparent 65%);
   }
   .page-hero .eyebrow{justify-content:center;}
   .page-hero h1{font-size:44px; margin-top:16px; max-width:640px; margin-left:auto; margin-right:auto;}
@@ -486,7 +486,7 @@
   .form-group textarea{resize:vertical; min-height:120px; font-family:'Inter',sans-serif;}
   .form-note{font-size:12px; color:var(--ink-2); margin-top:14px; line-height:1.6;}
   .form-success{
-    display:none; align-items:center; gap:12px; background:var(--green-soft); border:1px solid rgba(24,166,114,0.3);
+    display:none; align-items:center; gap:12px; background:var(--green-soft); border:1px solid rgba(47,209,128,0.3);
     border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink); margin-top:18px;
   }
   .form-success svg{flex:none;}
@@ -606,7 +606,7 @@
   <div class="wrap">
     <span class="eyebrow">Contact us</span>
     <h1>Talk to a human, not a ticket queue.</h1>
-    <p class="lead">Questions about your account, a partnership idea, or an active safety concern — reach the right team below or send us a message.</p>
+    <p class="lead">Questions about your account, a partnership, or a safety concern — reach the right team below or send us a message.</p>
   </div>
 </section>
 
@@ -623,7 +623,7 @@
       </div>
       <div class="channel-card reveal">
         <div class="channel-ic" style="background:var(--red-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 2 .7 3a2 2 0 01-.4 2.1L8 10.3a16 16 0 006 6l1.5-1.4a2 2 0 012.1-.4c1 .3 2 .5 3 .7a2 2 0 011.7 2z" stroke="#E23B3B" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 2 .7 3a2 2 0 01-.4 2.1L8 10.3a16 16 0 006 6l1.5-1.4a2 2 0 012.1-.4c1 .3 2 .5 3 .7a2 2 0 011.7 2z" stroke="#FF4747" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </div>
         <h4>Urgent safety line</h4>
         <p>If you're in immediate danger, always contact local emergency services first.</p>
@@ -631,7 +631,7 @@
       </div>
       <div class="channel-card reveal">
         <div class="channel-ic" style="background:var(--purple-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#7C5CFA" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#9B7BFF" stroke-width="1.6" stroke-linecap="round"/></svg>
         </div>
         <h4>Partnerships</h4>
         <p>Schools, NGOs, and government agencies looking to roll out SAFETEE at scale.</p>
@@ -639,7 +639,7 @@
       </div>
       <div class="channel-card reveal">
         <div class="channel-ic" style="background:var(--green-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#18A672" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="#18A672" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2FD180" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="#2FD180" stroke-width="1.7" stroke-linecap="round"/></svg>
         </div>
         <h4>Office hours</h4>
         <p>Mon – Fri, 8:00 AM – 6:00 PM WAT. Emergency line is monitored 24/7.</p>
@@ -683,7 +683,7 @@
           <button type="submit" class="btn btn-primary" style="width:100%; padding:14px;">Send message</button>
           <p class="form-note">By submitting, you agree to our <a href="#" style="color:var(--blue-deep); font-weight:600;">privacy policy</a>. We never share your information.</p>
           <div class="form-success" id="formSuccess">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A67222"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span>Message sent — we'll get back to you within one business day.</span>
           </div>
         </form>
@@ -703,13 +703,13 @@
         </div>
         <div class="map-block reveal">
           <svg viewBox="0 0 400 220" fill="none" preserveAspectRatio="xMidYMid slice">
-            <rect width="400" height="220" fill="#F6F8FC"/>
-            <path d="M0,150 C60,130 100,170 160,140 C220,110 260,150 320,120 C360,100 380,110 400,95" stroke="#E7EBF3" stroke-width="14"/>
-            <path d="M0,60 C80,90 140,40 220,70 C280,95 340,60 400,80" stroke="#E7EBF3" stroke-width="10"/>
-            <circle cx="200" cy="105" r="80" stroke="#3E7BFA" stroke-opacity="0.15"/>
+            <rect width="400" height="220" fill="#0A1120"/>
+            <path d="M0,150 C60,130 100,170 160,140 C220,110 260,150 320,120 C360,100 380,110 400,95" stroke="rgba(255,255,255,0.08)" stroke-width="14"/>
+            <path d="M0,60 C80,90 140,40 220,70 C280,95 340,60 400,80" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+            <circle cx="200" cy="105" r="80" stroke="#3E7BFA" stroke-opacity="0.25"/>
           </svg>
           <div class="map-pin-lg">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#E23B3B"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#FF4747"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>
           </div>
         </div>
       </div>
@@ -726,15 +726,15 @@
     <div class="faq-list">
       <div class="faq-item reveal">
         <button class="faq-q"><span>I'm in danger right now — should I contact SAFETEE support?</span><span class="plus"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
-        <div class="faq-a"><p>No — always contact local emergency services first. Use the in-app SOS button so your trusted contacts and location are shared immediately alongside your emergency call.</p></div>
+        <div class="faq-a"><p>No — always contact local emergency services first. Use the in-app SOS button to share your location and alert contacts immediately.</p></div>
       </div>
       <div class="faq-item reveal">
         <button class="faq-q"><span>How quickly will I hear back?</span><span class="plus"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
-        <div class="faq-a"><p>Most messages are answered within one business day. Family and Organization plan subscribers get priority routing and faster response times.</p></div>
+        <div class="faq-a"><p>Most messages are answered within one business day. Family and Organization subscribers get priority, faster responses.</p></div>
       </div>
       <div class="faq-item reveal">
         <button class="faq-q"><span>Can I get on-site training for my school or organization?</span><span class="plus"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#3E7BFA" stroke-width="2.4" stroke-linecap="round"/></svg></span></button>
-        <div class="faq-a"><p>Yes — our partnerships team offers onboarding sessions and training materials for Organization plan customers. Mention this in your message and we'll follow up.</p></div>
+        <div class="faq-a"><p>Yes — our partnerships team offers onboarding sessions and training materials for Organization customers. Mention this in your message.</p></div>
       </div>
     </div>
   </div>
@@ -767,9 +767,9 @@
         <p>An AI-powered safety platform designed to get real, coordinated help to you faster — wherever you are.</p>
         <p style="margin-top:8px;"><a href="https://getsafetee.com" style="color:var(--blue-deep); font-size:13.5px; font-weight:500;">getsafetee.com</a></p>
         <div class="foot-social">
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#525C72"/></svg></a>
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#525C72"/></svg></a>
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#525C72" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#525C72" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#525C72"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#6E7994"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#6E7994"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#6E7994" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#6E7994" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#6E7994"/></svg></a>
         </div>
       </div>
       <div class="foot-col">
@@ -824,7 +824,7 @@
     navLinks.style.left = '0';
     navLinks.style.right = '0';
     navLinks.style.flexDirection = 'column';
-    navLinks.style.background = 'rgba(255,255,255,0.98)';
+    navLinks.style.background = 'rgba(5,9,18,0.98)';
     navLinks.style.padding = '20px 32px';
     navLinks.style.borderBottom = '1px solid var(--line)';
     navLinks.style.gap = '18px';

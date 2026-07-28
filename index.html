@@ -10,32 +10,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FFFFFF;
-    --paper-1:#F6F8FC;
-    --paper-2:#EEF2F9;
-    --line:rgba(16,24,43,0.10);
-    --line-strong:rgba(16,24,43,0.16);
-    --ink:#0E1526;
-    --ink-1:#525C72;
-    --ink-2:#8991A3;
+    --paper:#050912;
+    --paper-1:#0A1120;
+    --paper-2:#0F1830;
+    --line:rgba(255,255,255,0.07);
+    --line-strong:rgba(255,255,255,0.14);
+    --ink:#F3F6FC;
+    --ink-1:#AAB4CC;
+    --ink-2:#6E7994;
     --blue:#3E7BFA;
-    --blue-deep:#2451C9;
-    --blue-soft:rgba(62,123,250,0.09);
-    --blue-line:rgba(62,123,250,0.30);
-    --red:#E23B3B;
-    --red-soft:rgba(226,59,59,0.09);
-    --green:#18A672;
-    --green-soft:rgba(24,166,114,0.10);
-    --amber:#D6890F;
-    --amber-soft:rgba(214,137,15,0.12);
-    --purple:#7C5CFA;
-    --purple-soft:rgba(124,92,250,0.10);
+    --blue-deep:#8FB2FF;
+    --blue-soft:rgba(62,123,250,0.14);
+    --blue-line:rgba(62,123,250,0.35);
+    --red:#FF4747;
+    --red-soft:rgba(255,71,71,0.14);
+    --green:#2FD180;
+    --green-soft:rgba(47,209,128,0.14);
+    --amber:#F5A623;
+    --amber-soft:rgba(245,166,35,0.14);
+    --purple:#9B7BFF;
+    --purple-soft:rgba(155,123,255,0.14);
+    --wheat-line:rgba(155,123,255,0.35);
     --radius-lg:20px;
     --radius-md:14px;
     --radius-sm:10px;
     --maxw:1240px;
-    --shadow-card:0 1px 2px rgba(16,24,43,0.04), 0 12px 28px -18px rgba(16,24,43,0.14);
-    --shadow-lift:0 20px 46px -18px rgba(16,24,43,0.22);
+    --shadow-card:0 1px 2px rgba(0,0,0,0.20), 0 12px 28px -18px rgba(0,0,0,0.55);
+    --shadow-lift:0 20px 46px -18px rgba(0,0,0,0.65);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
@@ -82,7 +83,7 @@
   /* ============ NAV ============ */
   header{
     position:fixed; top:0; left:0; right:0; z-index:100;
-    background:rgba(255,255,255,0.82);
+    background:rgba(5,9,18,0.78);
     backdrop-filter:blur(16px) saturate(140%);
     border-bottom:1px solid var(--line);
   }
@@ -109,8 +110,8 @@
   .btn-primary:hover{box-shadow:0 12px 26px -6px rgba(62,123,250,0.6); transform:translateY(-1px);}
   .btn-ghost{background:transparent; border:1px solid var(--line-strong); color:var(--ink);}
   .btn-ghost:hover{border-color:var(--ink-2); background:var(--paper-1);}
-  .btn-dark{background:var(--ink); color:#fff;}
-  .btn-dark:hover{transform:translateY(-1px); box-shadow:0 12px 26px -10px rgba(14,21,38,0.5);}
+  .btn-dark{background:var(--paper-2); color:var(--ink);}
+  .btn-dark:hover{transform:translateY(-1px); box-shadow:0 12px 26px -10px rgba(0,0,0,0.5);}
   .login-link{font-size:14.5px; color:var(--ink-1); font-weight:500;}
   .login-link:hover{color:var(--ink);}
   .menu-toggle{display:none; width:36px; height:36px; align-items:center; justify-content:center;}
@@ -125,8 +126,8 @@
   .hero::before{
     content:''; position:absolute; top:0; left:0; right:0; height:640px; z-index:-1;
     background:
-      radial-gradient(50% 60% at 82% 0%, rgba(62,123,250,0.10), transparent 65%),
-      radial-gradient(40% 45% at 6% 20%, rgba(124,92,250,0.06), transparent 60%);
+      radial-gradient(50% 60% at 82% 0%, rgba(62,123,250,0.18), transparent 65%),
+      radial-gradient(40% 45% at 6% 20%, rgba(124,92,250,0.13), transparent 60%);
   }
   .hero-grid{display:grid; grid-template-columns:1fr 0.92fr; gap:40px; align-items:center;}
   .hero-copy h1{font-size:56px; color:var(--ink);}
@@ -142,7 +143,7 @@
   .btn-play svg{width:9px; height:9px;}
   .hero-proof{display:flex; align-items:center; gap:14px; margin-top:44px;}
   .avatar-stack{display:flex;}
-  .avatar-stack img{width:38px; height:38px; border-radius:50%; border:2.5px solid var(--paper); object-fit:cover; margin-left:-10px; background:var(--paper-2); box-shadow:0 1px 4px rgba(16,24,43,0.15);}
+  .avatar-stack img{width:38px; height:38px; border-radius:50%; border:2.5px solid var(--paper); object-fit:cover; margin-left:-10px; background:var(--paper-2); box-shadow:0 1px 4px rgba(0,0,0,0.35);}
   .avatar-stack img:first-child{margin-left:0;}
   .proof-text{font-size:13.5px; color:var(--ink-1); line-height:1.4;}
   .proof-text .stars{color:var(--amber); font-size:13px; letter-spacing:1px;}
@@ -161,7 +162,7 @@
   .phone-shell{
     position:relative; width:280px; height:572px; border-radius:40px;
     background:linear-gradient(160deg,#0F1729,#0A0F1E);
-    border:1px solid rgba(16,24,43,0.08);
+    border:1px solid rgba(255,255,255,0.08);
     box-shadow:var(--shadow-lift);
     padding:12px; z-index:2;
   }
@@ -176,12 +177,12 @@
     width:128px; height:128px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 65%, #b52424 100%);
     display:flex; align-items:center; justify-content:center; flex-direction:column;
-    box-shadow:0 0 0 10px rgba(226,59,59,0.10), 0 0 0 22px rgba(226,59,59,0.06), 0 20px 40px -12px rgba(226,59,59,0.5);
+    box-shadow:0 0 0 10px rgba(255,71,71,0.10), 0 0 0 22px rgba(255,71,71,0.06), 0 20px 40px -12px rgba(255,71,71,0.5);
     animation:sosPulse 2.4s ease-in-out infinite; color:#fff;
   }
   @keyframes sosPulse{
-    0%,100%{box-shadow:0 0 0 10px rgba(226,59,59,0.10), 0 0 0 22px rgba(226,59,59,0.06), 0 20px 40px -12px rgba(226,59,59,0.5);}
-    50%{box-shadow:0 0 0 14px rgba(226,59,59,0.14), 0 0 0 30px rgba(226,59,59,0.07), 0 20px 44px -8px rgba(226,59,59,0.65);}
+    0%,100%{box-shadow:0 0 0 10px rgba(255,71,71,0.10), 0 0 0 22px rgba(255,71,71,0.06), 0 20px 40px -12px rgba(255,71,71,0.5);}
+    50%{box-shadow:0 0 0 14px rgba(255,71,71,0.14), 0 0 0 30px rgba(255,71,71,0.07), 0 20px 44px -8px rgba(255,71,71,0.65);}
   }
   .sos-btn span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; letter-spacing:.02em;}
   .sos-hint{font-size:10.5px; color:#6C7690; margin-top:10px; font-family:'JetBrains Mono',monospace;}
@@ -292,7 +293,7 @@
   /* ============ TESTIMONIALS ============ */
   .test-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
   .test-card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-lg); padding:30px 26px; box-shadow:var(--shadow-card); position:relative;}
-  .test-card.popular{border-color:var(--blue-line); background:linear-gradient(165deg, var(--blue-soft), var(--paper));}
+  .test-card.popular{border-color:var(--wheat-line); background:linear-gradient(165deg, var(--paper-2), var(--paper));}
   .test-badge{position:absolute; top:-12px; left:26px; background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:5px 14px; border-radius:999px;}
   .stars-row{color:var(--amber); font-size:14px; letter-spacing:2px;}
   .test-card .quote{font-size:14.5px; color:var(--ink); line-height:1.65; margin:16px 0 22px;}
@@ -308,7 +309,7 @@
     display:flex; flex-direction:column; position:relative; transition:transform .25s, border-color .25s;
     box-shadow:var(--shadow-card);
   }
-  .price-card.feat{background:linear-gradient(165deg, var(--blue-soft), var(--paper)); border-color:var(--blue-line); transform:scale(1.02); box-shadow:var(--shadow-lift);}
+  .price-card.feat{background:linear-gradient(165deg, var(--paper-2), var(--paper)); border-color:var(--wheat-line); transform:scale(1.02); box-shadow:var(--shadow-lift);}
   .price-tag{position:absolute; top:-12px; left:30px; background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:5px 14px; border-radius:999px;}
   .price-card .plan-name{font-size:13px; color:var(--ink-2); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.08em;}
   .price-card h3{font-size:22px; margin-top:10px; color:var(--ink);}
@@ -326,7 +327,7 @@
 
   /* ============ CTA BANNER ============ */
   .cta-banner{
-    background:linear-gradient(120deg, #1E3A9C, #2451C9 45%, #6B3FD1);
+    background:linear-gradient(120deg, #1a3a8f, #2451c9 45%, #6b3fd1);
     border-radius:28px; padding:52px 56px; display:flex; align-items:center; justify-content:space-between; gap:30px;
     position:relative; overflow:hidden;
   }
@@ -370,12 +371,12 @@
 
   @media (max-width:980px){
     .hero-grid{grid-template-columns:1fr;}
-    .hero-visual{order:-1; min-height:460px; margin-bottom:10px;}
+    .hero-visual{min-height:460px; margin-bottom:10px;}
     .hero-copy h1{font-size:42px;}
     .feat-grid, .steps, .test-grid, .price-grid{grid-template-columns:repeat(2,1fr);}
     .why-wrap{grid-template-columns:1fr; gap:40px;}
     .dash-wrap{grid-template-columns:1fr;}
-    .dash-map{min-height:320px; order:-1;}
+    .dash-map{min-height:320px;}
     .foot-grid{grid-template-columns:1fr 1fr;}
     .stat-bar{grid-template-columns:repeat(2,1fr);}
     .stat-cell:nth-child(2){border-right:none;}
@@ -464,7 +465,7 @@
     <div class="hero-copy">
       <span class="eyebrow">AI-powered personal safety platform</span>
       <h1>Stay safe.<br>Stay connected.<br><span class="accent">Help reaches you faster.</span></h1>
-      <p class="lead">Protect yourself and the people you love with one-tap SOS alerts, live location sharing, journey monitoring, and AI emergency coordination — online or off.</p>
+      <p class="lead">Protect yourself and the people you love with one-tap SOS, live location sharing, and AI emergency coordination — online or off.</p>
       <div class="hero-actions">
         <a href="login.html" class="btn btn-primary btn-lg">Get started free
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -488,11 +489,11 @@
       <div class="board"></div>
 
       <div class="float-tag tag-battery">
-        <span class="chip-ic" style="background:var(--green-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#18A672" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#18A672"/><path d="M22 10v4" stroke="#18A672" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="chip-ic" style="background:var(--green-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#2FD180" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#2FD180"/><path d="M22 10v4" stroke="#2FD180" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <div><b>82%</b><span class="sub">Battery</span></div>
       </div>
       <div class="float-tag tag-signal">
-        <span class="chip-ic" style="background:var(--green-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#18A672"/></svg></span>
+        <span class="chip-ic" style="background:var(--green-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#2FD180"/></svg></span>
         <div><b>Strong</b><span class="sub">Signal</span></div>
       </div>
       <div class="float-tag tag-shield">
@@ -500,7 +501,7 @@
         <div><b>Protected</b><span class="sub">24/7 monitoring</span></div>
       </div>
       <div class="float-tag tag-status">
-        <span class="chip-ic" style="background:var(--green-soft);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#18A672" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="chip-ic" style="background:var(--green-soft);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2FD180" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <div><b>All clear</b><span class="sub">Emergency status</span></div>
       </div>
       <div class="float-tag tag-pin-a" style="background:var(--blue-soft); border-color:var(--blue-line);">
@@ -508,7 +509,7 @@
       </div>
       <div class="tag-pin-b" style="position:absolute;">
         <div class="float-tag" style="background:var(--purple-soft); border-color:rgba(124,92,250,0.30);">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#7C5CFA"/><circle cx="12" cy="9" r="2.4" fill="#fff"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="#9B7BFF"/><circle cx="12" cy="9" r="2.4" fill="#fff"/></svg>
         </div>
       </div>
 
@@ -518,7 +519,7 @@
             <span>9:41</span>
             <span style="display:flex; gap:5px; align-items:center;">
               <svg width="14" height="10" viewBox="0 0 24 18" fill="#8A93AC"><rect x="1" y="9" width="3" height="8"/><rect x="7" y="6" width="3" height="11"/><rect x="13" y="3" width="3" height="14"/><rect x="19" y="0" width="3" height="17"/></svg>
-              <svg width="18" height="10" viewBox="0 0 30 16" fill="none"><rect x="1" y="1" width="24" height="12" rx="3" stroke="#8A93AC" stroke-width="1.4"/><rect x="3" y="3" width="19" height="8" rx="1.5" fill="#18A672"/><rect x="26.5" y="5" width="2.5" height="4" rx="1" fill="#8A93AC"/></svg>
+              <svg width="18" height="10" viewBox="0 0 30 16" fill="none"><rect x="1" y="1" width="24" height="12" rx="3" stroke="#8A93AC" stroke-width="1.4"/><rect x="3" y="3" width="19" height="8" rx="1.5" fill="#2FD180"/><rect x="26.5" y="5" width="2.5" height="4" rx="1" fill="#8A93AC"/></svg>
             </span>
           </div>
           <div class="greet-row">
@@ -573,11 +574,11 @@
 
       <div class="mobile-stat-strip">
         <div class="mstat">
-          <span class="chip-ic" style="background:var(--green-soft);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#18A672" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#18A672"/><path d="M22 10v4" stroke="#18A672" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="chip-ic" style="background:var(--green-soft);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#2FD180" stroke-width="1.6"/><rect x="4" y="9" width="12" height="6" rx="1" fill="#2FD180"/><path d="M22 10v4" stroke="#2FD180" stroke-width="1.6" stroke-linecap="round"/></svg></span>
           <div><b>82%</b><span class="sub">Battery</span></div>
         </div>
         <div class="mstat">
-          <span class="chip-ic" style="background:var(--green-soft);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#18A672"/></svg></span>
+          <span class="chip-ic" style="background:var(--green-soft);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 18h2v-3H4v3zM9 18h2v-6H9v6zM14 18h2v-9h-2v9zM19 18h2V6h-2v12z" fill="#2FD180"/></svg></span>
           <div><b>Strong</b><span class="sub">Signal</span></div>
         </div>
         <div class="mstat">
@@ -585,7 +586,7 @@
           <div><b>Protected</b><span class="sub">24/7 monitoring</span></div>
         </div>
         <div class="mstat">
-          <span class="chip-ic" style="background:var(--green-soft);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#18A672" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="chip-ic" style="background:var(--green-soft);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2FD180" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <div><b>All clear</b><span class="sub">Emergency status</span></div>
         </div>
       </div>
@@ -612,13 +613,13 @@
     <div class="section-head reveal">
       <span class="section-tag">Core capabilities</span>
       <h2>Everything an emergency needs, in one tap</h2>
-      <p>SAFETEE combines instant alerts, live tracking and AI monitoring into a single system built to work even when infrastructure doesn't.</p>
+      <p>SAFETEE combines instant alerts, live tracking and AI monitoring into one system that works even when infrastructure doesn't.</p>
     </div>
 
     <div class="feat-grid">
       <div class="feat-card reveal">
         <div class="feat-icon" style="background:var(--red-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E23B3B" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="#E23B3B"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4747" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="#FF4747"/></svg>
         </div>
         <h3>One-tap SOS</h3>
         <p>Instantly alert your trusted contacts and emergency responders with a single press — no menus, no delay.</p>
@@ -632,7 +633,7 @@
       </div>
       <div class="feat-card reveal">
         <div class="feat-icon" style="background:var(--purple-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#7C5CFA" stroke-width="1.8"/><path d="M12 7v5l3.5 2" stroke="#7C5CFA" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#9B7BFF" stroke-width="1.8"/><path d="M12 7v5l3.5 2" stroke="#9B7BFF" stroke-width="1.8" stroke-linecap="round"/></svg>
         </div>
         <h3>Journey monitoring</h3>
         <p>Automatic check-ins and smart alerts trigger if you don't reach your destination on schedule.</p>
@@ -646,7 +647,7 @@
       </div>
       <div class="feat-card reveal">
         <div class="feat-icon" style="background:var(--green-soft);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#18A672" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0014 0v-1M12 19v3" stroke="#18A672" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#2FD180" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0014 0v-1M12 19v3" stroke="#2FD180" stroke-width="1.8" stroke-linecap="round"/></svg>
         </div>
         <h3>Emergency recording</h3>
         <p>Record audio and capture time-stamped evidence automatically during an active emergency.</p>
@@ -681,9 +682,9 @@
       <div class="step-card reveal">
         <div class="step-num">02</div>
         <h3>Tap SOS</h3>
-        <p>Press and hold the large SOS button the moment something feels wrong. No confirmation dialogs to fight through.</p>
+        <p>Press and hold the SOS button the moment something feels wrong — no confirmation dialogs to fight through.</p>
         <div class="step-visual">
-          <div style="width:56px; height:56px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#ff6b6b,#E23B3B 65%,#b52424 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; box-shadow:0 0 0 8px rgba(226,59,59,0.1);">SOS</div>
+          <div style="width:56px; height:56px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#ff6b6b,#FF4747 65%,#b52424 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; box-shadow:0 0 0 8px rgba(255,71,71,0.1);">SOS</div>
         </div>
       </div>
       <div class="step-card reveal">
@@ -691,7 +692,7 @@
         <h3>Help is on the way</h3>
         <p>Trusted contacts and response teams receive your live location and status in under a second.</p>
         <div class="step-visual">
-          <svg width="90" height="70" viewBox="0 0 90 70" fill="none"><path d="M5 55c15-10 30 5 45-8s25-2 35-15" stroke="#3E7BFA" stroke-width="2" stroke-dasharray="4 5"/><circle cx="5" cy="55" r="5" fill="#E23B3B"/><circle cx="85" cy="32" r="5" fill="#3E7BFA"/></svg>
+          <svg width="90" height="70" viewBox="0 0 90 70" fill="none"><path d="M5 55c15-10 30 5 45-8s25-2 35-15" stroke="#3E7BFA" stroke-width="2" stroke-dasharray="4 5"/><circle cx="5" cy="55" r="5" fill="#FF4747"/><circle cx="85" cy="32" r="5" fill="#3E7BFA"/></svg>
         </div>
       </div>
     </div>
@@ -706,23 +707,23 @@
         <h3>Real-time insight.<br>Real-time protection.</h3>
         <p>Every device on your account reports position, speed and risk signals continuously to a single command view.</p>
         <div class="dash-check">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A67222"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Live location updates every second
         </div>
         <div class="dash-check">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A67222"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Smart route tracking and live ETA
         </div>
         <div class="dash-check">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A67222"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Risk detection with safe-zone alerts
         </div>
         <div class="dash-check">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#18A67222"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#18A672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2FD18022"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#2FD180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Emergency responder coordination
         </div>
         <a href="dashboard.html" class="dash-cta">Explore dashboard
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#2451C9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#8FB2FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
 
@@ -730,11 +731,11 @@
         <svg width="100%" height="100%" viewBox="0 0 520 420" style="position:absolute; inset:0;" preserveAspectRatio="none">
           <path d="M60,340 C140,300 160,250 230,230 C300,210 320,150 420,90" stroke="#3E7BFA" stroke-width="3" fill="none" stroke-dasharray="10 8" opacity="0.7"/>
         </svg>
-        <div class="map-pin" style="top:325px; left:48px; background:#E23B3B; box-shadow:0 0 0 6px rgba(226,59,59,0.16);"></div>
+        <div class="map-pin" style="top:325px; left:48px; background:#FF4747; box-shadow:0 0 0 6px rgba(255,71,71,0.16);"></div>
         <div class="map-pin" style="top:78px; left:410px; background:#3E7BFA; box-shadow:0 0 0 6px rgba(62,123,250,0.18);"></div>
         <div class="map-float tl">
           <b>Alex Johnson</b>
-          <span style="color:#18A672; font-size:11px;">● Moving</span>
+          <span style="color:#2FD180; font-size:11px;">● Moving</span>
           <div class="row"><span>ETA</span><b>12 min</b></div>
           <div class="row"><span>Distance</span><b>4.2 km</b></div>
           <div class="row"><span>Speed</span><b>32 km/h</b></div>
@@ -781,10 +782,10 @@
           <circle cx="180" cy="180" r="70" fill="#3E7BFA" fill-opacity="0.06"/>
           <path d="M180 130a50 50 0 00-50 50c0 35 50 70 50 70s50-35 50-70a50 50 0 00-50-50z" stroke="#3E7BFA" stroke-width="2.4" fill="rgba(62,123,250,0.06)"/>
           <path d="M150 180l14 14 24-30" stroke="#3E7BFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="70" cy="90" r="6" fill="#7C5CFA"/>
-          <circle cx="300" cy="100" r="6" fill="#18A672"/>
+          <circle cx="70" cy="90" r="6" fill="#9B7BFF"/>
+          <circle cx="300" cy="100" r="6" fill="#2FD180"/>
           <circle cx="60" cy="270" r="6" fill="#D6890F"/>
-          <circle cx="300" cy="270" r="6" fill="#E23B3B"/>
+          <circle cx="300" cy="270" r="6" fill="#FF4747"/>
         </svg>
       </div>
       <div>
@@ -796,15 +797,15 @@
             <div><h4>Lightning fast alerts</h4><p>Help dispatched in seconds, not minutes.</p></div>
           </div>
           <div class="why-item reveal">
-            <div class="why-ic" style="background:var(--red-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E23B3B" stroke-width="1.8" stroke-dasharray="3 4"/></svg></div>
+            <div class="why-ic" style="background:var(--red-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4747" stroke-width="1.8" stroke-dasharray="3 4"/></svg></div>
             <div><h4>Hidden SOS mode</h4><p>Discreet trigger for silent emergencies.</p></div>
           </div>
           <div class="why-item reveal">
-            <div class="why-ic" style="background:var(--green-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V5l8-3z" stroke="#18A672" stroke-width="1.8"/></svg></div>
+            <div class="why-ic" style="background:var(--green-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V5l8-3z" stroke="#2FD180" stroke-width="1.8"/></svg></div>
             <div><h4>Military-grade encryption</h4><p>Your data stays fully secure and private.</p></div>
           </div>
           <div class="why-item reveal">
-            <div class="why-ic" style="background:var(--purple-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="#7C5CFA" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#7C5CFA" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="why-ic" style="background:var(--purple-soft);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="#9B7BFF" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#9B7BFF" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <div><h4>AI risk monitoring</h4><p>Smart detection flags danger before it escalates.</p></div>
           </div>
           <div class="why-item reveal">
@@ -854,7 +855,7 @@
       <div class="test-card popular reveal">
         <span class="test-badge">Most helpful</span>
         <div class="stars-row">★★★★★</div>
-        <p class="quote">A powerful tool for our field teams — the offline SMS relay has genuinely saved lives on low-signal routes.</p>
+        <p class="quote">A powerful tool for our field teams — the offline SMS relay has saved lives on low-signal routes.</p>
         <div class="test-who">
           <img src="https://i.pravatar.cc/80?img=48" alt="">
           <div><b>Esther Okafor</b><span>NGO Director</span></div>
@@ -879,9 +880,9 @@
         <p class="plan-desc">For individuals getting started with basic protection.</p>
         <div class="price-amt"><span class="cur mono">₦</span><span class="num">0</span><span class="per">/month</span></div>
         <ul class="price-list">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>One-tap SOS</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Live location sharing</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 3 trusted contacts</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>One-tap SOS</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Live location sharing</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 3 trusted contacts</li>
         </ul>
         <a href="login.html" class="btn btn-ghost">Get started</a>
       </div>
@@ -893,9 +894,9 @@
         <p class="plan-desc">Everything in Free, tuned for individuals and families.</p>
         <div class="price-amt"><span class="cur mono">₦</span><span class="num">1,500</span><span class="per">/month</span></div>
         <ul class="price-list">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Everything in Free</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Journey monitoring</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Audio recording</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Everything in Free</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Journey monitoring</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Audio recording</li>
         </ul>
         <a href="login.html" class="btn btn-primary">Get started</a>
       </div>
@@ -906,9 +907,9 @@
         <p class="plan-desc">Everything in Personal, built for teams and organizations.</p>
         <div class="price-amt"><span class="cur mono">₦</span><span class="num">4,500</span><span class="per">/month</span></div>
         <ul class="price-list">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team dashboard</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced analytics</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#18A672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>API access</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team dashboard</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced analytics</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#2FD180" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>API access</li>
         </ul>
         <a href="contact.html" class="btn btn-ghost">Contact sales</a>
       </div>
@@ -945,9 +946,9 @@
         <p>An AI-powered safety platform designed to get real, coordinated help to you faster — wherever you are.</p>
         <p style="margin-top:8px;"><a href="https://getsafetee.com" style="color:var(--blue-deep); font-size:13.5px; font-weight:500;">getsafetee.com</a></p>
         <div class="foot-social">
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#525C72"/></svg></a>
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#525C72"/></svg></a>
-          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#525C72" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#525C72" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#525C72"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" fill="#6E7994"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M23 3a10.9 10.9 0 01-3.1 1.5A4.5 4.5 0 0012 8v1A11 11 0 013 5s-4 9 5 13a12 12 0 01-7 2c9 5 20 0 20-11.5a4.6 4.6 0 000-1A6.7 6.7 0 0023 3z" fill="#6E7994"/></svg></a>
+          <a href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#6E7994" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="#6E7994" stroke-width="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="#6E7994"/></svg></a>
         </div>
       </div>
       <div class="foot-col">
@@ -1002,7 +1003,7 @@
     navLinks.style.left = '0';
     navLinks.style.right = '0';
     navLinks.style.flexDirection = 'column';
-    navLinks.style.background = 'rgba(255,255,255,0.98)';
+    navLinks.style.background = 'rgba(5,9,18,0.98)';
     navLinks.style.padding = '20px 32px';
     navLinks.style.borderBottom = '1px solid var(--line)';
     navLinks.style.gap = '18px';
