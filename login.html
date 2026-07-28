@@ -210,10 +210,11 @@
     .mode-switch button{padding:9px 18px; font-size:12.5px;}
     .oauth-row{flex-direction:column;}
     .back-link span{display:none;}
+    /* 16px prevents iOS Safari from auto-zooming the page on input focus */
+    .field input, .field select{font-size:16px;}
   }
   @media (max-width:340px){
     .form-head h2{font-size:18px;}
-    .field input, .field select{font-size:12.5px;}
   }
 </style>
 </head>
