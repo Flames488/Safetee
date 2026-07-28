@@ -189,6 +189,8 @@
   .trust-card p{font-size:13px; color:var(--l-text-1); line-height:1.6;}
 
   .compare-wrap{background:var(--l-bg-1); border:1px solid var(--l-line); border-radius:20px; overflow:hidden;}
+  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table{min-width:480px;}
   .compare-head{padding:26px 30px; border-bottom:1px solid var(--l-line);}
   .compare-head h3{font-size:19px; color:var(--l-text-0);}
   .compare-head p{font-size:13px; color:var(--l-text-1); margin-top:5px;}
@@ -264,6 +266,25 @@
     .feat-grid, .grid-3, .trust-grid{grid-template-columns:1fr;}
     .foot-grid{grid-template-columns:1fr;}
     .hero-decor{display:none;}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 20px;}
+    nav{padding:0 20px;}
+    .section-pad{padding:60px 0;}
+    .section-head h2{font-size:26px;}
+    .feat-hero h1{font-size:27px;}
+    .feat-hero p{font-size:14.5px;}
+    .feat-hero-actions{flex-direction:column; width:100%;}
+    .feat-hero-actions .btn{width:100%;}
+    .spot-copy h2{font-size:26px;}
+    .trust-inner{padding:70px 0;}
+    .compare-head{padding:20px;}
+    .compare-head h3{font-size:16px;}
+    .cta-shield-wrap h3{font-size:22px;}
+    .cta-shield{width:100px; height:100px;}
+    .cta-shield-actions{flex-direction:column; width:100%;}
+    .cta-shield-actions .btn{width:100%;}
+    .foot-grid{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -491,6 +512,7 @@
         <h3>SAFETEE vs. traditional safety apps</h3>
         <p>A side-by-side look at what's actually included.</p>
       </div>
+      <div class="table-scroll">
       <table>
         <thead>
           <tr>
@@ -510,6 +532,7 @@
           <tr><td>Medical information vault</td><td class="hi-col yes">✓</td><td class="no">✕</td></tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </section>
