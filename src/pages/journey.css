@@ -1,0 +1,29 @@
+.jr-body{ flex:1; padding:0 20px 24px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; }
+
+.jr-route{ padding:16px; display:flex; flex-direction:column; }
+.jr-route-row{ display:flex; align-items:center; gap:12px; padding:6px 0; }
+.jr-route-row input{ flex:1; font-size:14.5px; }
+.jr-route-row span:not(.jr-dot){ font-size:14.5px; color:var(--ink-1); }
+.jr-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.jr-dot-a{ background:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+.jr-dot-b{ background:var(--green); box-shadow:0 0 0 3px var(--green-soft); }
+.jr-route-line{ width:1px; height:16px; background:var(--line-strong); margin-left:4px; }
+
+.jr-label{ margin-top:-8px; }
+
+.jr-duration-row{ display:flex; gap:8px; }
+.jr-chip{
+  flex:1; padding:10px; border-radius:var(--r-sm); background:var(--card); border:1px solid var(--line);
+  font-size:13px; font-weight:600; text-align:center;
+}
+.jr-chip-on{ background:var(--green-soft); border-color:var(--green-line); color:var(--green); }
+
+.jr-contact-list{ display:flex; flex-direction:column; gap:8px; }
+.jr-contact{
+  display:flex; align-items:center; justify-content:space-between; padding:13px 16px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); font-size:14px;
+}
+.jr-contact-on{ border-color:var(--green-line); color:var(--green); background:var(--green-soft); }
+
+.jr-info{ padding:14px; display:flex; gap:10px; align-items:flex-start; background:var(--blue-soft); border-color:var(--blue-line); }
+.jr-info p{ font-size:12.5px; color:var(--ink-1); line-height:1.6; }

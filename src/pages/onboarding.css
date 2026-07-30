@@ -1,0 +1,54 @@
+.ob-screen{ flex:1; display:flex; flex-direction:column; padding:8px 24px 32px; }
+.ob-top{ display:flex; align-items:center; justify-content:space-between; padding:8px 0 28px; }
+.ob-skip{ font-size:12px; color:var(--ink-2); letter-spacing:.06em; }
+
+.ob-step{ flex:1; display:flex; flex-direction:column; animation:obIn .35s ease; }
+@keyframes obIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none; } }
+
+.ob-welcome{ align-items:center; text-align:center; padding-top:26px; }
+.ob-mark{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+
+.ob-h1{ font-size:32px; margin-top:26px; }
+.ob-h1-tight{ margin-top:6px; font-size:27px; }
+.ob-p{ color:var(--ink-1); font-size:14.5px; line-height:1.6; margin-top:14px; max-width:320px; }
+
+.ob-spacer{ flex:1; min-height:24px; }
+
+.ob-link{ margin-top:18px; font-size:12px; color:var(--ink-2); }
+
+.ob-stat-card{
+  margin-top:22px; background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:20px; display:flex; flex-direction:column; gap:6px;
+}
+.ob-stat{ font-size:26px; color:var(--green); }
+.ob-stat-label{ font-size:12.5px; color:var(--ink-1); }
+
+.ob-list{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+.ob-perm, .ob-trigger{
+  display:flex; align-items:flex-start; gap:12px; text-align:left;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); padding:14px;
+  transition:border-color .15s ease, background .15s ease;
+}
+.ob-perm-on, .ob-trigger-on{ border-color:var(--green-line); background:var(--green-soft); }
+.ob-perm-icon{
+  width:36px; height:36px; border-radius:10px; background:var(--bg-2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--green);
+}
+.ob-perm-text{ display:flex; flex-direction:column; gap:3px; flex:1; }
+.ob-perm-text strong{ font-size:14px; }
+.ob-perm-text em{ font-style:normal; font-size:12px; color:var(--ink-2); line-height:1.5; }
+.ob-perm-check{ width:20px; height:20px; color:var(--green); flex-shrink:0; margin-top:2px; }
+
+.ob-icon-badge{
+  width:46px; height:46px; border-radius:14px; background:var(--green-soft); border:1px solid var(--green-line);
+  display:flex; align-items:center; justify-content:center;
+}
+
+.ob-form{ margin-top:22px; display:flex; flex-direction:column; gap:14px; }
+.ob-field{ display:flex; flex-direction:column; gap:8px; }
+.ob-field span{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); }
+.ob-field input{
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:14px 16px; font-size:14.5px; color:var(--ink);
+}
+.ob-field input:focus{ border-color:var(--green-line); }

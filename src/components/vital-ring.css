@@ -1,0 +1,48 @@
+.vital-ring{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+}
+.vital-core{ position:relative; z-index:2; display:flex; align-items:center; justify-content:center; }
+
+.vital-wave{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:1.5px solid var(--wave-color, var(--green-line));
+  animation:vitalPulse 2.6s cubic-bezier(.3,.7,.4,1) infinite;
+  opacity:0;
+}
+.vital-wave-2{ animation-delay:.65s; }
+.vital-wave-3{ animation-delay:1.3s; }
+
+.vital-green{ --wave-color: var(--green-line); }
+.vital-red{ --wave-color: var(--red-line); }
+.vital-blue{ --wave-color: var(--blue-line); }
+
+@keyframes vitalPulse{
+  0%{ transform:scale(.78); opacity:.55; }
+  100%{ transform:scale(1.28); opacity:0; }
+}
+
+.vital-dot{
+  position:relative;
+  display:inline-block;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.vital-dot-green{ background:var(--green); box-shadow:0 0 0 3px var(--green-soft); }
+.vital-dot-red{ background:var(--red); box-shadow:0 0 0 3px var(--red-soft); }
+.vital-dot-blue{ background:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+.vital-dot-amber{ background:var(--amber); box-shadow:0 0 0 3px var(--amber-soft); }
+
+.vital-dot-ping{
+  position:absolute; inset:0; border-radius:50%;
+  background:inherit; animation:dotPing 1.8s ease-out infinite;
+}
+@keyframes dotPing{
+  0%{ transform:scale(1); opacity:.65; }
+  100%{ transform:scale(2.6); opacity:0; }
+}

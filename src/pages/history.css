@@ -1,0 +1,17 @@
+.hs-list{ flex:1; padding:0 20px 24px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+
+.hs-card{ padding:4px; }
+.hs-row{ width:100%; display:flex; align-items:center; gap:11px; padding:12px; text-align:left; }
+.hs-icon{
+  width:34px; height:34px; border-radius:10px; background:var(--blue-soft); color:var(--blue);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.hs-icon-sos{ background:var(--red-soft); color:var(--red); }
+.hs-text{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+.hs-text strong{ font-size:13.5px; }
+.hs-text span{ font-size:12px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hs-date{ font-size:10.5px !important; }
+.hs-chev{ color:var(--ink-2); transition:transform .2s ease; flex-shrink:0; }
+.hs-chev-open{ transform:rotate(180deg); }
+
+.hs-detail{ padding:0 16px 14px 57px; font-size:12px; color:var(--ink-1); line-height:1.6; }
