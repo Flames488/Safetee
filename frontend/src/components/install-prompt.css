@@ -1,0 +1,21 @@
+.install-prompt{
+  position:fixed; left:16px; right:16px; bottom:16px; z-index:200;
+  display:flex; align-items:center; gap:12px; padding:14px 14px 14px 16px;
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-md);
+  box-shadow:var(--shadow-lift);
+}
+.install-prompt-icon{
+  width:34px; height:34px; border-radius:10px; background:var(--green-soft); color:var(--green);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.install-prompt-text{ flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12.5px; }
+.install-prompt-text span{ color:var(--ink-2); font-size:11.5px; }
+.install-prompt-cta{
+  flex-shrink:0; background:var(--green); color:var(--green-ink); font-weight:700; font-size:13px;
+  padding:9px 16px; border-radius:var(--r-pill);
+}
+.install-prompt-dismiss{ flex-shrink:0; color:var(--ink-2); padding:4px; }
+
+@media (min-width:600px){
+  .install-prompt{ left:auto; right:24px; bottom:24px; width:360px; }
+}

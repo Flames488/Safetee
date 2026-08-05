@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: safetee-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
+
+  - job_name: safetee-flower
+    static_configs:
+      - targets: ["flower:5555"]
+
+# Redis and Postgres metrics are NOT wired up yet. To add them:
+#   - Redis: add `oliver006/redis_exporter` as a service, then a
+#     `redis` scrape job pointed at it.
+#   - Postgres: add `prometheuscommunity/postgres_exporter` (only makes
+#     sense if you're running Postgres yourself, not a managed provider —
+#     Supabase etc. expose their own metrics separately).

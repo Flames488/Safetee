@@ -1,0 +1,7 @@
+.cp-body{ flex:1; padding:0 20px 28px; }
+
+/* pr-toggle/pr-tiers/pr-card etc. (from pricing.css) already handle their
+   own centering and max-width — this just removes the public page's
+   hero-section spacing assumption now that it sits directly under a
+   TopBar instead of a marketing hero. */
+.cp-body .pr-toggle{ margin-top:4px; }

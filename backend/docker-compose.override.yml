@@ -1,0 +1,12 @@
+# Local-machine only: this box already has a native PostgreSQL service bound
+# to host port 5432, which collides with the container's default mapping.
+# Remapping to high ports here doesn't affect the api/worker/beat containers
+# (they talk to postgres/redis over the internal docker network by service
+# name), only tools running directly on the host, like a local venv.
+services:
+  postgres:
+    ports:
+      - "55432:5432"
+  redis:
+    ports:
+      - "55433:6379"

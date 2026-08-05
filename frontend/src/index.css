@@ -1,0 +1,166 @@
+:root{
+  /* surfaces */
+  --bg:#060A0F;
+  --bg-1:#0A1017;
+  --bg-2:#0E151D;
+  --card:#111A22;
+  --card-hi:#141F29;
+  --line:rgba(255,255,255,0.08);
+  --line-strong:rgba(255,255,255,0.15);
+
+  /* ink */
+  --ink:#F1F6F4;
+  --ink-1:#A6B3B4;
+  --ink-2:#69767A;
+
+  /* brand: safety green (primary) */
+  --green:#22D3A0;
+  --green-deep:#12A87D;
+  --green-ink:#04120D;
+  --green-soft:rgba(34,211,160,0.13);
+  --green-line:rgba(34,211,160,0.35);
+
+  /* secondary: trust blue */
+  --blue:#4C8DFF;
+  --blue-soft:rgba(76,141,255,0.13);
+  --blue-line:rgba(76,141,255,0.32);
+
+  /* emergency red — reserved for active SOS states only */
+  --red:#FF4B57;
+  --red-deep:#D8323D;
+  --red-soft:rgba(255,75,87,0.14);
+  --red-line:rgba(255,75,87,0.38);
+
+  /* amber — attention / permission needed */
+  --amber:#F5A623;
+  --amber-soft:rgba(245,166,35,0.14);
+
+  --r-lg:24px;
+  --r-md:16px;
+  --r-sm:11px;
+  --r-pill:999px;
+
+  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 16px 32px -20px rgba(0,0,0,.65);
+  --shadow-lift:0 24px 48px -20px rgba(0,0,0,.7);
+
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+
+/* Light theme — same variable names throughout the whole app, so every
+   component that already reads var(--bg)/var(--card)/var(--ink) etc.
+   re-themes automatically with zero changes needed elsewhere. Brand
+   colors (green/blue/red/amber) stay the same in both themes — only
+   surfaces and ink change. */
+[data-theme="light"]{
+  --bg:#F5F7F8;
+  --bg-1:#FFFFFF;
+  --bg-2:#EEF1F3;
+  --card:#FFFFFF;
+  --card-hi:#F7F9FA;
+  --line:rgba(15,23,31,0.09);
+  --line-strong:rgba(15,23,31,0.16);
+
+  --ink:#101418;
+  --ink-1:#4B5A61;
+  --ink-2:#89969D;
+
+  --shadow-card:0 1px 2px rgba(15,23,31,.04), 0 16px 32px -22px rgba(15,23,31,.16);
+  --shadow-lift:0 24px 48px -20px rgba(15,23,31,.22);
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+img,svg{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+ul{ list-style:none; }
+button, input{ font-family:inherit; color:inherit; }
+button{ cursor:pointer; border:none; background:none; }
+input{ background:none; border:none; outline:none; }
+
+h1,h2,h3,h4{
+  font-family:var(--font-display);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-0.01em;
+}
+
+.mono{ font-family:var(--font-mono); letter-spacing:.01em; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+}
+
+::selection{ background:var(--green-soft); color:var(--ink); }
+
+:focus-visible{
+  outline:2px solid var(--green);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:99px; }
+::-webkit-scrollbar-track{ background:transparent; }
+
+/* Single-focus screens (auth, live SOS, live tracking) — full-bleed on
+   mobile. On larger screens these are NEVER a floating, rounded,
+   phone-shaped card centered on the page — that reads as a device mockup,
+   not a real product. Instead: a genuine split-screen SaaS layout for auth
+   (brand panel + full-height form column), and an edge-to-edge, centered
+   layout for immersive in-app states (active SOS, live tracking). */
+.focus-page{
+  min-height:100vh; width:100%;
+  background:
+    radial-gradient(900px 520px at 50% -10%, rgba(34,211,160,.06), transparent),
+    var(--bg);
+}
+.focus-stage{
+  width:100%; max-width:440px; display:flex; flex-direction:column;
+  min-height:100vh;
+}
+
+/* Immersive: SOS / live tracking — full-bleed always, just re-centered
+   and given breathing room on wide viewports. No border, no card. */
+.focus-immersive{ display:flex; justify-content:center; }
+@media (min-width: 720px){
+  .focus-immersive .focus-stage{ min-height:100vh; padding:0 0 48px; }
+}
+
+/* Auth: login / onboarding — a real split screen, like a signed-in SaaS
+   sign-in page, not a phone stood up on a desk. */
+.focus-auth{ display:flex; }
+.focus-auth .focus-stage{ margin:0 auto; }
+
+.focus-brand{
+  display:none;
+  flex-direction:column; justify-content:space-between;
+  width:420px; flex-shrink:0; padding:44px 40px; min-height:100vh;
+  background:var(--bg-1); border-right:1px solid var(--line);
+}
+.focus-brand-top{
+  display:flex; align-items:center; gap:9px; font-size:13px; letter-spacing:.1em;
+  font-weight:700; color:var(--ink);
+}
+.focus-brand-mid h2{ font-size:26px; line-height:1.2; margin-bottom:14px; max-width:320px; }
+.focus-brand-mid p{ font-size:14px; color:var(--ink-1); line-height:1.65; max-width:320px; }
+.focus-brand-points{ display:flex; flex-direction:column; gap:14px; }
+.focus-brand-points li{
+  display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-1);
+}
+.focus-brand-points svg{ color:var(--green); flex-shrink:0; }
+
+@media (min-width: 900px){
+  .focus-brand{ display:flex; }
+  .focus-auth{ justify-content:center; }
+  .focus-auth .focus-stage{ margin:0; padding:0 40px; }
+  .focus-auth .focus-stage > *{ margin:auto 0; }
+}

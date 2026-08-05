@@ -1,0 +1,117 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Navigation2, Check, UserPlus } from 'lucide-react';
+import TopBar from '../components/TopBar';
+import { Card, Button } from '../components/ui';
+import { api } from '../lib/api';
+import './journey.css';
+
+const DURATIONS = [15, 30, 45, 60];
+
+export default function JourneySetup() {
+  const [destination, setDestination] = useState('');
+  const [duration, setDuration] = useState(30);
+  const [contacts, setContacts] = useState(null); // null = loading
+  const [notify, setNotify] = useState([]); // real contact ids
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    api.listContacts()
+      .then((list) => {
+        setContacts(list);
+        // Default to notifying everyone the person has already marked as a
+        // trusted contact — they came here to add a route, not to redo
+        // who's trusted, and it's easy to uncheck someone below.
+        setNotify(list.map((c) => c.id));
+      })
+      .catch(() => setContacts([]));
+  }, []);
+
+  const toggleContact = (id) =>
+    setNotify((n) => (n.includes(id) ? n.filter((x) => x !== id) : [...n, id]));
+
+  const handleStart = async () => {
+    setStarting(true);
+    setStartError('');
+    try {
+      const journey = await api.startJourney({
+        destination_label: destination,
+        expected_minutes: duration,
+        notify_contact_ids: notify,
+      });
+      const notifyContacts = contacts.filter((c) => notify.includes(c.id));
+      navigate(`/app/tracking/${journey.id}`, { state: { journey, notifyContacts } });
+    } catch (err) {
+      setStartError(err.message || 'Could not start this journey. Please try again.');
+      setStarting(false);
+    }
+  };
+
+  const noContacts = contacts !== null && contacts.length === 0;
+
+  return (
+    <>
+      <TopBar title="Journey setup" subtitle="We'll check in automatically until you arrive" />
+      <div className="jr-body">
+        <Card className="jr-route">
+          <div className="jr-route-row">
+            <span className="jr-dot jr-dot-a" />
+            <span>Current location</span>
+          </div>
+          <div className="jr-route-line" />
+          <div className="jr-route-row">
+            <span className="jr-dot jr-dot-b" />
+            <input placeholder="Where are you headed?" value={destination} onChange={(e) => setDestination(e.target.value)} />
+          </div>
+        </Card>
+
+        <span className="section-label jr-label">Expected travel time</span>
+        <div className="jr-duration-row">
+          {DURATIONS.map((d) => (
+            <button key={d} className={`jr-chip ${duration === d ? 'jr-chip-on' : ''}`} onClick={() => setDuration(d)}>
+              {d} min
+            </button>
+          ))}
+        </div>
+
+        <span className="section-label jr-label">Notify while I'm en route</span>
+        {contacts === null && <p className="jr-contacts-note">Loading your trusted contacts…</p>}
+        {noContacts && (
+          <Card className="jr-info">
+            <UserPlus size={16} strokeWidth={2.2} color="var(--blue)" />
+            <p>
+              You don't have any trusted contacts yet, so no one will be notified on this journey.{' '}
+              <button className="jr-inline-link" onClick={() => navigate('/app/contacts')}>Add one first</button>
+            </p>
+          </Card>
+        )}
+        {contacts !== null && contacts.length > 0 && (
+          <div className="jr-contact-list">
+            {contacts.map((c) => {
+              const on = notify.includes(c.id);
+              return (
+                <button key={c.id} className={`jr-contact ${on ? 'jr-contact-on' : ''}`} onClick={() => toggleContact(c.id)}>
+                  <span>{c.name}{c.relationship_label ? ` · ${c.relationship_label}` : ''}</span>
+                  {on && <Check size={15} strokeWidth={2.6} />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <Card className="jr-info">
+          <Navigation2 size={16} strokeWidth={2.2} color="var(--blue)" />
+          <p>If you don't confirm you've arrived within {duration + 10} minutes, Safetee automatically alerts {notify.length || 0} contact{notify.length === 1 ? '' : 's'} with your last known location.</p>
+        </Card>
+
+        {startError && <p className="jr-error" role="alert">{startError}</p>}
+
+        <Button full size="lg" disabled={!destination || starting} onClick={handleStart}>
+          {starting ? 'Starting…' : 'Start journey'}
+        </Button>
+      </div>
+    </>
+  );
+}

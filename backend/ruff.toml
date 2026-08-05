@@ -1,0 +1,18 @@
+line-length = 110
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    "E501",  # line length handled loosely — safety-critical comments explaining
+             # *why*, not just *what*, are more valuable than strict wrapping
+    "B008",  # `Depends(...)` as an argument default is FastAPI's documented
+             # dependency-injection idiom, not the mutable-default-argument
+             # footgun this rule exists to catch
+    "UP042", # SQLAlchemy's `Enum` column type expects `str, enum.Enum` members
+             # to serialize correctly — `enum.StrEnum` is not a drop-in swap here
+]
+
+[lint.per-file-ignores]
+"alembic/env.py" = ["E402"]  # imports after sys.path/config setup are unavoidable here
+"tests/*" = ["B008"]  # pytest fixtures-as-default-args is the standard pattern

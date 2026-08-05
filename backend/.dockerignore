@@ -1,0 +1,29 @@
+# Secrets — never bake these into an image layer
+.env
+.env.*
+!.env.example
+
+# Test artifacts / dev tooling — not needed at runtime, and tests/ pulls in
+# nothing the app imports, so it just bloats the image for no benefit
+tests/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# VCS / editor
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+*.egg-info/
+
+# Celery beat's local schedule file — regenerated at runtime, shouldn't ship
+celerybeat-schedule*

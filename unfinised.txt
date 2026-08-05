@@ -1,0 +1,18 @@
+safetee
+
+PWA
+icon images(logo)
+and admin dashboard(like 2 admin, one of the admin can only watch ad see like active users not make changes but one super admin(mine) can do everything usig like a master password )
+
+Ranked by real-world severity (full detail in the report above):
+
+1. Security — OTP reset has no rate limiting. A 6-digit code with unlimited guesses is a practical account-takeover path.
+2. Bottleneck — blocking SMS call inside an async endpoint. A password-reset request can stall the entire server, including other users' SOS triggers, while it waits on Twilio/Termii.
+3. Test DB schema drift. Not a production bug, but it silently broke 33/42 tests and will keep doing that on every future model change unless the test fixture is fixed to actually rebuild schema.
+4. Password reset never signs you in properly — wrong data shape stored, session status never flipped, so "successful" reset bounces you back to the login screen.
+5. Live tracking lies after a refresh — falsely claims "no one is being notified" even when contacts genuinely were.
+6. Dead "Privacy & data controls" button that directly contradicts a promise made in your own Privacy Policy text.
+7. No way to cancel a journey — the API method exists, nothing calls it.
+8. Settings permission rows aren't keyboard/screen-reader accessible, inconsistent with how Dashboard did the same pattern correctly.
+9. Grammar bug: "Amaka and Tunde and Chidi" for 3+ notified contacts.
+10. No tests at all on the three new endpoints — which is exactly how #1 and #2 slipped through.

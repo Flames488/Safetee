@@ -1,0 +1,88 @@
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--font-body); font-weight:600; letter-spacing:-0.01em;
+  border-radius:var(--r-pill); transition:transform .15s ease, background .15s ease, opacity .15s ease, box-shadow .15s ease;
+  white-space:nowrap;
+}
+.btn:active{ transform:scale(.97); }
+.btn-full{ width:100%; }
+.btn-icon{ display:flex; align-items:center; }
+
+.btn-md{ padding:14px 22px; font-size:15px; }
+.btn-sm{ padding:9px 16px; font-size:13px; }
+.btn-lg{ padding:17px 26px; font-size:16px; }
+
+.btn-primary{ background:var(--green); color:var(--green-ink); box-shadow:0 8px 24px -10px rgba(34,211,160,.55); }
+.btn-primary:hover{ background:#3EE0B4; }
+
+.btn-secondary{ background:var(--card-hi); color:var(--ink); border:1px solid var(--line-strong); }
+.btn-secondary:hover{ border-color:var(--green-line); }
+
+.btn-ghost{ background:transparent; color:var(--ink-1); }
+.btn-ghost:hover{ color:var(--ink); }
+
+.btn-danger{ background:var(--red); color:#2A0709; box-shadow:0 8px 24px -10px rgba(255,75,87,.55); }
+
+.btn-outline-danger{ background:transparent; border:1.5px solid var(--red-line); color:var(--red); }
+.btn-outline-danger:hover{ background:var(--red-soft); }
+
+.btn-outline{ background:transparent; border:1.5px solid var(--line-strong); color:var(--ink); }
+.btn-outline:hover{ border-color:var(--green-line); color:var(--green); }
+
+.theme-toggle{
+  width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-1); flex-shrink:0;
+  transition:border-color .15s ease, color .15s ease;
+}
+.theme-toggle:hover{ border-color:var(--green-line); color:var(--green); }
+
+.btn:disabled{ opacity:.4; pointer-events:none; }
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-card);
+}
+
+.pill{
+  display:inline-flex; align-items:center; gap:6px; align-self:flex-start; width:fit-content;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  padding:5px 10px; border-radius:var(--r-pill);
+  border:1px solid var(--line-strong);
+}
+.pill-good{ color:var(--green); background:var(--green-soft); border-color:var(--green-line); }
+.pill-warn{ color:var(--amber); background:var(--amber-soft); border-color:rgba(245,166,35,.35); }
+.pill-bad{ color:var(--red); background:var(--red-soft); border-color:var(--red-line); }
+.pill-info{ color:var(--blue); background:var(--blue-soft); border-color:var(--blue-line); }
+.pill-neutral{ color:var(--ink-1); background:var(--bg-2); }
+
+.section-label{
+  font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2);
+  display:flex; align-items:center; gap:6px;
+}
+
+.progress-dots{ display:flex; gap:6px; align-items:center; }
+.progress-dots .dot{ width:6px; height:6px; border-radius:99px; background:var(--line-strong); transition:all .25s ease; }
+.progress-dots .dot-active{ width:20px; background:var(--green); }
+.progress-dots .dot-done{ background:var(--green-deep); opacity:.6; }
+
+.toggle{
+  width:44px; height:26px; border-radius:99px; background:var(--bg-2);
+  border:1px solid var(--line-strong); position:relative; flex-shrink:0; transition:background .2s ease;
+}
+.toggle-knob{
+  position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
+  background:var(--ink-1); transition:transform .2s ease, background .2s ease;
+}
+.toggle-on{ background:var(--green-soft); border-color:var(--green-line); }
+.toggle-on .toggle-knob{ transform:translateX(18px); background:var(--green); }
+
+.pw-wrap{ position:relative; }
+.pw-wrap input{ width:100%; padding-right:42px !important; }
+.pw-toggle{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  color:var(--ink-2); transition:color .15s ease, background .15s ease;
+}
+.pw-toggle:hover{ color:var(--ink); background:var(--bg-2); }

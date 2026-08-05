@@ -1,0 +1,16 @@
+.pfm-body{ flex:1; padding:0 20px 28px; display:flex; flex-direction:column; gap:16px; overflow-y:auto; }
+.pfm-field{ display:flex; flex-direction:column; gap:8px; }
+.pfm-field span{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); }
+.pfm-field input, .pfm-field textarea{
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:14px 16px; font-size:14.5px; font-family:inherit; width:100%;
+}
+.pfm-field textarea{ resize:vertical; min-height:140px; line-height:1.6; }
+.pfm-field input:focus, .pfm-field textarea:focus{ border-color:var(--green-line); }
+.pfm-hint{ font-size:12.5px; color:var(--ink-2); line-height:1.6; }
+.pfm-error{ font-size:12.5px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line); border-radius:var(--r-sm); padding:10px 12px; }
+.pfm-success{ font-size:12.5px; color:var(--green); background:var(--green-soft); border:1px solid var(--green-line); border-radius:var(--r-sm); padding:10px 12px; }
+
+@media (min-width:900px){
+  .pfm-body{ max-width:520px; margin:0 auto; padding:0; }
+}

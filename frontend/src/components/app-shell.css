@@ -1,0 +1,106 @@
+.app-shell{ display:flex; flex-direction:column; min-height:100vh; background:var(--bg); }
+
+/* ── Top bar (desktop only — every page carries its own mobile header) ── */
+.app-topbar{
+  display:none;
+  align-items:center; gap:28px;
+  height:64px; padding:0 28px; border-bottom:1px solid var(--line);
+  background:rgba(10,16,23,.9); backdrop-filter:blur(14px);
+  position:sticky; top:0; z-index:30;
+}
+.app-topbar-brand{
+  display:flex; align-items:center; gap:9px; font-size:13px; letter-spacing:.1em; font-weight:700;
+  flex-shrink:0;
+}
+
+.app-topbar-search{ position:relative; flex:1; max-width:380px; }
+.app-search-icon{ position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--ink-2); }
+.app-topbar-search input{
+  width:100%; background:var(--card); border:1px solid var(--line); border-radius:var(--r-pill);
+  padding:9px 14px 9px 36px; font-size:13px;
+}
+.app-topbar-search input:focus{ border-color:var(--green-line); }
+
+.app-topbar-actions{ display:flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0; }
+.app-topbar-item{ position:relative; }
+
+.app-icon-btn{
+  width:38px; height:38px; border-radius:50%; background:var(--card); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-1); position:relative;
+}
+.app-badge-dot{
+  position:absolute; top:8px; right:9px; width:7px; height:7px; border-radius:50%;
+  background:var(--amber); border:1.5px solid var(--bg-1);
+}
+.app-avatar-btn{
+  width:38px; height:38px; border-radius:50%; background:var(--green-soft); color:var(--green);
+  border:1px solid var(--green-line); display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700;
+}
+
+.app-dropdown{
+  position:absolute; top:calc(100% + 10px); right:0; min-width:240px;
+  background:var(--card-hi); border:1px solid var(--line-strong); border-radius:var(--r-md);
+  box-shadow:var(--shadow-lift); padding:6px; z-index:40;
+}
+.app-search-dropdown{ left:0; right:auto; width:100%; min-width:0; }
+.app-dropdown-empty{ padding:12px 10px; font-size:12.5px; color:var(--ink-2); }
+.app-search-result{
+  display:flex; flex-direction:column; gap:2px; width:100%; text-align:left; padding:10px; border-radius:var(--r-sm);
+}
+.app-search-result:hover{ background:var(--bg-2); }
+.app-search-result strong{ font-size:13px; }
+.app-search-result span{ font-size:11.5px; color:var(--ink-2); }
+
+.app-notif-item{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 10px;
+  border-radius:var(--r-sm); font-size:12.5px;
+}
+.app-notif-item:hover{ background:var(--bg-2); }
+
+.app-profile-dropdown button{
+  display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:10px;
+  border-radius:var(--r-sm); font-size:13px;
+}
+.app-profile-dropdown button:hover{ background:var(--bg-2); }
+.app-dropdown-danger{ color:var(--red); }
+
+/* ── Body: sidebar + content ── */
+.app-body{ flex:1; display:flex; }
+
+.app-sidebar{
+  width:224px; flex-shrink:0; position:sticky; top:64px; align-self:flex-start; height:calc(100vh - 64px);
+  display:flex; flex-direction:column;
+  padding:20px 14px; border-right:1px solid var(--line);
+  background:var(--bg-1);
+}
+.app-nav{ display:flex; flex-direction:column; gap:2px; }
+.app-nav-link{
+  display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:var(--r-md);
+  color:var(--ink-1); font-size:14px; font-weight:500; transition:background .15s ease, color .15s ease;
+}
+.app-nav-link:hover{ background:var(--card); color:var(--ink); }
+.app-nav-link-active{ background:var(--green-soft); color:var(--green); }
+
+.app-main{ flex:1; display:flex; justify-content:center; min-width:0; }
+.app-content{
+  width:100%; max-width:640px; display:flex; flex-direction:column; flex:1;
+  padding:32px 24px 48px;
+}
+
+/* Desktop: stop force-fitting every screen into a phone-width column.
+   app-content becomes a full-width canvas; each page sets its own
+   reading width below (narrow + centered for forms/settings, full
+   width for the dashboard's multi-column layout) — the same way a
+   real desktop app varies page width by content, not a fixed shell.
+   Only ONE element ever centers itself (the page's own root class) —
+   capping app-content itself here too would double up the centering
+   and leave a lopsided dead zone on wide monitors. */
+@media (min-width: 900px){
+  .app-topbar{ display:flex; }
+  .app-content{ padding:40px 48px 64px; }
+}
+@media (max-width: 899px){
+  .app-sidebar{ display:none; }
+  .app-content{ padding:0; max-width:100%; }
+}

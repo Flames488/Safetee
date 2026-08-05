@@ -1,0 +1,139 @@
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Production assumes DATABASE_URL in .env points at a managed Postgres
+# (e.g. Supabase's transaction pooler on port 6543) rather than the local
+# `postgres` service — so that service is disabled here, not just ignored.
+# Keep DATABASE_POOL_SIZE small (5 or less) against a pooled connection,
+# same lesson learned running Vitar against Supabase's pooler.
+#
+# api/worker/beat pull a pre-built image from GHCR (built by CI) rather than
+# building locally — the production VPS is low-spec, and a `pip install`
+# build under load is exactly the kind of thing that OOMs it. Set
+# SAFETEE_IMAGE in .env to pin a specific tag; defaults to :latest.
+
+services:
+  postgres:
+    profiles: ["disabled"]
+
+  api:
+    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    command: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8000 --timeout 60
+    restart: unless-stopped
+    volumes: []
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  worker:
+    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    restart: unless-stopped
+    volumes: []
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  beat:
+    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    restart: unless-stopped
+    volumes: []
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  redis:
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # Opt-in: only enable (`docker compose --profile pooling up -d`) if your
+  # Postgres has NO connection pooling of its own — e.g. a self-managed
+  # instance on a bare VPS. Do NOT stack this in front of an already-pooled
+  # connection string (Supabase's transaction pooler, RDS Proxy, etc.) —
+  # that exact redundant-pooling mistake was already made and flagged once
+  # on a sibling project. If DATABASE_URL already points at a pooler, leave
+  # this disabled and point the app straight at it.
+  pgbouncer:
+    image: edoburu/pgbouncer:1.21.0
+    profiles: ["pooling"]
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${UPSTREAM_DATABASE_URL:-}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 10
+    ports:
+      - "127.0.0.1:6432:6432"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  flower:
+    image: mher/flower:2.0
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      CELERY_BROKER_URL: ${REDIS_URL}
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:-admin:changeme}
+    ports:
+      - "127.0.0.1:5555:5555"
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    restart: unless-stopped
+    volumes:
+      - ../infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ../infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../infra/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+
+volumes:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,154 @@
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+const ACCESS_KEY = 'safetee_access_token';
+const REFRESH_KEY = 'safetee_refresh_token';
+
+let accessToken = localStorage.getItem(ACCESS_KEY);
+let refreshToken = localStorage.getItem(REFRESH_KEY);
+let onUnauthorized = null;
+
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
+}
+
+// Called once by AuthContext so api.js can hand control back to it when a
+// session can't be recovered (no/garbage/expired-and-unrefreshable token).
+export function setUnauthorizedHandler(fn) {
+  onUnauthorized = fn;
+}
+
+export function hasSession() {
+  return Boolean(accessToken);
+}
+
+function setTokens(tokens) {
+  accessToken = tokens.access_token;
+  refreshToken = tokens.refresh_token;
+  localStorage.setItem(ACCESS_KEY, accessToken);
+  localStorage.setItem(REFRESH_KEY, refreshToken);
+  return tokens;
+}
+
+function clearTokens() {
+  accessToken = null;
+  refreshToken = null;
+  localStorage.removeItem(ACCESS_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+}
+
+// FastAPI returns `detail` as a plain string for our own HTTPException calls,
+// but as an array of Pydantic error objects for request-validation (422)
+// failures — e.g. [{loc:['body','phone'], msg:'Field required', ...}]. Passed
+// straight into `new Error(...)`, that array silently stringifies to
+// "[object Object],[object Object]" (Error's message argument goes through
+// ToString). Turn it into something a person can actually read instead.
+function formatErrorDetail(detail, status) {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail.map((e) => {
+      const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : null;
+      return field && typeof field === 'string' ? `${field}: ${e.msg}` : e.msg;
+    }).filter(Boolean);
+    if (messages.length) return messages.join('; ');
+  }
+  return `Request failed: ${status}`;
+}
+
+async function rawRequest(path, { method = 'GET', body, auth = true } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth && accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers,
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!res.ok) {
+    const parsed = await res.json().catch(() => ({}));
+    throw new ApiError(formatErrorDetail(parsed.detail, res.status), res.status);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// Wraps rawRequest with a single refresh-and-retry attempt on 401 for
+// authenticated calls, so an expired access token doesn't force a login
+// screen mid-session as long as the refresh token is still good.
+async function request(path, opts = {}) {
+  try {
+    return await rawRequest(path, opts);
+  } catch (err) {
+    const isAuthed = opts.auth !== false;
+    if (err instanceof ApiError && err.status === 401 && isAuthed) {
+      if (refreshToken) {
+        try {
+          setTokens(await rawRequest('/auth/refresh', {
+            method: 'POST',
+            body: { refresh_token: refreshToken },
+            auth: false,
+          }));
+          return await rawRequest(path, opts);
+        } catch {
+          // refresh token is also invalid/expired — fall through to sign-out
+        }
+      }
+      clearTokens();
+      onUnauthorized?.();
+    }
+    throw err;
+  }
+}
+
+export const api = {
+  login: (phone, password) =>
+    rawRequest('/auth/login', { method: 'POST', body: { phone, password }, auth: false }).then(setTokens),
+  signup: (payload) =>
+    rawRequest('/auth/signup', { method: 'POST', body: payload, auth: false }).then(setTokens),
+  logout: () => clearTokens(),
+  forgotPassword: (phone) => rawRequest('/auth/forgot-password', { method: 'POST', body: { phone }, auth: false }),
+  resetPassword: (payload) =>
+    rawRequest('/auth/reset-password', { method: 'POST', body: payload, auth: false }).then(setTokens),
+
+  getMe: () => request('/users/me'),
+  updateProfile: (payload) => request('/users/me', { method: 'PATCH', body: payload }),
+  updateTriggers: (payload) => request('/users/me/triggers', { method: 'PATCH', body: payload }),
+  exportMyData: () => request('/users/me/export'),
+  deleteAccount: (password) => request('/users/me', { method: 'DELETE', body: { password } }),
+
+  listContacts: () => request('/contacts'),
+  addContact: (payload) => request('/contacts', { method: 'POST', body: payload }),
+  deleteContact: (id) => request(`/contacts/${id}`, { method: 'DELETE' }),
+
+  startJourney: (payload) => request('/journeys', { method: 'POST', body: payload }),
+  getJourney: (id) => request(`/journeys/${id}`),
+  checkinJourney: (id, payload) => request(`/journeys/${id}/checkin`, { method: 'POST', body: payload }),
+  markArrived: (id) => request(`/journeys/${id}/arrived`, { method: 'POST' }),
+  cancelJourney: (id) => request(`/journeys/${id}/cancel`, { method: 'POST' }),
+
+  triggerSOS: (payload) => request('/sos/trigger', { method: 'POST', body: payload }),
+  cancelSOS: (id) => request(`/sos/${id}/cancel`, { method: 'POST' }),
+  resolveSOS: (id) => request(`/sos/${id}/resolve`, { method: 'POST' }),
+  activeSOS: () => request('/sos/active'),
+
+  journeyHistory: () => request('/history/journeys'),
+  sosHistory: () => request('/history/sos'),
+
+  systemStatus: () => request('/system/status', { auth: false }),
+
+  listPlans: () => request('/billing/plans', { auth: false }),
+  getSubscription: () => request('/billing/subscription'),
+  checkout: (tier, billingInterval, extraSeats = 0) =>
+    request('/billing/checkout', { method: 'POST', body: { tier, billing_interval: billingInterval, extra_seats: extraSeats } }),
+  cancelSubscription: () => request('/billing/cancel', { method: 'POST' }),
+  paymentHistory: () => request('/billing/history'),
+
+  adminStats: () => request('/admin/stats'),
+  adminUsers: () => request('/admin/users'),
+  adminUpdateRole: (userId, role, masterPassword) =>
+    request(`/admin/users/${userId}/role`, { method: 'POST', body: { role, master_password: masterPassword } }),
+  adminToggleSuspend: (userId, masterPassword) =>
+    request(`/admin/users/${userId}/suspend`, { method: 'POST', body: { master_password: masterPassword } }),
+};

@@ -1,0 +1,56 @@
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user
+from app.db.session import get_db
+from app.models.contact import TrustedContact
+from app.models.user import User
+from app.schemas.user import ContactCreate, ContactOut
+
+router = APIRouter(prefix="/contacts", tags=["contacts"])
+
+
+@router.get("", response_model=list[ContactOut])
+async def list_contacts(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(TrustedContact)
+        .where(TrustedContact.user_id == user.id)
+        .order_by(TrustedContact.priority.asc())
+    )
+    return result.scalars().all()
+
+
+@router.post("", response_model=ContactOut, status_code=status.HTTP_201_CREATED)
+async def create_contact(
+    payload: ContactCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    contact = TrustedContact(user_id=user.id, **payload.model_dump())
+    db.add(contact)
+    await db.commit()
+    await db.refresh(contact)
+    return contact
+
+
+@router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_contact(
+    contact_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(TrustedContact).where(
+            TrustedContact.id == contact_id, TrustedContact.user_id == user.id
+        )
+    )
+    contact = result.scalar_one_or_none()
+    if contact is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
+    await db.delete(contact)
+    await db.commit()

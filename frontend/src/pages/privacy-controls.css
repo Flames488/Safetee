@@ -1,0 +1,16 @@
+.pc-error{
+  font-size:12.5px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line);
+  border-radius:var(--r-sm); padding:10px 12px; margin:-4px 0 0;
+}
+
+.pc-danger{ padding:4px; border-color:var(--red-line); }
+.pc-danger-row{ border-bottom:none; }
+.pc-danger-icon{ background:var(--red-soft); color:var(--red); }
+
+.pc-confirm{
+  margin:2px 12px 10px; padding:12px; display:flex; flex-direction:column; gap:8px;
+  background:var(--red-soft); border:1px solid var(--red-line); border-radius:var(--r-sm);
+}
+.pc-confirm-head{ display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--ink-1); }
+.pc-confirm-head button{ color:var(--ink-2); }
+.pc-confirm .btn{ margin-top:0; }

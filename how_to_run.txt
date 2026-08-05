@@ -1,0 +1,9 @@
+cd C:\Users\USER\OneDrive\Documents\safetee\backend
+.venv\Scripts\activate
+uvicorn app.main:app --reload
+
+
+
+cd C:\Users\USER\OneDrive\Documents\safetee\backend
+.venv\Scripts\activate
+alembic upgrade head

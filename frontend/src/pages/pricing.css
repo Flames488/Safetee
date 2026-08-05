@@ -1,0 +1,92 @@
+.pr{ background:var(--bg); min-height:100vh; display:flex; flex-direction:column; }
+.pr-hero{ max-width:680px; margin:0 auto; padding:56px 24px 8px; text-align:center; }
+
+.pr-toggle{
+  display:flex; gap:4px; margin:28px auto 0; padding:4px; background:var(--card); border:1px solid var(--line);
+  border-radius:var(--r-pill); width:fit-content;
+}
+.pr-toggle button{ padding:9px 18px; border-radius:var(--r-pill); font-size:13px; font-weight:600; color:var(--ink-2); display:flex; align-items:center; gap:8px; }
+.pr-toggle-on{ background:var(--green); color:var(--green-ink) !important; }
+.pr-save{ font-size:10px; padding:2px 7px; border-radius:var(--r-pill); background:rgba(0,0,0,.15); }
+.pr-toggle button:not(.pr-toggle-on) .pr-save{ background:var(--amber-soft); color:var(--amber); }
+
+.pr-loading{ color:var(--ink-2); font-size:13px; text-align:center; margin-top:32px; }
+.pr-fetch-error{ color:var(--red); max-width:360px; margin:32px auto 0; text-align:center; line-height:1.6; }
+
+.pr-tiers{
+  max-width:1080px; margin:40px auto 0; padding:0 24px 8px; width:100%;
+  display:grid; grid-template-columns:1fr; gap:16px;
+}
+@media (min-width:900px){
+  .pr-tiers{ grid-template-columns:repeat(3, 1fr); align-items:start; }
+}
+
+.pr-card{
+  position:relative; background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:28px 24px 24px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow-card);
+}
+.pr-card-popular{ border:1.5px solid var(--green-line); box-shadow:0 0 0 1px var(--green-line), var(--shadow-card); }
+
+.pr-ribbon{
+  position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+  background:var(--green); color:var(--green-ink); font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  padding:5px 14px; border-radius:var(--r-pill); white-space:nowrap;
+}
+
+.pr-card-top{ display:flex; align-items:center; gap:10px; }
+.pr-tier-icon{
+  width:34px; height:34px; border-radius:10px; background:var(--green-soft); color:var(--green);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.pr-card-top h3{ font-size:18px; }
+.pr-tagline{ font-size:12.5px; color:var(--ink-2); line-height:1.55; min-height:32px; }
+
+.pr-price{ display:flex; align-items:baseline; gap:4px; }
+.pr-amount{ font-size:32px; font-weight:700; font-family:var(--font-display); }
+.pr-interval{ font-size:13px; color:var(--ink-2); }
+.pr-seats-included{ font-size:11.5px; color:var(--ink-2); }
+
+.pr-seat-stepper{
+  display:flex; align-items:center; justify-content:space-between; padding:10px 12px;
+  background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r-sm); font-size:12.5px; color:var(--ink-1);
+}
+.pr-seat-controls{ display:flex; align-items:center; gap:10px; }
+.pr-seat-controls button{
+  width:24px; height:24px; border-radius:50%; background:var(--card); border:1px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-1);
+}
+.pr-seat-controls button:hover{ border-color:var(--green-line); color:var(--green); }
+.pr-seat-count{ font-family:var(--font-mono); font-size:13px; min-width:16px; text-align:center; }
+
+.pr-included{ display:flex; flex-direction:column; gap:10px; width:100%; }
+.pr-included li{ display:flex; align-items:flex-start; gap:9px; font-size:12.5px; color:var(--ink-1); line-height:1.5; }
+.pr-check{
+  width:16px; height:16px; border-radius:50%; background:var(--green-soft); color:var(--green);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+}
+
+/* Calm, actionable prompt — not an alarm. This replaces what used to be a
+   full-bleed red error box interrupting checkout; needing one more field
+   is normal friction, not a failure state, so it reads that way now. */
+.pr-email-prompt{
+  display:flex; flex-direction:column; gap:9px; padding:14px; background:var(--blue-soft);
+  border:1px solid var(--blue-line); border-radius:var(--r-md);
+}
+.pr-email-prompt-head{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-1); line-height:1.5; }
+.pr-email-prompt input{
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:10px 12px; font-size:13px;
+}
+.pr-email-prompt input:focus{ border-color:var(--blue-line); }
+
+.pr-error{ font-size:12px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line); border-radius:var(--r-sm); padding:9px 12px; }
+
+.pr-faq{ max-width:640px; margin:40px auto 0; padding:24px 24px 64px; width:100%; }
+.pr-faq-title{ font-size:20px; margin-bottom:14px; }
+.pr-faq-item{ border-top:1px solid var(--line); padding:16px 0; }
+.pr-faq-item:last-child{ border-bottom:1px solid var(--line); }
+.pr-faq-item summary{ cursor:pointer; font-size:14px; font-weight:600; color:var(--ink); list-style:none; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.pr-faq-item summary::-webkit-details-marker{ display:none; }
+.pr-faq-item summary::after{ content:'+'; font-size:18px; color:var(--ink-2); font-weight:400; flex-shrink:0; }
+.pr-faq-item[open] summary::after{ content:'–'; }
+.pr-faq-item p{ font-size:13px; color:var(--ink-1); line-height:1.6; margin-top:10px; }
