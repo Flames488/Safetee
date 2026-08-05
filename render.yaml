@@ -7,13 +7,13 @@
 # the Render dashboard after the first blueprint deploy.
 databases:
   - name: safetee-db
-    plan: starter
+    plan: free
     postgresMajorVersion: 16
 
 services:
   - type: redis
     name: safetee-redis
-    plan: starter
+    plan: free
     ipAllowList: []
 
   - type: web
@@ -21,7 +21,7 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    plan: starter
+    plan: free
     healthCheckPath: /health
     preDeployCommand: alembic upgrade head
     envVars:
@@ -71,7 +71,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
-    plan: starter
+    plan: free
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -103,7 +103,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     dockerCommand: celery -A app.workers.celery_app beat --loglevel=info
-    plan: starter
+    plan: free
     envVars:
       - key: DATABASE_URL
         fromDatabase:
