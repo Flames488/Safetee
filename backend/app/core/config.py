@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +17,20 @@ class Settings(BaseSettings):
     database_url: str
     database_pool_size: int = 5
     database_max_overflow: int = 5
+
+    @field_validator("database_url")
+    @classmethod
+    def _require_asyncpg_driver(cls, v: str) -> str:
+        # Managed Postgres providers (Render, Heroku-style, etc.) generally
+        # hand out a plain `postgresql://` connection string, which
+        # SQLAlchemy's asyncio engine rejects outright ("requires an async
+        # driver") since it defaults to psycopg2. Normalize it here once so
+        # every caller of settings.database_url — the app's async engine,
+        # alembic's migration runner — just works, regardless of the scheme
+        # the hosting provider happens to generate.
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
     redis_url: str = "redis://redis:6379/0"
 
