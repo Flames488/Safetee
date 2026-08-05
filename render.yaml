@@ -23,7 +23,8 @@ services:
     dockerContext: ./backend
     plan: free
     healthCheckPath: /health
-    preDeployCommand: alembic upgrade head
+    # Free tier doesn't support preDeployCommand — migrations instead run
+    # as part of the Docker image's default CMD (see backend/Dockerfile).
     envVars:
       - key: DATABASE_URL
         fromDatabase:
