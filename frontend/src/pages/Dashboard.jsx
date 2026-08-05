@@ -5,7 +5,7 @@ import {
   ChevronRight, User, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
-import { Card, Pill, Button, KpiCard } from '../components/ui';
+import { Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow } from '../components/ui';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import { useReliability } from '../lib/useReliability';
@@ -184,7 +184,7 @@ export default function Dashboard() {
 
         {planBanner && (
           <div className={`dash-billing-card dash-billing-${planBanner.tone}`}>
-            <span className="dash-billing-icon"><AlertCircle size={18} strokeWidth={2.2} /></span>
+            <IconTile icon={AlertCircle} tone={planBanner.tone} size={36} />
             <div className="dash-billing-text">
               <strong>{planBanner.text}</strong>
               <span>{planBanner.detail}</span>
@@ -244,16 +244,16 @@ export default function Dashboard() {
             <div className="dash-section-head">
               <span className="section-label"><Clock size={12} strokeWidth={2.4} /> Recent activity</span>
             </div>
-            {activity === null && <Card className="dash-activity-empty">Loading…</Card>}
+            {activity === null && <Card className="dash-activity"><SkeletonRow columns={2} /></Card>}
             {activity !== null && activity.length === 0 && (
-              <Card className="dash-activity-empty">Nothing yet — your journeys and alerts will show up here.</Card>
+              <EmptyState title="Nothing yet" message="Your journeys and alerts will show up here." />
             )}
             {activity?.map((item) => {
               const meta = ACTIVITY_META[item.kind][item.status] || { title: item.status, tone: 'neutral' };
               const Icon = item.kind === 'sos' ? ShieldAlert : Navigation;
               return (
                 <Card key={item.id} className="dash-activity">
-                  <span className={`dash-activity-icon dash-activity-${meta.tone}`}><Icon size={15} strokeWidth={2.1} /></span>
+                  <IconTile icon={Icon} tone={meta.tone} size={32} />
                   <div className="dash-activity-text">
                     <strong>{meta.title}</strong>
                     <span>
@@ -271,12 +271,13 @@ export default function Dashboard() {
                 View all <ChevronRight size={13} strokeWidth={2.4} />
               </button>
             </div>
-            {contacts === null && <Card className="dash-activity-empty">Loading…</Card>}
+            {contacts === null && <Card className="dash-contact-row"><SkeletonRow columns={2} /></Card>}
             {contacts !== null && contacts.length === 0 && (
-              <Card className="dash-activity-empty">
-                No trusted contacts yet.{' '}
-                <button className="dash-inline-link" onClick={() => navigate('/app/contacts')}>Add your first one</button>
-              </Card>
+              <EmptyState
+                title="No trusted contacts yet"
+                message="Add someone to be notified the moment you trigger an alert."
+                action={<Button size="sm" onClick={() => navigate('/app/contacts')}>Add your first one</Button>}
+              />
             )}
             {contacts?.slice(0, 3).map((c) => (
               <Card key={c.id} interactive className="dash-contact-row" onClick={() => navigate('/app/contacts')}>
@@ -299,7 +300,7 @@ export default function Dashboard() {
         <div className="dash-tips">
           {TIPS.map((tip) => (
             <Card key={tip.text} className="dash-tip">
-              <span className="dash-tip-icon"><tip.icon size={17} strokeWidth={2} /></span>
+              <IconTile icon={tip.icon} tone="warn" size={36} />
               <p>{tip.text}</p>
             </Card>
           ))}
