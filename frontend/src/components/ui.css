@@ -1,7 +1,9 @@
 .btn{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--font-body); font-weight:600; letter-spacing:-0.01em;
-  border-radius:var(--r-pill); transition:transform .15s ease, background .15s ease, opacity .15s ease, box-shadow .15s ease;
+  border-radius:var(--r-pill);
+  transition:transform var(--dur-fast) var(--ease-out), background var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
   white-space:nowrap;
 }
 .btn:active{ transform:scale(.97); }
@@ -12,29 +14,29 @@
 .btn-sm{ padding:9px 16px; font-size:13px; }
 .btn-lg{ padding:17px 26px; font-size:16px; }
 
-.btn-primary{ background:var(--green); color:var(--green-ink); box-shadow:0 8px 24px -10px rgba(34,211,160,.55); }
-.btn-primary:hover{ background:#3EE0B4; }
+.btn-primary{ background:var(--brand-gradient); color:var(--brand-ink); box-shadow:0 10px 28px -12px rgba(110,91,255,.6); }
+.btn-primary:hover{ box-shadow:0 14px 34px -12px rgba(110,91,255,.7); transform:translateY(-1px); }
 
 .btn-secondary{ background:var(--card-hi); color:var(--ink); border:1px solid var(--line-strong); }
-.btn-secondary:hover{ border-color:var(--green-line); }
+.btn-secondary:hover{ border-color:var(--brand-line); }
 
 .btn-ghost{ background:transparent; color:var(--ink-1); }
 .btn-ghost:hover{ color:var(--ink); }
 
-.btn-danger{ background:var(--red); color:#2A0709; box-shadow:0 8px 24px -10px rgba(255,75,87,.55); }
+.btn-danger{ background:var(--danger); color:#2A0709; box-shadow:0 8px 24px -10px rgba(255,75,92,.55); }
 
-.btn-outline-danger{ background:transparent; border:1.5px solid var(--red-line); color:var(--red); }
-.btn-outline-danger:hover{ background:var(--red-soft); }
+.btn-outline-danger{ background:transparent; border:1.5px solid var(--danger-line); color:var(--danger); }
+.btn-outline-danger:hover{ background:var(--danger-soft); }
 
 .btn-outline{ background:transparent; border:1.5px solid var(--line-strong); color:var(--ink); }
-.btn-outline:hover{ border-color:var(--green-line); color:var(--green); }
+.btn-outline:hover{ border-color:var(--brand-line); color:var(--brand-bright); }
 
 .theme-toggle{
   width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--line-strong);
   display:flex; align-items:center; justify-content:center; color:var(--ink-1); flex-shrink:0;
-  transition:border-color .15s ease, color .15s ease;
+  transition:border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
 }
-.theme-toggle:hover{ border-color:var(--green-line); color:var(--green); }
+.theme-toggle:hover{ border-color:var(--brand-line); color:var(--brand-bright); }
 
 .btn:disabled{ opacity:.4; pointer-events:none; }
 
@@ -42,7 +44,29 @@
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--r-lg);
-  box-shadow:var(--shadow-card);
+  box-shadow:var(--shadow-sm);
+}
+
+/* Actionable / interactive card — hover-lift with a shadow that grows
+   and warms toward the brand tint, the single most-reused "premium"
+   interaction across the new design system. */
+.card-interactive{
+  cursor:pointer;
+  transition:transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+.card-interactive:hover{
+  transform:translateY(-2px);
+  border-color:var(--brand-line);
+  box-shadow:var(--shadow-md);
+}
+.card-interactive:active{ transform:translateY(0) scale(.995); }
+
+.card-glass{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border-radius:var(--r-lg);
 }
 
 .pill{
@@ -51,10 +75,11 @@
   padding:5px 10px; border-radius:var(--r-pill);
   border:1px solid var(--line-strong);
 }
-.pill-good{ color:var(--green); background:var(--green-soft); border-color:var(--green-line); }
-.pill-warn{ color:var(--amber); background:var(--amber-soft); border-color:rgba(245,166,35,.35); }
-.pill-bad{ color:var(--red); background:var(--red-soft); border-color:var(--red-line); }
-.pill-info{ color:var(--blue); background:var(--blue-soft); border-color:var(--blue-line); }
+.pill-good{ color:var(--good); background:var(--good-soft); border-color:var(--good-line); }
+.pill-warn{ color:var(--warn); background:var(--warn-soft); border-color:var(--warn-line); }
+.pill-bad{ color:var(--danger); background:var(--danger-soft); border-color:var(--danger-line); }
+.pill-info{ color:var(--info); background:var(--info-soft); border-color:var(--info-line); }
+.pill-brand{ color:var(--brand-bright); background:var(--brand-soft); border-color:var(--brand-line); }
 .pill-neutral{ color:var(--ink-1); background:var(--bg-2); }
 
 .section-label{
@@ -63,26 +88,57 @@
 }
 
 .progress-dots{ display:flex; gap:6px; align-items:center; }
-.progress-dots .dot{ width:6px; height:6px; border-radius:99px; background:var(--line-strong); transition:all .25s ease; }
-.progress-dots .dot-active{ width:20px; background:var(--green); }
-.progress-dots .dot-done{ background:var(--green-deep); opacity:.6; }
+.progress-dots .dot{ width:6px; height:6px; border-radius:99px; background:var(--line-strong); transition:all var(--dur-base) var(--ease-out); }
+.progress-dots .dot-active{ width:20px; background:var(--brand); }
+.progress-dots .dot-done{ background:var(--brand-deep); opacity:.6; }
 
 .toggle{
   width:44px; height:26px; border-radius:99px; background:var(--bg-2);
-  border:1px solid var(--line-strong); position:relative; flex-shrink:0; transition:background .2s ease;
+  border:1px solid var(--line-strong); position:relative; flex-shrink:0; transition:background var(--dur-base) var(--ease-out);
 }
 .toggle-knob{
   position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
-  background:var(--ink-1); transition:transform .2s ease, background .2s ease;
+  background:var(--ink-1); transition:transform var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out);
 }
-.toggle-on{ background:var(--green-soft); border-color:var(--green-line); }
-.toggle-on .toggle-knob{ transform:translateX(18px); background:var(--green); }
+.toggle-on{ background:var(--brand-soft); border-color:var(--brand-line); }
+.toggle-on .toggle-knob{ transform:translateX(18px); background:var(--brand-bright); }
 
 .pw-wrap{ position:relative; }
 .pw-wrap input{ width:100%; padding-right:42px !important; }
 .pw-toggle{
   position:absolute; right:6px; top:50%; transform:translateY(-50%);
   width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  color:var(--ink-2); transition:color .15s ease, background .15s ease;
+  color:var(--ink-2); transition:color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .pw-toggle:hover{ color:var(--ink); background:var(--bg-2); }
+
+/* ── KpiCard — the stat-tile primitive used across Dashboard/Admin ── */
+.kpi{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:20px 22px; display:flex; flex-direction:column; gap:14px;
+  box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+}
+.kpi-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.kpi-icon{
+  width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.kpi-trend{ display:flex; align-items:center; gap:3px; font-size:12px; font-weight:700; font-family:var(--font-mono); }
+.kpi-trend-up{ color:var(--good); }
+.kpi-trend-down{ color:var(--danger); }
+.kpi-label{ font-size:12px; color:var(--ink-2); letter-spacing:.02em; }
+.kpi-value{ font-size:28px; line-height:1; }
+.kpi-sub{ font-size:12px; color:var(--ink-2); }
+.kpi-tint-brand{ --tint:var(--brand-soft); --tint-fg:var(--brand-bright); }
+.kpi-tint-good{ --tint:var(--good-soft); --tint-fg:var(--good); }
+.kpi-tint-info{ --tint:var(--info-soft); --tint-fg:var(--info); }
+.kpi-tint-warn{ --tint:var(--warn-soft); --tint-fg:var(--warn); }
+.kpi-tint-danger{ --tint:var(--danger-soft); --tint-fg:var(--danger); }
+.kpi .kpi-icon{ background:var(--tint); color:var(--tint-fg); }
+
+.kpi-skeleton .kpi-icon{ background:var(--bg-2); }
+.skel{ background:linear-gradient(90deg, var(--bg-2) 25%, var(--line-strong) 50%, var(--bg-2) 75%); background-size:200% 100%; animation:skel-sweep 1.6s ease-in-out infinite; border-radius:var(--r-sm); }
+.skel-line{ height:12px; }
+@keyframes skel-sweep{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+
+/* ── animated counter used for hero stat figures ── */
+.count-up{ font-variant-numeric:tabular-nums; }

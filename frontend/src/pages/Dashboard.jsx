@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LocateFixed, BatteryMedium, Users, Navigation, MessageSquare, Mic,
-  ChevronRight, User, ShieldAlert, ShieldCheck, Lightbulb, Clock, UserCheck, AlertCircle,
+  ChevronRight, User, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
-import { Card, Pill, Button } from '../components/ui';
+import { Card, Pill, Button, KpiCard } from '../components/ui';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import { useReliability } from '../lib/useReliability';
@@ -77,7 +77,7 @@ function batteryDisplay(battery) {
   if (battery === null) return CHECKING;
   if (battery === 'unsupported') return { value: 'Not available', tone: 'neutral' };
   const pct = Math.round(battery.level * 100);
-  return { value: `${pct}%`, tone: pct < 20 ? 'warn' : 'good' };
+  return { value: pct, suffix: '%', tone: pct < 20 ? 'warn' : 'good' };
 }
 
 function contactsDisplay(contacts) {
@@ -97,6 +97,8 @@ function smsDisplay(ready) {
   return ready ? { value: 'Ready', tone: 'good' } : { value: 'Not configured', tone: 'warn' };
 }
 
+const TONE_TINT = { good: 'good', warn: 'warn', bad: 'danger', info: 'info', neutral: 'brand' };
+
 const ACTIVITY_META = {
   journey: {
     active: { title: 'Journey in progress', tone: 'info' },
@@ -113,9 +115,9 @@ const ACTIVITY_META = {
 };
 
 const TIPS = [
-  'Test your hidden trigger (fake PIN, power button, or gesture) somewhere safe so it becomes muscle memory.',
-  'Keep at least one trusted contact verified — an unverified contact can still be alerted, but confirming their number first makes delivery more reliable.',
-  'Start a Safe Journey before walking somewhere unfamiliar, even a short distance — it costs nothing and checks in automatically.',
+  { icon: Lightbulb, text: 'Test your hidden trigger (fake PIN, power button, or gesture) somewhere safe so it becomes muscle memory.' },
+  { icon: UserCheck, text: 'Keep at least one trusted contact verified — confirming their number first makes delivery more reliable.' },
+  { icon: Navigation, text: 'Start a Safe Journey before walking somewhere unfamiliar, even a short distance — it costs nothing and checks in automatically.' },
 ];
 
 export default function Dashboard() {
@@ -148,28 +150,36 @@ export default function Dashboard() {
   ];
 
   const hasContacts = contacts !== null && contacts.length > 0;
-  const protectedBanner = hasContacts
-    ? { tone: 'good', text: "You're protected · monitoring active" }
-    : { tone: 'warn', text: 'Add a trusted contact to get protected' };
+  const protectedState = hasContacts;
 
   return (
     <>
       <div className="dash">
-        <div className="dash-header">
-          <div>
-            <p className="dash-eyebrow mono">{greeting()}</p>
-            <h1 className="dash-name">{firstName || 'there'}</h1>
+        <div className="dash-hero">
+          <div className="dash-hero-glow" aria-hidden="true" />
+          <div className="dash-hero-top">
+            <div>
+              <p className="dash-eyebrow mono"><Sparkles size={12} strokeWidth={2.4} /> {greeting()}</p>
+              <h1 className="dash-name">{firstName || 'there'}</h1>
+            </div>
+            <button className="dash-avatar chip-gradient mono" onClick={() => navigate('/app/profile')} aria-label="Open profile">
+              {initials || <User size={18} strokeWidth={2} />}
+            </button>
           </div>
-          <button className="dash-avatar mono" onClick={() => navigate('/app/profile')} aria-label="Open profile">
-            {initials || <User size={18} strokeWidth={2} />}
-          </button>
-        </div>
 
-        <div className={`dash-status-hero dash-status-${protectedBanner.tone}`}>
-          <span className="dash-status-icon">
-            {protectedBanner.tone === 'good' ? <ShieldCheck size={20} strokeWidth={2.2} /> : <ShieldAlert size={20} strokeWidth={2.2} />}
-          </span>
-          <span className="dash-status-text">{protectedBanner.text}</span>
+          <div className={`dash-status-row dash-status-${protectedState ? 'good' : 'warn'}`}>
+            <span className="dash-status-icon">
+              {protectedState ? <ShieldCheck size={17} strokeWidth={2.2} /> : <ShieldAlert size={17} strokeWidth={2.2} />}
+            </span>
+            <span className="dash-status-text">
+              {protectedState ? "You're protected — monitoring active" : 'Add a trusted contact to get protected'}
+            </span>
+            {!protectedState && (
+              <button className="dash-status-cta" onClick={() => navigate('/app/contacts')}>
+                Add contact <ChevronRight size={13} strokeWidth={2.4} />
+              </button>
+            )}
+          </div>
         </div>
 
         {planBanner && (
@@ -185,20 +195,28 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Status strip — reads like a system's vitals, not a mobile widget list */}
+        {/* Status strip — reads like a system's vitals, using the shared
+            KpiCard primitive so this feels like the same "product" as
+            the admin dashboard, not a different mobile-widget style. */}
         <div className="dash-reliability">
           {RELIABILITY.map((r) => {
-            const Tag = r.onClick ? 'button' : 'div';
+            const clickable = Boolean(r.onClick);
             return (
-              <Tag
+              <div
                 key={r.label}
-                className={`dash-rel-card dash-rel-${r.tone} ${r.onClick ? 'dash-rel-actionable' : ''}`}
+                className={`dash-kpi-wrap ${clickable ? 'dash-kpi-clickable' : ''}`}
                 onClick={r.onClick || undefined}
+                role={clickable ? 'button' : undefined}
+                tabIndex={clickable ? 0 : undefined}
               >
-                <span className="dash-rel-icon"><r.icon size={15} strokeWidth={2.2} /></span>
-                <span className="dash-rel-label">{r.label}</span>
-                <span className="dash-rel-value">{r.value}</span>
-              </Tag>
+                <KpiCard
+                  icon={r.icon}
+                  label={r.label}
+                  value={r.value}
+                  tint={TONE_TINT[r.tone]}
+                  format={(n) => `${Math.round(n)}${r.suffix || ''}`}
+                />
+              </div>
             );
           })}
         </div>
@@ -210,7 +228,7 @@ export default function Dashboard() {
           <div className="dash-col-main">
             <Card className="dash-sos-card">
               <button className="dash-sos-btn" onClick={() => navigate('/app/sos')}>
-                <VitalRing size={168} color="green">
+                <VitalRing size={172} color="green">
                   <span className="dash-sos-inner mono">HOLD FOR<br /><strong>SOS</strong></span>
                 </VitalRing>
               </button>
@@ -261,8 +279,8 @@ export default function Dashboard() {
               </Card>
             )}
             {contacts?.slice(0, 3).map((c) => (
-              <Card key={c.id} className="dash-contact-row">
-                <span className="dash-contact-avatar mono">{c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>
+              <Card key={c.id} interactive className="dash-contact-row" onClick={() => navigate('/app/contacts')}>
+                <span className="dash-contact-avatar chip-gradient mono">{c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>
                 <span className="dash-contact-text">
                   <strong>{c.name}</strong>
                   <span>{c.relationship_label || 'Trusted contact'}</span>
@@ -280,9 +298,9 @@ export default function Dashboard() {
         </div>
         <div className="dash-tips">
           {TIPS.map((tip) => (
-            <Card key={tip} className="dash-tip">
-              <Lightbulb size={19} strokeWidth={2} color="var(--amber)" />
-              <p>{tip}</p>
+            <Card key={tip.text} className="dash-tip">
+              <span className="dash-tip-icon"><tip.icon size={17} strokeWidth={2} /></span>
+              <p>{tip.text}</p>
             </Card>
           ))}
         </div>

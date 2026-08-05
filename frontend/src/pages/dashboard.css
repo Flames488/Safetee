@@ -1,33 +1,45 @@
-.dash{ flex:1; padding:8px 20px 28px; display:flex; flex-direction:column; gap:16px; }
-.dash-header{ display:flex; align-items:center; justify-content:space-between; }
-.dash-eyebrow{ font-size:11px; color:var(--ink-2); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
-.dash-name{ font-size:24px; margin-top:5px; }
+.dash{ flex:1; padding:8px 20px 28px; display:flex; flex-direction:column; gap:18px; }
+
+/* ── Hero: greeting + protection status, with a soft brand-tinted glow
+   behind it rather than a flat card — the first thing a "billion
+   dollar" product does differently from a template is give its hero
+   section real depth instead of a plain header row. ── */
+.dash-hero{
+  position:relative; border-radius:var(--r-xl); padding:22px 22px 18px;
+  background:var(--card); border:1px solid var(--line); overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
+.dash-hero-glow{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(480px 220px at 85% -20%, var(--brand-soft), transparent 70%);
+}
+.dash-hero-top{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.dash-eyebrow{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--brand-bright); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
+.dash-name{ font-size:26px; margin-top:6px; }
 .dash-avatar{
-  width:42px; height:42px; border-radius:50%; background:var(--card); border:1px solid var(--line-strong);
-  display:flex; align-items:center; justify-content:center; color:var(--ink-1); font-size:13px; font-weight:700;
-  transition:border-color .15s ease, color .15s ease;
+  width:42px; height:42px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
+  transition:transform var(--dur-fast) var(--ease-out);
 }
-.dash-avatar:hover{ border-color:var(--green-line); color:var(--green); }
+.dash-avatar:hover{ transform:scale(1.05); }
 
-.dash > .pill{ align-self:flex-start; }
-
-.dash-status-hero{
-  display:flex; align-items:center; gap:12px; padding:16px 20px; border-radius:20px;
-  box-shadow:var(--shadow-card);
+.dash-status-row{
+  position:relative; margin-top:16px; display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-radius:var(--r-md); font-size:13px; font-weight:600;
+  border:1px solid var(--line);
 }
-.dash-status-icon{
-  width:38px; height:38px; border-radius:11px; background:rgba(255,255,255,.16);
-  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+.dash-status-good{ background:var(--good-soft); color:var(--good); border-color:var(--good-line); }
+.dash-status-warn{ background:var(--warn-soft); color:var(--warn); border-color:var(--warn-line); }
+.dash-status-icon{ display:flex; flex-shrink:0; }
+.dash-status-text{ flex:1; font-family:var(--font-display); }
+.dash-status-cta{
+  display:flex; align-items:center; gap:2px; font-size:12px; font-weight:700; flex-shrink:0;
+  padding:5px 10px; border-radius:var(--r-pill); background:rgba(255,255,255,.12);
 }
-.dash-status-text{ font-size:14.5px; font-weight:700; font-family:var(--font-display); }
-.dash-status-good{ background:var(--green); color:var(--green-ink); }
-.dash-status-good .dash-status-icon{ background:rgba(4,18,13,.18); }
-.dash-status-warn{ background:var(--amber); color:#241503; }
-.dash-status-warn .dash-status-icon{ background:rgba(36,21,3,.18); }
 
 .dash-billing-card{
   display:flex; align-items:flex-start; gap:14px; padding:18px 20px;
-  border-radius:20px; box-shadow:var(--shadow-card);
+  border-radius:var(--r-lg); box-shadow:var(--shadow-sm); border:1px solid var(--line);
 }
 .dash-billing-icon{
   width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
@@ -37,12 +49,12 @@
 .dash-billing-text span{ font-size:12px; color:var(--ink-2); line-height:1.5; }
 .dash-billing-card .btn{ margin-top:2px; flex-shrink:0; }
 
-.dash-billing-info{ background:var(--blue-soft); border-color:var(--blue-line); }
-.dash-billing-info .dash-billing-icon{ background:rgba(76,141,255,.18); color:var(--blue); }
-.dash-billing-warn{ background:var(--amber-soft); border-color:rgba(245,166,35,.35); }
-.dash-billing-warn .dash-billing-icon{ background:rgba(245,166,35,.2); color:var(--amber); }
-.dash-billing-bad{ background:var(--red-soft); border-color:var(--red-line); }
-.dash-billing-bad .dash-billing-icon{ background:rgba(255,75,87,.18); color:var(--red); }
+.dash-billing-info{ background:var(--info-soft); border-color:var(--info-line); }
+.dash-billing-info .dash-billing-icon{ background:rgba(58,160,255,.18); color:var(--info); }
+.dash-billing-warn{ background:var(--warn-soft); border-color:var(--warn-line); }
+.dash-billing-warn .dash-billing-icon{ background:rgba(255,176,32,.2); color:var(--warn); }
+.dash-billing-bad{ background:var(--danger-soft); border-color:var(--danger-line); }
+.dash-billing-bad .dash-billing-icon{ background:rgba(255,75,92,.18); color:var(--danger); }
 
 @media (max-width:520px){
   .dash-billing-card{ flex-wrap:wrap; }
@@ -50,32 +62,13 @@
 }
 
 .dash-reliability{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
-.dash-rel-card{
-  background:var(--card); border-left:3px solid var(--line-strong);
-  border-radius:18px; padding:16px 14px; display:flex; flex-direction:column; gap:9px;
-  text-align:left; width:100%; min-width:0; box-shadow:var(--shadow-card);
-}
-.dash-rel-good{ border-left-color:var(--green); }
-.dash-rel-warn{ border-left-color:var(--amber); }
-.dash-rel-bad{ border-left-color:var(--red); }
-.dash-rel-info{ border-left-color:var(--blue); }
-.dash-rel-actionable{ cursor:pointer; transition:border-color .15s ease, background .15s ease; }
-.dash-rel-actionable:hover{ border-color:var(--amber); background:var(--amber-soft); }
-.dash-rel-actionable:active{ transform:scale(.98); }
-.dash-rel-icon{
-  width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-  background:var(--bg-2); color:var(--ink-1);
-}
-.dash-rel-label{ font-size:9.5px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.05em; font-weight:600; overflow-wrap:break-word; }
-.dash-rel-value{ font-size:16px; font-weight:700; font-family:var(--font-display); color:var(--ink-1); overflow-wrap:break-word; }
-.dash-rel-good .dash-rel-icon{ background:var(--green-soft); color:var(--green); }
-.dash-rel-good .dash-rel-value{ color:var(--green); }
-.dash-rel-warn .dash-rel-icon{ background:var(--amber-soft); color:var(--amber); }
-.dash-rel-warn .dash-rel-value{ color:var(--amber); }
-.dash-rel-bad .dash-rel-icon{ background:var(--red-soft); color:var(--red); }
-.dash-rel-bad .dash-rel-value{ color:var(--red); }
-.dash-rel-info .dash-rel-icon{ background:var(--blue-soft); color:var(--blue); }
-.dash-rel-info .dash-rel-value{ color:var(--blue); }
+.dash-kpi-wrap .kpi{ padding:14px 12px; gap:10px; border-radius:var(--r-md); }
+.dash-kpi-wrap .kpi-icon{ width:30px; height:30px; border-radius:9px; }
+.dash-kpi-wrap .kpi-value{ font-size:16px; }
+.dash-kpi-wrap .kpi-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+.dash-kpi-clickable{ cursor:pointer; }
+.dash-kpi-clickable .kpi{ transition:transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+.dash-kpi-clickable:hover .kpi{ transform:translateY(-2px); border-color:var(--warn-line); }
 
 /* Two-column body: primary controls + live feed. Single stacked flex
    column on mobile — order in the DOM already matches the mobile
@@ -85,35 +78,36 @@
 .dash-col-side{ display:flex; flex-direction:column; gap:10px; }
 
 .dash-sos-card{
-  padding:26px 20px 22px; display:flex; flex-direction:column; align-items:center; gap:16px;
-  text-align:center; position:relative; overflow:hidden; border-radius:22px;
+  padding:30px 20px 24px; display:flex; flex-direction:column; align-items:center; gap:16px;
+  text-align:center; position:relative; overflow:hidden; border-radius:var(--r-xl);
 }
 .dash-sos-card::before{
   content:''; position:absolute; top:-40%; left:50%; transform:translateX(-50%);
   width:340px; height:340px; border-radius:50%;
-  background:radial-gradient(circle, var(--green-soft) 0%, transparent 70%);
+  background:radial-gradient(circle, var(--good-soft) 0%, transparent 70%);
   pointer-events:none;
 }
 .dash-sos-btn{ display:flex; position:relative; }
 .dash-sos-inner{ font-size:11px; line-height:1.5; letter-spacing:.06em; color:var(--ink-1); text-align:center; }
-.dash-sos-inner strong{ font-size:20px; color:var(--green); letter-spacing:0; font-family:var(--font-display); }
+.dash-sos-inner strong{ font-size:20px; color:var(--good); letter-spacing:0; font-family:var(--font-display); }
 .dash-sos-hint{ font-size:12.5px; color:var(--ink-2); max-width:230px; }
 
 .dash-section-head{ margin-top:10px; display:flex; align-items:center; justify-content:space-between; }
-.dash-section-link{ display:flex; align-items:center; gap:2px; font-size:11.5px; color:var(--ink-2); }
+.dash-section-link{ display:flex; align-items:center; gap:2px; font-size:11.5px; color:var(--ink-2); transition:color var(--dur-fast) var(--ease-out); }
+.dash-section-link:hover{ color:var(--brand-bright); }
 
 .dash-activity-empty{ padding:16px; font-size:12.5px; color:var(--ink-2); line-height:1.6; }
-.dash-inline-link{ color:var(--green); font-weight:600; }
+.dash-inline-link{ color:var(--brand-bright); font-weight:600; }
 
 .dash-activity{ padding:14px; display:flex; align-items:flex-start; gap:12px; }
 .dash-activity-icon{
   width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
   flex-shrink:0; margin-top:1px;
 }
-.dash-activity-good{ background:var(--green-soft); color:var(--green); }
-.dash-activity-warn{ background:var(--amber-soft); color:var(--amber); }
-.dash-activity-bad{ background:var(--red-soft); color:var(--red); }
-.dash-activity-info{ background:var(--blue-soft); color:var(--blue); }
+.dash-activity-good{ background:var(--good-soft); color:var(--good); }
+.dash-activity-warn{ background:var(--warn-soft); color:var(--warn); }
+.dash-activity-bad{ background:var(--danger-soft); color:var(--danger); }
+.dash-activity-info{ background:var(--info-soft); color:var(--info); }
 .dash-activity-neutral{ background:var(--bg-2); color:var(--ink-1); }
 .dash-activity-text{ flex:1; display:flex; flex-direction:column; gap:3px; font-size:13px; min-width:0; }
 .dash-activity-text strong{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -121,7 +115,7 @@
 
 .dash-contact-row{ padding:12px 14px; display:flex; align-items:center; gap:12px; }
 .dash-contact-avatar{
-  width:38px; height:38px; border-radius:50%; background:var(--green-soft); color:var(--green);
+  width:38px; height:38px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;
 }
 .dash-contact-text{ flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
@@ -130,8 +124,11 @@
 .dash-contact-row .pill{ flex-shrink:0; }
 
 .dash-tips{ display:flex; flex-direction:column; gap:10px; }
-.dash-tip{ padding:16px 22px; display:flex; align-items:center; gap:14px; border-radius:28px; }
-.dash-tip svg{ flex-shrink:0; }
+.dash-tip{ padding:16px 20px; display:flex; align-items:center; gap:14px; border-radius:var(--r-xl); }
+.dash-tip-icon{
+  width:36px; height:36px; border-radius:11px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  background:var(--warn-soft); color:var(--warn);
+}
 .dash-tip p{ font-size:13px; color:var(--ink-1); line-height:1.6; }
 
 @media (max-width: 380px){
@@ -141,27 +138,26 @@
 /* ────────────────────────────────────────────────────────────────
    Desktop — Safety Command Center. Full-width status strip, then a
    real two-column working layout instead of a mobile list stretched
-   across a big screen. This is the single biggest lever for making
-   the app feel like software instead of a phone screenshot.
+   across a big screen.
    ──────────────────────────────────────────────────────────────── */
 @media (min-width: 900px){
   .dash{ max-width:1160px; width:100%; margin:0 auto; padding:0; gap:22px; }
 
-  .dash-name{ font-size:32px; }
+  .dash-hero{ padding:28px 32px 24px; }
+  .dash-name{ font-size:34px; }
   .dash-eyebrow{ font-size:12.5px; }
 
-  .dash-reliability{ grid-template-columns:repeat(auto-fit, minmax(148px, 1fr)); gap:14px; }
-  .dash-rel-card{ padding:20px 16px; gap:11px; border-radius:22px; }
-  .dash-rel-icon{ width:36px; height:36px; border-radius:11px; }
-  .dash-rel-label{ font-size:10.5px; }
-  .dash-rel-value{ font-size:18px; }
+  .dash-reliability{ grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; }
+  .dash-kpi-wrap .kpi{ padding:18px 16px; }
+  .dash-kpi-wrap .kpi-icon{ width:36px; height:36px; border-radius:11px; }
+  .dash-kpi-wrap .kpi-value{ font-size:19px; }
 
   .dash-body{ display:flex; flex-direction:column; gap:22px; }
   .dash-col-main{ display:flex; flex-direction:column; gap:16px; }
-  .dash-col-side{ display:flex; flex-direction:column; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:22px; padding:6px 18px 18px; box-shadow:var(--shadow-card); }
+  .dash-col-side{ display:flex; flex-direction:column; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:var(--r-xl); padding:6px 18px 18px; box-shadow:var(--shadow-sm); }
   .dash-col-side .dash-section-head:first-child{ margin-top:14px; }
 
-  .dash-sos-card{ padding:36px 24px 30px; }
+  .dash-sos-card{ padding:38px 24px 32px; }
   .dash-sos-hint{ font-size:13px; max-width:none; }
 
   .dash-section-head{ margin-top:14px; }
@@ -180,10 +176,8 @@
 
 /* Only split into side-by-side columns once there's genuinely room for
    both at a comfortable width — between 900–1040px the two columns would
-   otherwise get squeezed narrow enough that names/badges start colliding
-   (a real bug this fixes: a wrapped contact name pushed the "Unverified"
-   badge to vertically center itself mid-word). Single stacked column
-   below 1040px reads better than two cramped ones. */
+   otherwise get squeezed narrow enough that names/badges start colliding.
+   Single stacked column below 1040px reads better than two cramped ones. */
 @media (min-width: 1040px){
   .dash-body{ flex-direction:row; align-items:flex-start; }
   .dash-col-main{ flex:0 1 340px; min-width:280px; }

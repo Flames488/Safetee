@@ -1,73 +1,136 @@
+/* ────────────────────────────────────────────────────────────────
+   Design system v2 — a deliberate departure from the earlier flat
+   "safety-green on near-black" scheme. New brand color is a refined
+   indigo/violet (reads as premium/trustworthy rather than "utility
+   app green"), surfaces get a warmer near-black with real elevation
+   (multi-level shadows + glass), and red is now used *nowhere* except
+   an active SOS state — it should never appear as decoration.
+   Old token names (--green/--blue/--red/--amber/--shadow-card/
+   --shadow-lift) are kept as aliases at the bottom so every existing
+   page re-themes for free; new work should use the --brand/--good/
+   --info/--warn/--danger names directly.
+   ──────────────────────────────────────────────────────────────── */
 :root{
-  /* surfaces */
-  --bg:#060A0F;
-  --bg-1:#0A1017;
-  --bg-2:#0E151D;
-  --card:#111A22;
-  --card-hi:#141F29;
-  --line:rgba(255,255,255,0.08);
-  --line-strong:rgba(255,255,255,0.15);
+  /* surfaces — warm near-black, not pure black, with real elevation */
+  --bg:#08090D;
+  --bg-1:#0C0E14;
+  --bg-2:#12141C;
+  --card:#14161F;
+  --card-hi:#191C28;
+  --line:rgba(255,255,255,0.07);
+  --line-strong:rgba(255,255,255,0.14);
+
+  /* glass surface for floating/overlay chrome */
+  --glass-bg:rgba(20,22,31,0.72);
+  --glass-border:rgba(255,255,255,0.09);
+  --glass-blur:18px;
 
   /* ink */
-  --ink:#F1F6F4;
-  --ink-1:#A6B3B4;
-  --ink-2:#69767A;
+  --ink:#F5F6F8;
+  --ink-1:#9BA0AF;
+  --ink-2:#666B7A;
 
-  /* brand: safety green (primary) */
-  --green:#22D3A0;
-  --green-deep:#12A87D;
-  --green-ink:#04120D;
-  --green-soft:rgba(34,211,160,0.13);
-  --green-line:rgba(34,211,160,0.35);
+  /* brand — indigo/violet primary */
+  --brand:#6E5BFF;
+  --brand-deep:#5643E0;
+  --brand-bright:#8B7CFF;
+  --brand-ink:#F8F7FF;
+  --brand-soft:rgba(110,91,255,0.14);
+  --brand-line:rgba(110,91,255,0.38);
+  --brand-glow:0 0 28px rgba(110,91,255,.38);
+  --brand-gradient:linear-gradient(135deg, #8B7CFF 0%, #6E5BFF 55%, #4C3DDB 100%);
 
-  /* secondary: trust blue */
-  --blue:#4C8DFF;
-  --blue-soft:rgba(76,141,255,0.13);
-  --blue-line:rgba(76,141,255,0.32);
+  /* info — soft blue, secondary accent */
+  --info:#3AA0FF;
+  --info-soft:rgba(58,160,255,0.14);
+  --info-line:rgba(58,160,255,0.34);
 
-  /* emergency red — reserved for active SOS states only */
-  --red:#FF4B57;
-  --red-deep:#D8323D;
-  --red-soft:rgba(255,75,87,0.14);
-  --red-line:rgba(255,75,87,0.38);
+  /* good — emerald, status/success only (not "the brand" anymore) */
+  --good:#22C55E;
+  --good-deep:#16A34A;
+  --good-ink:#04170D;
+  --good-soft:rgba(34,197,94,0.14);
+  --good-line:rgba(34,197,94,0.36);
 
-  /* amber — attention / permission needed */
-  --amber:#F5A623;
-  --amber-soft:rgba(245,166,35,0.14);
+  /* warn — amber, attention/permission needed */
+  --warn:#FFB020;
+  --warn-soft:rgba(255,176,32,0.14);
+  --warn-line:rgba(255,176,32,0.36);
 
-  --r-lg:24px;
-  --r-md:16px;
-  --r-sm:11px;
+  /* danger — reserved exclusively for active SOS/destructive states */
+  --danger:#FF4B5C;
+  --danger-deep:#E23246;
+  --danger-soft:rgba(255,75,92,0.14);
+  --danger-line:rgba(255,75,92,0.38);
+
+  /* radii */
+  --r-xl:28px;
+  --r-lg:20px;
+  --r-md:14px;
+  --r-sm:10px;
   --r-pill:999px;
 
-  --shadow-card:0 1px 2px rgba(0,0,0,.3), 0 16px 32px -20px rgba(0,0,0,.65);
-  --shadow-lift:0 24px 48px -20px rgba(0,0,0,.7);
+  /* elevation — layered, tinted shadows instead of one flat drop */
+  --shadow-xs:0 1px 2px rgba(0,0,0,.35);
+  --shadow-sm:0 6px 16px -8px rgba(0,0,0,.5);
+  --shadow-md:0 20px 40px -16px rgba(0,0,0,.6);
+  --shadow-lg:0 32px 72px -24px rgba(0,0,0,.72);
 
-  --font-display:'Space Grotesk', sans-serif;
+  /* motion */
+  --ease:cubic-bezier(.19,1,.22,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --dur-fast:.14s;
+  --dur-base:.24s;
+  --dur-slow:.45s;
+
+  --font-display:'Sora', sans-serif;
   --font-body:'Inter', sans-serif;
   --font-mono:'JetBrains Mono', monospace;
+
+  /* legacy aliases — every existing page keeps working unmodified */
+  --green:var(--good);
+  --green-deep:var(--good-deep);
+  --green-ink:var(--good-ink);
+  --green-soft:var(--good-soft);
+  --green-line:var(--good-line);
+  --blue:var(--info);
+  --blue-soft:var(--info-soft);
+  --blue-line:var(--info-line);
+  --red:var(--danger);
+  --red-deep:var(--danger-deep);
+  --red-soft:var(--danger-soft);
+  --red-line:var(--danger-line);
+  --amber:var(--warn);
+  --amber-soft:var(--warn-soft);
+  --shadow-card:var(--shadow-sm);
+  --shadow-lift:var(--shadow-lg);
 }
 
 /* Light theme — same variable names throughout the whole app, so every
    component that already reads var(--bg)/var(--card)/var(--ink) etc.
-   re-themes automatically with zero changes needed elsewhere. Brand
-   colors (green/blue/red/amber) stay the same in both themes — only
-   surfaces and ink change. */
+   re-themes automatically with zero changes needed elsewhere. Brand/
+   status colors stay the same in both themes — only surfaces and ink
+   change, tuned so the indigo brand still pops on a light backdrop. */
 [data-theme="light"]{
-  --bg:#F5F7F8;
+  --bg:#F6F6FA;
   --bg-1:#FFFFFF;
-  --bg-2:#EEF1F3;
+  --bg-2:#EEEFF5;
   --card:#FFFFFF;
-  --card-hi:#F7F9FA;
-  --line:rgba(15,23,31,0.09);
-  --line-strong:rgba(15,23,31,0.16);
+  --card-hi:#FBFBFE;
+  --line:rgba(20,18,40,0.08);
+  --line-strong:rgba(20,18,40,0.15);
 
-  --ink:#101418;
-  --ink-1:#4B5A61;
-  --ink-2:#89969D;
+  --glass-bg:rgba(255,255,255,0.72);
+  --glass-border:rgba(20,18,40,0.08);
 
-  --shadow-card:0 1px 2px rgba(15,23,31,.04), 0 16px 32px -22px rgba(15,23,31,.16);
-  --shadow-lift:0 24px 48px -20px rgba(15,23,31,.22);
+  --ink:#12111A;
+  --ink-1:#54566B;
+  --ink-2:#8B8DA0;
+
+  --shadow-xs:0 1px 2px rgba(20,18,40,.04);
+  --shadow-sm:0 6px 16px -8px rgba(20,18,40,.10);
+  --shadow-md:0 20px 40px -16px rgba(20,18,40,.14);
+  --shadow-lg:0 32px 72px -24px rgba(20,18,40,.18);
 }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
@@ -99,10 +162,10 @@ h1,h2,h3,h4{
   *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
 }
 
-::selection{ background:var(--green-soft); color:var(--ink); }
+::selection{ background:var(--brand-soft); color:var(--ink); }
 
 :focus-visible{
-  outline:2px solid var(--green);
+  outline:2px solid var(--brand);
   outline-offset:2px;
   border-radius:6px;
 }
@@ -110,6 +173,31 @@ h1,h2,h3,h4{
 ::-webkit-scrollbar{ width:8px; height:8px; }
 ::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:99px; }
 ::-webkit-scrollbar-track{ background:transparent; }
+
+/* Glass chrome — floating panels, dropdowns, sticky bars over content */
+.glass{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+}
+
+/* Gradient icon/avatar chip — the recurring "premium" motif: a small
+   gradient-filled rounded square/circle with a soft matching glow,
+   used for logo marks, avatars, and featured icon slots. */
+.chip-gradient{
+  background:var(--brand-gradient);
+  color:var(--brand-ink);
+  box-shadow:var(--brand-glow);
+}
+
+/* Numeric/counter treatment for stat values across the app */
+.stat-figure{
+  font-family:var(--font-display);
+  font-weight:700;
+  letter-spacing:-0.02em;
+  font-variant-numeric:tabular-nums;
+}
 
 /* Single-focus screens (auth, live SOS, live tracking) — full-bleed on
    mobile. On larger screens these are NEVER a floating, rounded,
@@ -120,7 +208,7 @@ h1,h2,h3,h4{
 .focus-page{
   min-height:100vh; width:100%;
   background:
-    radial-gradient(900px 520px at 50% -10%, rgba(34,211,160,.06), transparent),
+    radial-gradient(900px 520px at 50% -10%, var(--brand-soft), transparent),
     var(--bg);
 }
 .focus-stage{
@@ -156,7 +244,7 @@ h1,h2,h3,h4{
 .focus-brand-points li{
   display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-1);
 }
-.focus-brand-points svg{ color:var(--green); flex-shrink:0; }
+.focus-brand-points svg{ color:var(--brand-bright); flex-shrink:0; }
 
 @media (min-width: 900px){
   .focus-brand{ display:flex; }

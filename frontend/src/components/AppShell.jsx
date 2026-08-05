@@ -1,19 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Navigation, Users, Clock, CreditCard, Settings2, LogOut, Search, Bell, ShieldAlert, Shield } from 'lucide-react';
+import { Home, Navigation, Users, Clock, CreditCard, Settings2, LogOut, Search, Bell, ShieldAlert, Shield, ChevronRight } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './app-shell.css';
 
-const NAV = [
-  { to: '/app', label: 'Dashboard', icon: Home, end: true },
-  { to: '/app/journey', label: 'Journey', icon: Navigation },
-  { to: '/app/contacts', label: 'Contacts', icon: Users },
-  { to: '/app/history', label: 'History', icon: Clock },
-  { to: '/app/settings/billing', label: 'Billing', icon: CreditCard },
-  { to: '/app/settings', label: 'Settings', icon: Settings2, end: true },
+// Grouped nav (label + items) rather than one flat list — the single
+// biggest structural upgrade for a sidebar's "wayfinding" quality: it
+// tells the user the shape of the app before they've clicked anything.
+const NAV_GROUPS = [
+  {
+    label: 'Safety',
+    items: [
+      { to: '/app', label: 'Dashboard', icon: Home, end: true },
+      { to: '/app/journey', label: 'Journey', icon: Navigation },
+      { to: '/app/contacts', label: 'Trusted contacts', icon: Users },
+      { to: '/app/history', label: 'History', icon: Clock },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { to: '/app/settings/billing', label: 'Billing', icon: CreditCard },
+      { to: '/app/settings', label: 'Settings', icon: Settings2, end: true },
+    ],
+  },
 ];
 
 function useCloseOnOutsideClick(ref, onClose) {
@@ -33,9 +46,10 @@ function useCloseOnOutsideClick(ref, onClose) {
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const NAV_ITEMS = user && user.admin_role !== 'none'
-    ? [...NAV, { to: '/app/admin', label: 'Admin', icon: Shield }]
-    : NAV;
+  const isAdmin = user && user.admin_role !== 'none';
+  const navGroups = isAdmin
+    ? [...NAV_GROUPS, { label: 'Platform', items: [{ to: '/app/admin', label: 'Admin', icon: Shield }] }]
+    : NAV_GROUPS;
   const [contacts, setContacts] = useState([]);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -126,7 +140,7 @@ export default function AppShell({ children }) {
           </div>
 
           <div className="app-topbar-item" ref={profileRef}>
-            <button className="app-avatar-btn mono" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu">
+            <button className="app-avatar-btn chip-gradient mono" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu">
               {initials || '—'}
             </button>
             {profileOpen && (
@@ -144,18 +158,32 @@ export default function AppShell({ children }) {
       <div className="app-body">
         <aside className="app-sidebar">
           <nav className="app-nav">
-            {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) => `app-nav-link ${isActive ? 'app-nav-link-active' : ''}`}
-              >
-                <Icon size={18} strokeWidth={2.1} />
-                <span>{label}</span>
-              </NavLink>
+            {navGroups.map((group) => (
+              <div className="app-nav-group" key={group.label}>
+                <span className="app-nav-group-label">{group.label}</span>
+                {group.items.map(({ to, label, icon: Icon, end }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={end}
+                    className={({ isActive }) => `app-nav-link ${isActive ? 'app-nav-link-active' : ''}`}
+                  >
+                    <Icon size={17} strokeWidth={2.1} />
+                    <span>{label}</span>
+                    <ChevronRight size={13} className="app-nav-chevron" />
+                  </NavLink>
+                ))}
+              </div>
             ))}
           </nav>
+
+          <button className="app-sidebar-user" onClick={() => navigate('/app/profile')}>
+            <span className="app-sidebar-avatar chip-gradient mono">{initials || '—'}</span>
+            <span className="app-sidebar-user-text">
+              <strong>{user?.full_name || 'Your account'}</strong>
+              <span>{user?.phone}</span>
+            </span>
+          </button>
         </aside>
 
         <main className="app-main">
