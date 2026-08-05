@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, User, HeartPulse, Download, ShieldAlert, X } from 'lucide-react';
+import { Users, User, HeartPulse, Download, ShieldAlert } from 'lucide-react';
 import TopBar from '../components/TopBar';
-import { Card, SectionLabel, Button, PasswordInput } from '../components/ui';
+import { Card, SectionLabel, Button, PasswordInput, Modal } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './settings.css';
@@ -42,6 +42,8 @@ export default function PrivacyControls() {
       setExporting(false);
     }
   };
+
+  const closeDelete = () => { setDeleteOpen(false); setPassword(''); setDeleteError(''); };
 
   const handleDelete = async () => {
     if (!password) { setDeleteError('Enter your password to confirm.'); return; }
@@ -109,32 +111,29 @@ export default function PrivacyControls() {
               <strong>Delete my account</strong>
               <span className="st-desc">Permanently erases your profile, contacts, journeys and SOS history. This can't be undone.</span>
             </span>
-            {!deleteOpen && (
-              <Button size="sm" variant="outline-danger" onClick={() => setDeleteOpen(true)}>Delete account</Button>
-            )}
+            <Button size="sm" variant="outline-danger" onClick={() => setDeleteOpen(true)}>Delete account</Button>
           </div>
-          {deleteOpen && (
-            <div className="pc-confirm">
-              <div className="pc-confirm-head">
-                <span>Enter your password to permanently delete your account</span>
-                <button onClick={() => { setDeleteOpen(false); setPassword(''); setDeleteError(''); }} aria-label="Cancel">
-                  <X size={14} />
-                </button>
-              </div>
-              <PasswordInput
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setDeleteError(''); }}
-                placeholder="Your password"
-                autoComplete="current-password"
-              />
-              {deleteError && <p className="pc-error" role="alert">{deleteError}</p>}
-              <Button size="sm" variant="outline-danger" disabled={deleting} onClick={handleDelete}>
-                {deleting ? 'Deleting…' : 'Permanently delete my account'}
-              </Button>
-            </div>
-          )}
         </Card>
       </div>
+
+      <Modal open={deleteOpen} onClose={closeDelete} title="Delete your account?" width={420}>
+        <p className="confirm-body">
+          This permanently erases your profile, contacts, journeys and SOS history. This can't be undone.
+        </p>
+        <PasswordInput
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setDeleteError(''); }}
+          placeholder="Enter your password to confirm"
+          autoComplete="current-password"
+        />
+        {deleteError && <p className="pc-error" role="alert">{deleteError}</p>}
+        <div className="confirm-actions">
+          <Button variant="ghost" onClick={closeDelete} disabled={deleting}>Cancel</Button>
+          <Button variant="danger" disabled={deleting} onClick={handleDelete}>
+            {deleting ? 'Deleting…' : 'Permanently delete'}
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }

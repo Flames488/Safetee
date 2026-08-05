@@ -131,6 +131,11 @@ export const api = {
   triggerSOS: (payload) => request('/sos/trigger', { method: 'POST', body: payload }),
   cancelSOS: (id) => request(`/sos/${id}/cancel`, { method: 'POST' }),
   resolveSOS: (id) => request(`/sos/${id}/resolve`, { method: 'POST' }),
+  // Already existed on the backend (returns the pending/active event with
+  // its per-contact `alerts`) but was never called from the frontend —
+  // SOSActive polls this to show real delivery status instead of a
+  // permanent "Sending…" placeholder.
+  getActiveSOS: () => request('/sos/active'),
   activeSOS: () => request('/sos/active'),
 
   journeyHistory: () => request('/history/journeys'),
@@ -146,7 +151,10 @@ export const api = {
   paymentHistory: () => request('/billing/history'),
 
   adminStats: () => request('/admin/stats'),
-  adminUsers: () => request('/admin/users'),
+  // limit=200 (the backend's own max) rather than its 50-user default — the
+  // dashboard derives a signups trend and status breakdown from this list
+  // client-side, so it needs as full a picture as the endpoint allows.
+  adminUsers: () => request('/admin/users?limit=200'),
   adminUpdateRole: (userId, role, masterPassword) =>
     request(`/admin/users/${userId}/role`, { method: 'POST', body: { role, master_password: masterPassword } }),
   adminToggleSuspend: (userId, masterPassword) =>

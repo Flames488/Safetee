@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, ArrowRight, Minus, Plus, Mail, User, Users, Building2 } from 'lucide-react';
-import { Button } from './ui';
+import { Button, Field } from './ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import '../pages/pricing.css';
@@ -148,7 +148,7 @@ export default function PlanPicker() {
                 {needsEmail && actionTier === plan.id && (
                   <div className="pr-email-prompt">
                     <div className="pr-email-prompt-head"><Mail size={14} strokeWidth={2.2} /> Add your email to continue — Paystack sends your receipt there.</div>
-                    <input type="email" placeholder="you@example.com" value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} />
+                    <Field type="email" placeholder="you@example.com" value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} />
                     <Button size="sm" full disabled={!emailDraft || savingEmail} onClick={() => saveEmailAndRetry(plan.id)}>
                       {savingEmail ? 'Saving…' : 'Save and continue'}
                     </Button>

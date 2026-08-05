@@ -142,3 +142,123 @@
 
 /* ── animated counter used for hero stat figures ── */
 .count-up{ font-variant-numeric:tabular-nums; }
+
+/* ── Overlays — Modal / ConfirmDialog / Drawer ──
+   Shared backdrop; Modal centers, Drawer slides in from the right. Both
+   use .glass so they read as the same floating-chrome language as
+   dropdowns/the topbar rather than a bolted-on library look. */
+.overlay-backdrop{
+  position:fixed; inset:0; z-index:200;
+  background:rgba(4,5,8,0.56);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  animation:overlay-fade var(--dur-base) var(--ease-out);
+}
+@keyframes overlay-fade{ from{ opacity:0; } to{ opacity:1; } }
+
+.modal{
+  width:100%; max-width:480px; max-height:88vh; overflow:auto;
+  border-radius:var(--r-lg); box-shadow:var(--shadow-lg);
+  animation:modal-in var(--dur-base) var(--ease-out);
+}
+@keyframes modal-in{ from{ opacity:0; transform:translateY(10px) scale(.98); } to{ opacity:1; transform:none; } }
+
+.modal-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:20px 22px 0;
+}
+.modal-head h2{ font-size:17px; }
+.modal-body{ padding:16px 22px 22px; display:flex; flex-direction:column; gap:14px; }
+
+.overlay-close{
+  width:30px; height:30px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; color:var(--ink-2);
+  transition:color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.overlay-close:hover{ color:var(--ink); background:var(--bg-2); }
+
+.confirm-body{ font-size:14px; color:var(--ink-1); line-height:1.55; }
+.confirm-actions{ display:flex; justify-content:flex-end; gap:10px; }
+
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; width:100%; max-width:420px;
+  border-radius:0; border-left:1px solid var(--glass-border); box-shadow:var(--shadow-lg);
+  display:flex; flex-direction:column; animation:drawer-in var(--dur-slow) var(--ease);
+}
+@keyframes drawer-in{ from{ transform:translateX(100%); } to{ transform:translateX(0); } }
+.drawer-body{ padding:16px 22px 22px; overflow:auto; flex:1; display:flex; flex-direction:column; gap:14px; }
+
+@media (max-width:520px){
+  .overlay-backdrop:has(.drawer){ padding:0; }
+  .drawer{ max-width:100%; }
+}
+
+/* ── Toast stack ── */
+.toast-stack{
+  position:fixed; z-index:300; left:0; right:0; bottom:20px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:0 16px; pointer-events:none;
+}
+.toast{
+  pointer-events:auto;
+  display:flex; align-items:center; gap:12px;
+  max-width:420px; width:100%;
+  background:var(--card-hi); border:1px solid var(--line-strong); border-radius:var(--r-md);
+  box-shadow:var(--shadow-md); padding:13px 14px 13px 16px; font-size:13.5px;
+  animation:toast-in var(--dur-base) var(--ease-out);
+}
+@keyframes toast-in{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+.toast span{ flex:1; }
+.toast button{ color:var(--ink-2); flex-shrink:0; }
+.toast button:hover{ color:var(--ink); }
+.toast-good{ border-color:var(--good-line); }
+.toast-info{ border-color:var(--info-line); }
+.toast-warn{ border-color:var(--warn-line); }
+.toast-bad{ border-color:var(--danger-line); }
+
+@media (min-width:900px){
+  .toast-stack{ left:auto; right:24px; bottom:24px; align-items:flex-end; padding:0; }
+}
+
+/* ── Empty / error state cards ── */
+.state-card{
+  padding:32px 24px; display:flex; flex-direction:column; align-items:center;
+  text-align:center; gap:6px; color:var(--ink-1);
+}
+.state-card strong{ color:var(--ink); font-size:14.5px; }
+.state-card p{ font-size:13px; line-height:1.55; max-width:340px; }
+.state-icon{
+  width:44px; height:44px; border-radius:14px; margin-bottom:8px;
+  background:var(--bg-2); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center;
+}
+.state-icon-danger{ background:var(--danger-soft); color:var(--danger); }
+.state-card-danger{ border-color:var(--danger-line); }
+
+/* ── Skeleton table/row ── */
+.skel-table{ display:flex; flex-direction:column; gap:10px; }
+.skel-row{ display:flex; gap:12px; align-items:center; padding:14px 16px; }
+
+/* ── IconTile — shared tone-colored icon badge (Billing/History/Contacts/SOS) ── */
+.icon-tile{
+  border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.icon-tile-brand{ background:var(--brand-soft); color:var(--brand-bright); }
+.icon-tile-good{ background:var(--good-soft); color:var(--good); }
+.icon-tile-info{ background:var(--info-soft); color:var(--info); }
+.icon-tile-warn{ background:var(--warn-soft); color:var(--warn); }
+.icon-tile-danger, .icon-tile-bad{ background:var(--danger-soft); color:var(--danger); }
+.icon-tile-neutral{ background:var(--bg-2); color:var(--ink-1); }
+
+/* ── Field — shared labeled input ── */
+.field{ display:flex; flex-direction:column; gap:7px; }
+.field-label{ font-size:12.5px; font-weight:600; color:var(--ink-1); }
+.field-input{
+  width:100%; background:var(--bg-2); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:12px 14px; font-size:14px; color:var(--ink);
+  transition:border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.field-input:focus{ border-color:var(--brand-line); background:var(--card-hi); }
+.field-input::placeholder{ color:var(--ink-2); }
+.field-msg{ font-size:11.5px; color:var(--ink-2); }
+.field-msg-error{ color:var(--danger); }
+.field-error .field-input{ border-color:var(--danger-line); }

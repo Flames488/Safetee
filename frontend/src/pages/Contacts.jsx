@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Phone, MessageCircle, ShieldCheck, GripVertical, X, Trash2 } from 'lucide-react';
+import { Plus, Phone, MessageCircle, ShieldCheck, X, Trash2 } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, Button } from '../components/ui';
+import { Card, Pill, Button, Field, ConfirmDialog, ErrorState, SkeletonRow, useToast } from '../components/ui';
 import { api } from '../lib/api';
 import './contacts.css';
 
@@ -16,6 +16,8 @@ export default function Contacts() {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const toast = useToast();
 
   const load = () => {
     api.listContacts()
@@ -53,10 +55,11 @@ export default function Contacts() {
     try {
       await api.deleteContact(id);
       setContacts((c) => c.filter((x) => x.id !== id));
-    } catch {
-      // leave the contact in place if the delete didn't actually happen
+    } catch (err) {
+      toast(err.message || 'Could not remove this contact right now.', { tone: 'bad' });
     } finally {
       setDeletingId(null);
+      setRemoveTarget(null);
     }
   };
 
@@ -79,17 +82,17 @@ export default function Contacts() {
               <span>New trusted contact</span>
               <button onClick={() => { setShowAdd(false); setFormError(''); }} aria-label="Close"><X size={16} /></button>
             </div>
-            <input
+            <Field
               placeholder="Full name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
-            <input
+            <Field
               placeholder="Relationship (e.g. Sister)"
               value={form.relationship_label}
               onChange={(e) => setForm({ ...form, relationship_label: e.target.value })}
             />
-            <input
+            <Field
               type="tel"
               autoComplete="off"
               placeholder="Phone number"
@@ -103,10 +106,12 @@ export default function Contacts() {
           </Card>
         )}
 
-        {contacts === null && <p className="ct-note">Loading your trusted contacts…</p>}
+        {contacts === null && (
+          <Card className="ct-card"><SkeletonRow columns={3} /></Card>
+        )}
 
         {contacts !== null && loadError && contacts.length === 0 && (
-          <p className="ct-note">Couldn't load your contacts right now — check your connection and reopen this page.</p>
+          <ErrorState message="Couldn't load your contacts right now." onRetry={load} />
         )}
 
         {contacts !== null && !loadError && contacts.length === 0 && !showAdd && (
@@ -118,7 +123,6 @@ export default function Contacts() {
 
         {contacts?.map((c, i) => (
           <Card key={c.id} className="ct-card">
-            <span className="ct-grip"><GripVertical size={15} strokeWidth={2} /></span>
             <div className="ct-avatar mono">{c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</div>
             <div className="ct-info">
               <div className="ct-name-row">
@@ -137,7 +141,7 @@ export default function Contacts() {
               <button
                 aria-label={`Remove ${c.name}`}
                 className="ct-quick-danger"
-                onClick={() => removeContact(c.id)}
+                onClick={() => setRemoveTarget(c)}
                 disabled={deletingId === c.id}
               >
                 <Trash2 size={15} strokeWidth={2.2} />
@@ -151,6 +155,17 @@ export default function Contacts() {
         )}
       </div>
       <BottomNav />
+
+      <ConfirmDialog
+        open={Boolean(removeTarget)}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => removeTarget && removeContact(removeTarget.id)}
+        title="Remove this contact?"
+        body={removeTarget && `${removeTarget.name} will no longer be notified if you trigger an SOS alert.`}
+        confirmLabel="Remove contact"
+        tone="danger"
+        busy={deletingId === removeTarget?.id}
+      />
     </>
   );
 }

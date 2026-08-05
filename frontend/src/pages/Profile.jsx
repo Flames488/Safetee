@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, HeartPulse, CreditCard, HelpCircle, ChevronRight, LogOut } from 'lucide-react';
+import { Edit3, HeartPulse, CreditCard, HelpCircle, ChevronRight, LogOut, Users, Navigation, ShieldCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
-import { Card, Pill, Button } from '../components/ui';
+import { Card, Pill, Button, KpiCard, KpiCardSkeleton, ConfirmDialog } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './profile.css';
@@ -34,6 +34,7 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState(null); // null = loading
   const [sub, setSub] = useState(null); // null = loading, false = error
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -69,6 +70,12 @@ export default function Profile() {
     .join('')
     .toUpperCase();
 
+  const STAT_ITEMS = stats && [
+    { icon: Users, label: 'Trusted contacts', value: stats.contacts, tint: 'brand' },
+    { icon: Navigation, label: 'Journeys tracked', value: stats.journeys, tint: 'info' },
+    { icon: ShieldCheck, label: 'Alerts resolved', value: stats.resolved, tint: 'good' },
+  ];
+
   return (
     <>
       <TopBar title="Profile" />
@@ -82,9 +89,9 @@ export default function Profile() {
           </div>
 
           <div className="pf-stats">
-            <div className="pf-stat"><strong>{stats ? stats.contacts : '—'}</strong><span>Trusted contacts</span></div>
-            <div className="pf-stat"><strong>{stats ? stats.journeys : '—'}</strong><span>Journeys tracked</span></div>
-            <div className="pf-stat"><strong>{stats ? stats.resolved : '—'}</strong><span>Alerts resolved</span></div>
+            {STAT_ITEMS
+              ? STAT_ITEMS.map((s) => <KpiCard key={s.label} icon={s.icon} label={s.label} value={s.value} tint={s.tint} />)
+              : Array.from({ length: 3 }).map((_, i) => <KpiCardSkeleton key={i} />)}
           </div>
         </div>
 
@@ -99,11 +106,21 @@ export default function Profile() {
             ))}
           </Card>
 
-          <Button variant="outline-danger" full icon={<LogOut size={16} />} onClick={handleLogout}>
+          <Button variant="outline-danger" full icon={<LogOut size={16} />} onClick={() => setShowLogoutConfirm(true)}>
             Log out
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Log out?"
+        body="You'll need to sign back in to trigger SOS alerts or view your trusted contacts."
+        confirmLabel="Log out"
+        tone="danger"
+      />
     </>
   );
 }

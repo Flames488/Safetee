@@ -1,21 +1,10 @@
 .bl-body{ flex:1; padding:0 20px 28px; display:flex; flex-direction:column; gap:14px; }
-.bl-note{ font-size:12.5px; color:var(--ink-2); padding:8px 4px; line-height:1.6; }
 .bl-admin-note{ font-size:12.5px; color:var(--ink-1); line-height:1.6; }
-.bl-error{ font-size:12px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line); border-radius:var(--r-sm); padding:9px 12px; }
 
 .bl-current{ padding:22px; display:flex; flex-direction:column; gap:16px; }
 .bl-current-head{ display:flex; align-items:center; gap:14px; }
 .bl-current-head-text{ display:flex; flex-direction:column; gap:7px; }
 .bl-current-head-text strong{ font-size:15.5px; }
-
-.bl-current-icon{
-  width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
-.bl-icon-good{ background:var(--green-soft); color:var(--green); }
-.bl-icon-warn{ background:var(--amber-soft); color:var(--amber); }
-.bl-icon-bad{ background:var(--red-soft); color:var(--red); }
-.bl-icon-info{ background:var(--blue-soft); color:var(--blue); }
-.bl-icon-neutral{ background:var(--bg-2); color:var(--ink-1); }
 
 /* The one thing worth a person's attention on this card — a real
    countdown, not a bare date buried in small text, and visually
@@ -31,9 +20,6 @@
 .bl-actions .btn{ margin-top:0; }
 
 .bl-payment-row{ padding:14px 16px; display:flex; align-items:center; gap:12px; }
-.bl-payment-icon{
-  width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
 .bl-payment-text{ display:flex; flex-direction:column; gap:3px; min-width:0; flex:1; }
 .bl-payment-text strong{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .bl-payment-text span{ font-size:11.5px; color:var(--ink-2); }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ShieldAlert, Navigation2, ChevronDown } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill } from '../components/ui';
+import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow } from '../components/ui';
 import { api } from '../lib/api';
 import './history.css';
 
@@ -43,7 +43,9 @@ export default function History() {
   const [loadError, setLoadError] = useState(false);
   const [open, setOpen] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
+    setEvents(null);
+    setLoadError(false);
     Promise.all([api.journeyHistory().catch(() => null), api.sosHistory().catch(() => null)])
       .then(([journeys, sos]) => {
         if (journeys === null && sos === null) { setEvents([]); setLoadError(true); return; }
@@ -53,16 +55,22 @@ export default function History() {
         ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         setEvents(merged);
       });
-  }, []);
+  };
+  useEffect(load, []);
 
   return (
     <>
       <TopBar title="Emergency history" back={false} subtitle="Every alert and journey, kept for your records" />
       <div className="hs-list">
-        {events === null && <p className="hs-note">Loading your history…</p>}
-        {loadError && <p className="hs-note">Couldn't load your history right now — check your connection and reopen this page.</p>}
+        {events === null && (
+          <>
+            <Card className="hs-card"><SkeletonRow columns={3} /></Card>
+            <Card className="hs-card"><SkeletonRow columns={3} /></Card>
+          </>
+        )}
+        {loadError && <ErrorState message="Couldn't load your history right now." onRetry={load} />}
         {events !== null && events.length === 0 && !loadError && (
-          <p className="hs-note">Nothing here yet — your journeys and alerts will show up as you use Safetee.</p>
+          <EmptyState title="Nothing here yet" message="Your journeys and alerts will show up as you use Safetee." />
         )}
         {events?.map((e) => {
           const meta = META[e.kind][e.status] || { title: e.status, tone: 'neutral' };
@@ -70,9 +78,7 @@ export default function History() {
           return (
             <Card key={e.id} className="hs-card">
               <button className="hs-row" onClick={() => setOpen(isOpen ? null : e.id)}>
-                <span className={`hs-icon ${e.kind === 'sos' ? 'hs-icon-sos' : ''}`}>
-                  {e.kind === 'sos' ? <ShieldAlert size={16} strokeWidth={2.1} /> : <Navigation2 size={16} strokeWidth={2.1} />}
-                </span>
+                <IconTile icon={e.kind === 'sos' ? ShieldAlert : Navigation2} tone={meta.tone} size={32} />
                 <span className="hs-text">
                   <strong>{meta.title}</strong>
                   <span>{e.kind === 'journey' ? e.destination_label : `Triggered via ${TRIGGER_LABEL[e.trigger] || e.trigger}`}</span>

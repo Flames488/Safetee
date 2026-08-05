@@ -4,6 +4,7 @@ import AppShell from './components/AppShell';
 import InstallPrompt from './components/InstallPrompt';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import { ToastProvider } from './components/ui';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -84,6 +85,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <ToastProvider>
         <InstallPrompt />
         <HashRouter>
           <Routes>
@@ -112,7 +114,8 @@ export default function App() {
           <Route path="/app/profile/edit" element={<AppScreen><EditProfile /></AppScreen>} />
           <Route path="/app/profile/medical" element={<AppScreen><MedicalInfo /></AppScreen>} />
         </Routes>
-      </HashRouter>
+        </HashRouter>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );

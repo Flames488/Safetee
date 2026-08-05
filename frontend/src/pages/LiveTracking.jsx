@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BatteryMedium, LocateFixed, CheckCircle2, XCircle } from 'lucide-react';
 import { VitalDot } from '../components/VitalRing';
-import { Card, Button, Pill } from '../components/ui';
+import { Card, Button, Pill, ConfirmDialog } from '../components/ui';
 import { api } from '../lib/api';
 import { joinNames } from '../lib/time';
 import './tracking.css';
@@ -40,6 +40,7 @@ export default function LiveTracking() {
   const [battery, setBattery] = useState(null);
   const [accuracy, setAccuracy] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     if (navigator.getBattery) {
@@ -166,11 +167,22 @@ export default function LiveTracking() {
         <Button full size="lg" icon={<CheckCircle2 size={18} />} onClick={handleArrived}>
           I've arrived safely
         </Button>
-        <button className="tk-cancel" onClick={handleCancel} disabled={cancelling}>
+        <button className="tk-cancel" onClick={() => setShowCancelConfirm(true)} disabled={cancelling}>
           <XCircle size={15} strokeWidth={2.2} /> {cancelling ? 'Cancelling…' : 'Cancel journey'}
         </button>
         <button className="tk-sos" onClick={() => navigate('/app/sos')}>Something's wrong — send SOS</button>
       </div>
+
+      <ConfirmDialog
+        open={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancel}
+        title="Cancel this journey?"
+        body={`Trusted contacts ${notifyContacts?.length ? 'currently receiving live updates ' : ''}will stop being notified, and check-ins will end.`}
+        confirmLabel="Cancel journey"
+        tone="danger"
+        busy={cancelling}
+      />
     </div>
   );
 }

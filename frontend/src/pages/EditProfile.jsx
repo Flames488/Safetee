@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
-import { Button } from '../components/ui';
+import { Button, Field } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './profile-forms.css';
@@ -35,17 +35,14 @@ export default function EditProfile() {
     <>
       <TopBar title="Edit profile" subtitle="Your name and email address" />
       <form className="pfm-body" onSubmit={handleSave}>
-        <label className="pfm-field">
-          <span>Full name</span>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={2} required />
-        </label>
-        <label className="pfm-field">
-          <span>Email</span>
-          <input
-            type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
-        </label>
+        <Field
+          className="pfm-field" label="Full name"
+          value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={2} required
+        />
+        <Field
+          className="pfm-field" label="Email" type="email"
+          value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com"
+        />
         <p className="pfm-hint">Your phone number ({user?.phone}) is your login and can't be changed here.</p>
         {error && <p className="pfm-error" role="alert">{error}</p>}
         {success && <p className="pfm-success">Saved.</p>}

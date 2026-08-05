@@ -36,6 +36,7 @@
 .sos-step-done .sos-step-icon{ background:var(--green-soft); color:var(--green); }
 .sos-step-state{ margin-left:auto; font-size:11px; color:var(--ink-2); }
 .sos-step-state.done{ color:var(--green); }
+.sos-step-state.failed{ color:var(--amber); }
 
 .sos-spacer{ flex:1; min-height:20px; }
 
@@ -44,3 +45,13 @@
   background:var(--ink); color:var(--bg); padding:16px; border-radius:99px; font-size:15px; font-weight:700;
 }
 .sos-cancel-btn-active{ width:100%; justify-content:center; margin-top:12px; }
+
+/* Same rule as tracking.css: this stays a narrow, centered focus column at
+   any size (an active SOS is the last screen that should invite a wide,
+   dashboard-style layout) — just given more breathing room where the
+   viewport actually has the vertical space for it. */
+@media (min-width:720px){
+  .sos-screen{ padding:40px 30px 34px; }
+  .sos-countdown{ font-size:60px; }
+  .sos-h1{ font-size:27px; }
+}

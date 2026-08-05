@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Calendar, Receipt, ShieldCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
-import { Card, Pill, Button, SectionLabel } from '../components/ui';
+import { Card, Pill, Button, SectionLabel, IconTile, ConfirmDialog, EmptyState, ErrorState, useToast } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './billing.css';
@@ -38,11 +38,12 @@ function fmtNaira(kobo) {
 export default function Billing() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const isAdmin = user && user.admin_role !== 'none';
   const [sub, setSub] = useState(null); // null = loading
   const [history, setHistory] = useState(null);
   const [cancelling, setCancelling] = useState(false);
-  const [error, setError] = useState('');
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const load = () => {
     api.getSubscription().then(setSub).catch(() => setSub(false));
@@ -51,15 +52,16 @@ export default function Billing() {
   useEffect(load, []);
 
   const handleCancel = async () => {
-    setError('');
     setCancelling(true);
     try {
       const updated = await api.cancelSubscription();
       setSub(updated);
+      toast('Your subscription will end at the close of this billing period.', { tone: 'good' });
     } catch (err) {
-      setError(err.message || 'Could not cancel right now. Please try again.');
+      toast(err.message || 'Could not cancel right now. Please try again.', { tone: 'bad' });
     } finally {
       setCancelling(false);
+      setShowCancelConfirm(false);
     }
   };
 
@@ -70,7 +72,7 @@ export default function Billing() {
         {isAdmin ? (
           <Card className="bl-current">
             <div className="bl-current-head">
-              <span className="bl-current-icon bl-icon-good"><ShieldCheck size={20} strokeWidth={2} /></span>
+              <IconTile icon={ShieldCheck} tone="good" size={44} />
               <div className="bl-current-head-text">
                 <strong>Admin access</strong>
                 <Pill tone="good">Free — no subscription required</Pill>
@@ -82,13 +84,15 @@ export default function Billing() {
           </Card>
         ) : (
           <>
-        {sub === null && <p className="bl-note">Loading your subscription…</p>}
-        {sub === false && <p className="bl-note">Couldn't load your subscription right now — check your connection and reopen this page.</p>}
+        {sub === null && (
+          <Card className="bl-current"><div className="skel skel-line" style={{ width: '60%', height: 20 }} /></Card>
+        )}
+        {sub === false && <ErrorState message="Couldn't load your subscription right now." onRetry={load} />}
 
         {sub && (
           <Card className="bl-current">
             <div className="bl-current-head">
-              <span className={`bl-current-icon bl-icon-${STATUS_TONE[sub.status]}`}><CreditCard size={20} strokeWidth={2} /></span>
+              <IconTile icon={CreditCard} tone={STATUS_TONE[sub.status]} size={44} />
               <div className="bl-current-head-text">
                 <strong>
                   {sub.tier
@@ -118,14 +122,12 @@ export default function Billing() {
               </div>
             )}
 
-            {error && <p className="bl-error" role="alert">{error}</p>}
-
             <div className="bl-actions">
               <Button onClick={() => navigate('/app/settings/billing/choose-plan')}>
                 {sub.status === 'active' ? 'Change plan' : 'Choose a plan'}
               </Button>
               {sub.status === 'active' && !sub.cancel_at_period_end && (
-                <Button variant="ghost" onClick={handleCancel} disabled={cancelling}>
+                <Button variant="ghost" onClick={() => setShowCancelConfirm(true)} disabled={cancelling}>
                   {cancelling ? 'Cancelling…' : 'Cancel subscription'}
                 </Button>
               )}
@@ -134,11 +136,11 @@ export default function Billing() {
         )}
 
         <SectionLabel><Receipt size={12} strokeWidth={2.4} /> Payment history</SectionLabel>
-        {history === null && <p className="bl-note">Loading…</p>}
-        {history?.length === 0 && <p className="bl-note">No payments yet.</p>}
+        {history === null && <div className="skel skel-line" style={{ width: '100%', height: 48 }} />}
+        {history?.length === 0 && <EmptyState title="No payments yet" message="Your receipts will show up here once you're on a paid plan." />}
         {history?.map((p) => (
           <Card key={p.id} className="bl-payment-row">
-            <span className={`bl-payment-icon bl-icon-${PAYMENT_STATUS_TONE[p.status]}`}><Receipt size={15} strokeWidth={2.1} /></span>
+            <IconTile icon={Receipt} tone={PAYMENT_STATUS_TONE[p.status]} size={32} />
             <div className="bl-payment-text">
               <strong>
                 {p.tier[0].toUpperCase()}{p.tier.slice(1)} ({p.billing_interval}{p.extra_seats ? ` +${p.extra_seats} seats` : ''}) — {fmtNaira(p.amount_kobo)}
@@ -151,6 +153,17 @@ export default function Billing() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        open={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancel}
+        title="Cancel your subscription?"
+        body="You'll keep full access until the end of your current billing period — after that your plan won't renew."
+        confirmLabel="Cancel subscription"
+        tone="danger"
+        busy={cancelling}
+      />
     </>
   );
 }

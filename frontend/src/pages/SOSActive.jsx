@@ -5,11 +5,23 @@ import VitalRing, { VitalDot } from '../components/VitalRing';
 import { api } from '../lib/api';
 import './sos.css';
 
+// One contact can have multiple alert channels (push + SMS fallback) — pick
+// the best status across them so "delivered on SMS after push failed" reads
+// as delivered, not failed.
+const STATUS_RANK = { failed: 0, queued: 1, sent: 2, delivered: 3 };
+function contactAlertState(alerts, contactId) {
+  const rows = alerts.filter((a) => a.contact_id === contactId);
+  if (rows.length === 0) return 'queued';
+  return rows.reduce((best, r) => (STATUS_RANK[r.status] > STATUS_RANK[best] ? r.status : best), rows[0].status);
+}
+const STATE_LABEL = { queued: 'Sending…', sent: 'Sent', delivered: 'Sent', failed: 'Not delivered' };
+
 export default function SOSActive() {
   const [phase, setPhase] = useState('counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
   const [contacts, setContacts] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [elapsed, setElapsed] = useState(0);
   const holdTimer = useRef(null);
   const activeSince = useRef(null);
@@ -51,6 +63,23 @@ export default function SOSActive() {
     return () => clearInterval(t);
   }, [phase]);
 
+  // Poll real per-contact delivery status once alerts are actually fanning
+  // out — the backend populates SOSEvent.alerts asynchronously after the
+  // cancel window closes, so this is the one honest way to move a contact
+  // row off "Sending…" (see the fanout comment above `steps`).
+  useEffect(() => {
+    if (phase !== 'active' || !eventId) return;
+    let cancelled = false;
+    const poll = () => {
+      api.getActiveSOS()
+        .then((event) => { if (!cancelled && event?.id === eventId) setAlerts(event.alerts || []); })
+        .catch(() => {});
+    };
+    poll();
+    const interval = setInterval(poll, 4000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [phase, eventId]);
+
   const startHold = () => {
     holdTimer.current = setTimeout(() => {
       const call = phase === 'counting' ? api.cancelSOS : api.resolveSOS;
@@ -63,14 +92,13 @@ export default function SOSActive() {
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   // Real notification steps: one per trusted contact, plus location and
-  // audio. No fabricated names or fake "done" states — every contact
-  // reads "Sending…" until we actually have per-alert delivery status from
-  // the backend (SOSEventOut.alerts), which the fanout task populates
-  // asynchronously after the cancel window closes.
+  // audio. No fabricated names or fake "done" states — each contact's state
+  // comes straight from the backend's per-alert delivery status (polled
+  // above), not a client-side guess.
   const steps = [
-    { key: 'location', icon: MapPin, label: 'Location sent', done: true },
-    ...contacts.map((c) => ({ key: c.id, icon: Users, label: `${c.name} notified`, done: false })),
-    { key: 'audio', icon: Mic, label: 'Audio recording', done: true, live: true },
+    { key: 'location', icon: MapPin, label: 'Location sent', state: 'delivered' },
+    ...contacts.map((c) => ({ key: c.id, icon: Users, label: `${c.name} notified`, state: contactAlertState(alerts, c.id) })),
+    { key: 'audio', icon: Mic, label: 'Audio recording', state: 'delivered', live: true },
   ];
 
   if (phase === 'counting') {
@@ -108,13 +136,19 @@ export default function SOSActive() {
       </p>
 
       <div className="sos-steps">
-        {steps.map((s) => (
-          <div key={s.key} className={`sos-step ${s.done ? 'sos-step-done' : ''}`}>
-            <span className="sos-step-icon"><s.icon size={15} strokeWidth={2.2} /></span>
-            <span>{s.label}</span>
-            {s.live ? <VitalDot color="red" size={7} /> : <span className={`sos-step-state ${s.done ? 'done' : ''}`}>{s.done ? 'Sent' : 'Sending…'}</span>}
-          </div>
-        ))}
+        {steps.map((s) => {
+          const done = s.state === 'sent' || s.state === 'delivered';
+          const failed = s.state === 'failed';
+          return (
+            <div key={s.key} className={`sos-step ${done ? 'sos-step-done' : ''}`}>
+              <span className="sos-step-icon"><s.icon size={15} strokeWidth={2.2} /></span>
+              <span>{s.label}</span>
+              {s.live
+                ? <VitalDot color="red" size={7} />
+                : <span className={`sos-step-state ${done ? 'done' : ''} ${failed ? 'failed' : ''}`}>{STATE_LABEL[s.state]}</span>}
+            </div>
+          );
+        })}
       </div>
 
       <div className="sos-spacer" />

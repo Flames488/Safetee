@@ -1,15 +1,43 @@
-.ad-body{ flex:1; padding:0 20px 28px; display:flex; flex-direction:column; gap:12px; }
-.ad-note{ font-size:12.5px; color:var(--ink-2); padding:8px 4px; }
-.ad-error{ font-size:12px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line); border-radius:var(--r-sm); padding:9px 12px; }
+.ad-body{ flex:1; padding:0 20px 28px; display:flex; flex-direction:column; gap:16px; }
+.ad-error{ font-size:12px; color:var(--danger); background:var(--danger-soft); border:1px solid var(--danger-line); border-radius:var(--r-sm); padding:9px 12px; }
 
-.ad-stats{ display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; }
-.ad-stat{ padding:14px; display:flex; flex-direction:column; gap:7px; }
-.ad-stat-icon{
-  width:26px; height:26px; border-radius:8px; background:var(--bg-2); color:var(--ink-1);
-  display:flex; align-items:center; justify-content:center;
+/* ── Hero: revenue this month, the one primary figure ── */
+.ad-hero-row{ display:flex; flex-direction:column; gap:12px; }
+.ad-hero{
+  padding:24px 26px; position:relative; overflow:hidden;
+  background:linear-gradient(160deg, var(--card-hi) 0%, var(--card) 65%);
 }
-.ad-stat-label{ font-size:10.5px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.04em; }
-.ad-stat-value{ font-size:16px; font-weight:700; font-family:var(--font-display); }
+.ad-hero-icon{ color:var(--brand-bright); margin-bottom:10px; }
+.ad-hero-label{ font-size:12px; color:var(--ink-2); letter-spacing:.02em; display:block; }
+.ad-hero-value{ font-size:42px; line-height:1.1; margin:6px 0 4px; display:flex; align-items:baseline; gap:4px; }
+/* The ₦ glyph isn't in Sora — rendered in the body font with normal
+   tracking so it never collides with the tightly-tracked Sora digits
+   next to it (see .stat-figure). */
+.ad-hero-currency{ font-family:var(--font-body); font-weight:600; letter-spacing:normal; margin-right:7px; }
+.ad-hero-skel{ width:220px; height:42px; }
+.ad-hero-sub{ font-size:12.5px; color:var(--ink-2); }
+
+.ad-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+
+/* ── Charts ── */
+.ad-charts{ display:grid; grid-template-columns:1fr; gap:12px; }
+.ad-chart-card{ padding:20px 22px; display:flex; flex-direction:column; gap:16px; }
+.ad-chart-skel{ height:180px; border-radius:var(--r-md); }
+
+/* ── Table controls ── */
+.ad-table-head{ display:flex; flex-direction:column; gap:10px; }
+.ad-table-controls{ display:flex; flex-wrap:wrap; gap:8px; }
+.ad-search{
+  flex:1; min-width:200px; display:flex; align-items:center; gap:8px;
+  background:var(--bg-2); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:9px 12px; color:var(--ink-2);
+}
+.ad-search input{ flex:1; font-size:13px; color:var(--ink); }
+.ad-search input::placeholder{ color:var(--ink-2); }
+.ad-table-controls select{
+  background:var(--bg-2); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+  padding:9px 12px; font-size:13px; color:var(--ink);
+}
 
 .ad-master{ padding:12px 14px; display:flex; align-items:center; gap:10px; color:var(--ink-2); }
 .ad-master .pw-wrap{ flex:1; }
@@ -24,7 +52,14 @@
 .ad-user-actions{ display:flex; gap:8px; flex-wrap:wrap; width:100%; padding-top:10px; border-top:1px solid var(--line); }
 .ad-user-actions .btn{ margin-top:0; }
 
+@media (min-width:700px){
+  .ad-hero-row{ flex-direction:row; align-items:stretch; }
+  .ad-hero{ flex:0 0 300px; }
+  .ad-kpi-grid{ flex:1; }
+  .ad-charts{ grid-template-columns:1.3fr 1fr; }
+}
+
 @media (min-width:900px){
-  .ad-body{ max-width:900px; margin:0 auto; padding:0; gap:14px; }
+  .ad-body{ max-width:1080px; margin:0 auto; padding:0; gap:20px; }
   .ad-user-actions{ width:auto; border-top:none; padding-top:0; margin-left:auto; }
 }
