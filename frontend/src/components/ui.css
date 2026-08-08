@@ -190,11 +190,13 @@
 @media (max-width:520px){
   .overlay-backdrop:has(.drawer){ padding:0; }
   .drawer{ max-width:100%; }
+  .drawer .modal-head{ padding-top:calc(20px + env(safe-area-inset-top)); }
+  .drawer .drawer-body{ padding-bottom:calc(22px + env(safe-area-inset-bottom)); }
 }
 
 /* ── Toast stack ── */
 .toast-stack{
-  position:fixed; z-index:300; left:0; right:0; bottom:20px;
+  position:fixed; z-index:300; left:0; right:0; bottom:calc(20px + env(safe-area-inset-bottom));
   display:flex; flex-direction:column; align-items:center; gap:10px;
   padding:0 16px; pointer-events:none;
 }
@@ -216,7 +218,7 @@
 .toast-bad{ border-color:var(--danger-line); }
 
 @media (min-width:900px){
-  .toast-stack{ left:auto; right:24px; bottom:24px; align-items:flex-end; padding:0; }
+  .toast-stack{ left:auto; right:24px; bottom:calc(24px + env(safe-area-inset-bottom)); align-items:flex-end; padding:0; }
 }
 
 /* ── Empty / error state cards ── */
@@ -254,7 +256,7 @@
 .field-label{ font-size:12.5px; font-weight:600; color:var(--ink-1); }
 .field-input{
   width:100%; background:var(--bg-2); border:1px solid var(--line-strong); border-radius:var(--r-sm);
-  padding:12px 14px; font-size:14px; color:var(--ink);
+  padding:12px 14px; font-size:16px; color:var(--ink);
   transition:border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .field-input:focus{ border-color:var(--brand-line); background:var(--card-hi); }

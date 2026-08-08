@@ -3,7 +3,7 @@
 .pfm-field span{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); }
 .pfm-field input, .pfm-field textarea{
   background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-sm);
-  padding:14px 16px; font-size:14.5px; font-family:inherit; width:100%;
+  padding:14px 16px; font-size:16px; font-family:inherit; width:100%;
 }
 .pfm-field textarea{ resize:vertical; min-height:140px; line-height:1.6; }
 .pfm-field input:focus, .pfm-field textarea:focus{ border-color:var(--green-line); }

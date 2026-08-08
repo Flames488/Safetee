@@ -1,4 +1,4 @@
-.app-shell{ display:flex; flex-direction:column; min-height:100vh; background:var(--bg); }
+.app-shell{ display:flex; flex-direction:column; min-height:100vh; min-height:100dvh; background:var(--bg); }
 
 /* ── Top bar (desktop only — every page carries its own mobile header) ── */
 .app-topbar{

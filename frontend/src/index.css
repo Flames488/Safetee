@@ -133,21 +133,24 @@
   --shadow-lg:0 32px 72px -24px rgba(20,18,40,.18);
 }
 
-*{ box-sizing:border-box; margin:0; padding:0; }
-html{ scroll-behavior:smooth; }
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
 body{
   background:var(--bg);
   color:var(--ink);
   font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
+  min-height:100dvh;
+  overflow-x:hidden;
+  overscroll-behavior-y:none;
 }
 img,svg{ display:block; max-width:100%; }
 a{ color:inherit; text-decoration:none; }
 ul{ list-style:none; }
-button, input{ font-family:inherit; color:inherit; }
-button{ cursor:pointer; border:none; background:none; }
-input{ background:none; border:none; outline:none; }
+button, input, textarea, select{ font-family:inherit; color:inherit; }
+button{ cursor:pointer; border:none; background:none; touch-action:manipulation; }
+input, textarea, select{ background:none; border:none; outline:none; font-size:16px; }
 
 h1,h2,h3,h4{
   font-family:var(--font-display);
@@ -206,21 +209,21 @@ h1,h2,h3,h4{
    (brand panel + full-height form column), and an edge-to-edge, centered
    layout for immersive in-app states (active SOS, live tracking). */
 .focus-page{
-  min-height:100vh; width:100%;
+  min-height:100vh; min-height:100dvh; width:100%;
   background:
     radial-gradient(900px 520px at 50% -10%, var(--brand-soft), transparent),
     var(--bg);
 }
 .focus-stage{
   width:100%; max-width:440px; display:flex; flex-direction:column;
-  min-height:100vh;
+  min-height:100vh; min-height:100dvh;
 }
 
 /* Immersive: SOS / live tracking — full-bleed always, just re-centered
    and given breathing room on wide viewports. No border, no card. */
 .focus-immersive{ display:flex; justify-content:center; }
 @media (min-width: 720px){
-  .focus-immersive .focus-stage{ min-height:100vh; padding:0 0 48px; }
+  .focus-immersive .focus-stage{ min-height:100vh; min-height:100dvh; padding:0 0 48px; }
 }
 
 /* Auth: login / onboarding — a real split screen, like a signed-in SaaS
@@ -231,7 +234,7 @@ h1,h2,h3,h4{
 .focus-brand{
   display:none;
   flex-direction:column; justify-content:space-between;
-  width:420px; flex-shrink:0; padding:44px 40px; min-height:100vh;
+  width:420px; flex-shrink:0; padding:44px 40px; min-height:100vh; min-height:100dvh;
   background:var(--bg-1); border-right:1px solid var(--line);
 }
 .focus-brand-top{

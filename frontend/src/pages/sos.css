@@ -1,5 +1,6 @@
 .sos-screen{
-  flex:1; display:flex; flex-direction:column; padding:32px 24px 30px;
+  flex:1; display:flex; flex-direction:column;
+  padding:calc(32px + env(safe-area-inset-top)) 24px calc(30px + env(safe-area-inset-bottom));
   background:radial-gradient(500px 340px at 50% 0%, rgba(255,75,87,.14), transparent), var(--bg-1);
 }
 
@@ -51,7 +52,7 @@
    dashboard-style layout) — just given more breathing room where the
    viewport actually has the vertical space for it. */
 @media (min-width:720px){
-  .sos-screen{ padding:40px 30px 34px; }
+  .sos-screen{ padding:calc(40px + env(safe-area-inset-top)) 30px calc(34px + env(safe-area-inset-bottom)); }
   .sos-countdown{ font-size:60px; }
   .sos-h1{ font-size:27px; }
 }

@@ -1,4 +1,4 @@
-.sp{ background:var(--bg); min-height:100vh; display:flex; flex-direction:column; }
+.sp{ background:var(--bg); min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
 .sp-hero{ max-width:720px; margin:0 auto; padding:56px 24px 8px; text-align:center; }
 .sp-eyebrow{ display:block; margin-bottom:10px; }
 .sp-h1{ font-size:34px; line-height:1.15; }
@@ -34,7 +34,7 @@
 .sp-form-title{ font-size:15px; margin-bottom:4px; }
 .sp-form input, .sp-form textarea{
   background:var(--bg-2); border:1px solid var(--line-strong); border-radius:var(--r-sm);
-  padding:11px 13px; font-size:13.5px; font-family:inherit; resize:vertical;
+  padding:11px 13px; font-size:16px; font-family:inherit; resize:vertical;
 }
 .sp-form input:focus, .sp-form textarea:focus{ border-color:var(--green-line); }
 .sp-form a{ display:block; }

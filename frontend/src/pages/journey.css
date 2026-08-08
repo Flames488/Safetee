@@ -2,7 +2,7 @@
 
 .jr-route{ padding:16px; display:flex; flex-direction:column; }
 .jr-route-row{ display:flex; align-items:center; gap:12px; padding:6px 0; }
-.jr-route-row input{ flex:1; font-size:14.5px; }
+.jr-route-row input{ flex:1; font-size:16px; }
 .jr-route-row span:not(.jr-dot){ font-size:14.5px; color:var(--ink-1); }
 .jr-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 .jr-dot-a{ background:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }

@@ -20,14 +20,14 @@
 .tk-map-me{ position:absolute; left:46%; top:52%; }
 
 .tk-map-topbar{
-  position:absolute; top:16px; left:16px; right:16px;
+  position:absolute; top:calc(16px + env(safe-area-inset-top)); left:16px; right:16px;
   display:flex; align-items:center; justify-content:space-between;
 }
 .tk-close{ font-size:11px; color:var(--ink-1); background:rgba(10,16,23,.6); padding:8px 14px; border-radius:99px; backdrop-filter:blur(8px); }
 
 .tk-sheet{
   flex:1; background:var(--bg-1); border-radius:26px 26px 0 0; margin-top:-18px; position:relative; z-index:2;
-  padding:22px 20px 24px; display:flex; flex-direction:column; gap:16px; border-top:1px solid var(--line);
+  padding:22px 20px calc(24px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:16px; border-top:1px solid var(--line);
 }
 
 .tk-eta{ display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center; }
