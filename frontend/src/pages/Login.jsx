@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [waking, setWaking] = useState(false);
 
   if (status === 'authenticated') return <Navigate to="/app" replace />;
 
@@ -21,13 +22,19 @@ export default function Login() {
     if (!phone || !password) return;
     setSubmitting(true);
     setError('');
+    // The free-tier API host spins down when idle and can take up to a
+    // minute to wake on the first request — past this threshold, assume
+    // that's what's happening rather than leaving a plain spinner up.
+    const wakeTimer = setTimeout(() => setWaking(true), 2500);
     try {
       await login(phone, password);
       navigate('/app');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
+      clearTimeout(wakeTimer);
       setSubmitting(false);
+      setWaking(false);
     }
   };
 
@@ -66,8 +73,11 @@ export default function Login() {
         </button>
       </div>
       {error && <p className="lg-error" role="alert">{error}</p>}
+      {waking && (
+        <p className="lg-hint" role="status">Waking up the server — this can take up to a minute on the first try.</p>
+      )}
       <Button full size="lg" type="submit" disabled={submitting}>
-        {submitting ? 'Signing in…' : 'Log in'}
+        {submitting ? (waking ? 'Waking up server…' : 'Signing in…') : 'Log in'}
       </Button>
       <button type="button" className="lg-link mono" onClick={() => navigate('/onboarding')}>
         Create a new account
