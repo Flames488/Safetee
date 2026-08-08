@@ -63,6 +63,12 @@
   --danger-soft:rgba(255,75,92,0.14);
   --danger-line:rgba(255,75,92,0.38);
 
+  /* subtle lighten/darken tint for a chip sitting on a translucent
+     status background — needs to flip direction per theme, unlike most
+     tokens, since it's lightening dark surfaces here and would need to
+     darken light ones instead (see the light theme override below) */
+  --overlay-raise:rgba(255,255,255,0.12);
+
   /* radii */
   --r-xl:28px;
   --r-lg:20px;
@@ -125,7 +131,13 @@
 
   --ink:#12111A;
   --ink-1:#54566B;
-  --ink-2:#8B8DA0;
+  /* Darkened from the original #8B8DA0 (~2.8:1 on white, fails WCAG AA
+     even at large text) — this color carries most secondary/meta text
+     (timestamps, hints, labels) across the app, so low contrast here
+     read as "text I can't read" throughout light mode, not a one-off. */
+  --ink-2:#6B6E85;
+
+  --overlay-raise:rgba(20,18,40,0.07);
 
   --shadow-xs:0 1px 2px rgba(20,18,40,.04);
   --shadow-sm:0 6px 16px -8px rgba(20,18,40,.10);

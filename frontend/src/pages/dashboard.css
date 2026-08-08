@@ -34,7 +34,7 @@
 .dash-status-text{ flex:1; font-family:var(--font-display); }
 .dash-status-cta{
   display:flex; align-items:center; gap:2px; font-size:12px; font-weight:700; flex-shrink:0;
-  padding:5px 10px; border-radius:var(--r-pill); background:rgba(255,255,255,.12);
+  padding:5px 10px; border-radius:var(--r-pill); background:var(--overlay-raise);
 }
 
 .dash-billing-card{

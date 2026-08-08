@@ -1,4 +1,7 @@
-.mn-nav{ border-bottom:1px solid var(--line); position:sticky; top:0; background:rgba(6,10,15,.85); backdrop-filter:blur(12px); z-index:10; }
+.mn-nav{
+  border-bottom:1px solid var(--glass-border); position:sticky; top:0; z-index:10;
+  background:var(--glass-bg); backdrop-filter:blur(var(--glass-blur)); -webkit-backdrop-filter:blur(var(--glass-blur));
+}
 .mn-nav-inner{ max-width:1120px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; gap:32px; }
 .mn-logo{ display:flex; align-items:center; gap:9px; font-size:14px; letter-spacing:.1em; font-weight:700; }
 .mn-links{ display:flex; align-items:center; gap:22px; flex:1; }
