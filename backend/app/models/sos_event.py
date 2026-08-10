@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.mixins import TimestampMixin, UUIDMixin
@@ -25,7 +25,20 @@ class SOSEvent(Base, UUIDMixin, TimestampMixin):
     origin_lat: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
     origin_lng: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
 
-    audio_recording_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Evidence is captured as a stream of independently-uploaded chunks
+    # (each chunk survives even if the device is destroyed mid-recording),
+    # so each of these is an ordered list of Supabase object paths, not a
+    # single URL — a single overwritable column would silently keep only
+    # the last ~20 seconds of a recording. Never a public URL: the bucket
+    # is private, paths are resolved to short-lived signed URLs on read.
+    audio_segment_paths: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    video_segment_paths: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    photo_paths: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+
+    # Set on the first successful evidence confirm for this event, so the
+    # contact-notify task fires exactly once per event rather than once
+    # per chunk (chunks land every 15-30s throughout an active SOS).
+    evidence_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     cancel_window_ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

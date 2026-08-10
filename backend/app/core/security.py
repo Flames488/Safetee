@@ -52,3 +52,34 @@ def create_refresh_token(subject: str) -> str:
 
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.secret_key, algorithms=["HS256"])
+
+
+def create_share_token(scope: str, resource_id: str, contact_id: str) -> str:
+    """A signed, expiring, read-only link for a trusted contact to reach one
+    specific resource (an SOS event's evidence, a journey's live location)
+    without an account of their own. `scope` + `resource_id` are checked by
+    the caller against the actual resource being requested — this token
+    proves "a contact link for exactly this thing was issued," nothing more
+    (it is never accepted anywhere `type: "access"` is expected, and never
+    grants write access)."""
+    expire = datetime.now(UTC) + timedelta(hours=settings.share_token_expire_hours)
+    payload = {
+        "type": "share",
+        "scope": scope,
+        "resource_id": resource_id,
+        "contact_id": contact_id,
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+
+
+def decode_share_token(token: str, scope: str, resource_id: str) -> dict:
+    """Raises jwt.PyJWTError (expired/malformed/wrong secret) or ValueError
+    (right shape, wrong resource) — callers should treat both as "reject
+    this request," the distinction only matters for logging."""
+    payload = decode_token(token)
+    if payload.get("type") != "share" or payload.get("scope") != scope:
+        raise ValueError("wrong token type/scope")
+    if payload.get("resource_id") != str(resource_id):
+        raise ValueError("token not issued for this resource")
+    return payload

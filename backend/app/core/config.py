@@ -56,6 +56,28 @@ class Settings(BaseSettings):
     trial_period_days: int = 30
     frontend_url: str = "http://localhost:5173"
 
+    # Evidence upload (Supabase Storage) — bucket must be private; every
+    # access goes through a short-lived signed URL minted server-side.
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_evidence_bucket: str = "sos-evidence"
+    evidence_signed_url_ttl_seconds: int = 3600
+    # Hard per-event caps so an active SOS can't silently run up storage/
+    # bandwidth past what the free-tier backing store actually has —
+    # roughly 15 minutes of audio/video at a 20s chunk interval, and 15
+    # minutes of photos at a 60s interval. Deliberately conservative;
+    # raise these once there's a paid storage tier to back them.
+    evidence_max_audio_chunks: int = 45
+    evidence_max_video_chunks: int = 45
+    evidence_max_photos: int = 15
+
+    # Contact-facing share links (evidence, and — see the tracking
+    # websocket — live location) use their own signed, expiring token
+    # type, never the account access/refresh tokens. Long-ish default
+    # since an SOS's evidence should stay reachable to contacts for a
+    # while after the fact, not just during the live incident.
+    share_token_expire_hours: int = 72
+
     # Admin dashboard — deliberately separate from normal login. The phone
     # number here is auto-promoted to super_admin on every login/getMe call
     # (see app/api/deps.py) so there's no manual DB write needed to bootstrap

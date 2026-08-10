@@ -1,6 +1,7 @@
 import logging
 
 from app.core.config import settings
+from app.core.security import create_share_token
 from app.db.sync_session import SyncSessionLocal
 from app.models.contact import TrustedContact
 from app.models.enums import AlertStatus, SOSStatus
@@ -83,6 +84,32 @@ def fanout_sos_alerts(self, sos_event_id: str):
             # already got the message)
             logger.warning("SOS %s had partial delivery failures", sos_event_id)
 
+    finally:
+        db.close()
+
+
+@celery_app.task
+def notify_contacts_of_evidence(sos_event_id: str):
+    """Fires exactly once per event (see `evidence_notified_at` in
+    confirm_evidence) — trusted contacts get one link to a live evidence
+    page, not a fresh SMS for every 15-30s chunk. New chunks just appear
+    when they reload that same link; see get_evidence."""
+    db = SyncSessionLocal()
+    try:
+        event = db.get(SOSEvent, sos_event_id)
+        if event is None:
+            return
+        user = db.get(User, event.user_id)
+        contacts = db.query(TrustedContact).filter(TrustedContact.user_id == event.user_id).all()
+
+        for contact in contacts:
+            token = create_share_token(scope="sos_evidence", resource_id=str(event.id), contact_id=str(contact.id))
+            link = f"{settings.frontend_url}/#/track/{event.id}/evidence?token={token}"
+            body = f"SAFETEE: Audio/video evidence is now available for {user.full_name}'s emergency alert. {link}"
+            try:
+                send_with_fallback(contact.phone, body)
+            except SMSDeliveryFailed as exc:
+                logger.error("Evidence notify for SOS %s: failed to reach %s: %s", sos_event_id, contact.phone, exc)
     finally:
         db.close()
 

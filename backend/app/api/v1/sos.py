@@ -1,7 +1,8 @@
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import jwt
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,14 +10,35 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
 from app.models.enums import SOSStatus
 from app.models.sos_event import SOSEvent
 from app.models.user import User
-from app.schemas.sos import SOSEventOut, SOSTriggerRequest
-from app.workers.tasks.sos_tasks import fanout_sos_alerts
+from app.schemas.sos import (
+    EvidenceConfirmRequest,
+    EvidenceOut,
+    EvidenceUploadRequest,
+    EvidenceUploadResponse,
+    MediaType,
+    SOSEventOut,
+    SOSTriggerRequest,
+)
+from app.services.storage.supabase_storage import SupabaseStorageError, supabase_storage
+from app.workers.tasks.sos_tasks import fanout_sos_alerts, notify_contacts_of_evidence
 
 router = APIRouter(prefix="/sos", tags=["sos"])
+
+_EVIDENCE_FIELD = {"audio": "audio_segment_paths", "video": "video_segment_paths", "photo": "photo_paths"}
+_EVIDENCE_CAP_SETTING = {
+    "audio": "evidence_max_audio_chunks",
+    "video": "evidence_max_video_chunks",
+    "photo": "evidence_max_photos",
+}
+
+
+def _evidence_cap(media_type: MediaType) -> int:
+    return getattr(settings, _EVIDENCE_CAP_SETTING[media_type])
 
 
 @router.post("/trigger", response_model=SOSEventOut, status_code=status.HTTP_201_CREATED)
@@ -113,3 +135,115 @@ async def _get_event(db: AsyncSession, event_id: uuid.UUID, user_id: uuid.UUID) 
     if event is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "SOS event not found")
     return event
+
+
+@router.post("/{event_id}/evidence/upload-url", response_model=EvidenceUploadResponse)
+async def create_evidence_upload_url(
+    event_id: uuid.UUID,
+    payload: EvidenceUploadRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    event = await _get_event(db, event_id, user.id)
+
+    existing = getattr(event, _EVIDENCE_FIELD[payload.media_type])
+    if len(existing) >= _evidence_cap(payload.media_type):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Evidence limit reached for {payload.media_type} on this event"
+        )
+
+    # {user_id}/{event_id}/... namespacing is what confirm_evidence checks
+    # a client-supplied path against below — never trust a path the client
+    # sends back without verifying it actually falls under the event it
+    # claims to belong to.
+    path = f"{user.id}/{event.id}/{payload.media_type}-{uuid.uuid4()}.{payload.file_extension}"
+    try:
+        result = await supabase_storage.create_signed_upload_url(path)
+    except SupabaseStorageError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+
+    return EvidenceUploadResponse(upload_url=result["upload_url"], path=result["path"], media_type=payload.media_type)
+
+
+@router.post("/{event_id}/evidence/confirm", response_model=SOSEventOut)
+async def confirm_evidence(
+    event_id: uuid.UUID,
+    payload: EvidenceConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    event = await _get_event(db, event_id, user.id)
+
+    expected_prefix = f"{user.id}/{event.id}/"
+    if not payload.path.startswith(expected_prefix):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Path does not belong to this event")
+
+    field_name = _EVIDENCE_FIELD[payload.media_type]
+    existing = getattr(event, field_name)
+    if payload.path in existing:
+        return event  # already confirmed — a retried confirm is a no-op, not an error
+
+    if len(existing) >= _evidence_cap(payload.media_type):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Evidence limit reached for {payload.media_type} on this event"
+        )
+
+    setattr(event, field_name, [*existing, payload.path])
+
+    is_first_evidence = event.evidence_notified_at is None
+    if is_first_evidence:
+        event.evidence_notified_at = datetime.now(UTC)
+
+    await db.commit()
+    await db.refresh(event, attribute_names=[field_name, "evidence_notified_at"])
+
+    if is_first_evidence:
+        notify_contacts_of_evidence.delay(str(event.id))
+
+    return event
+
+
+@router.get("/{event_id}/evidence", response_model=EvidenceOut)
+async def get_evidence(
+    event_id: uuid.UUID,
+    share_token: str | None = None,
+    authorization: str | None = Header(default=None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Reachable two ways: the event's own owner (normal bearer token), or
+    a trusted contact holding a share link (no account required) — see
+    `notify_contacts_of_evidence`, which is what mints that link. Deliberately
+    not behind `get_current_user`, since a contact has no Safetee account
+    at all."""
+    event = await db.get(SOSEvent, event_id)
+    if event is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "SOS event not found")
+
+    if not _caller_may_view_evidence(event, authorization, share_token):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not authorized to view this event's evidence")
+
+    try:
+        audio_urls = [await supabase_storage.create_signed_download_url(p) for p in event.audio_segment_paths]
+        video_urls = [await supabase_storage.create_signed_download_url(p) for p in event.video_segment_paths]
+        photo_urls = [await supabase_storage.create_signed_download_url(p) for p in event.photo_paths]
+    except SupabaseStorageError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+
+    return EvidenceOut(audio_urls=audio_urls, video_urls=video_urls, photo_urls=photo_urls)
+
+
+def _caller_may_view_evidence(event: SOSEvent, authorization: str | None, share_token: str | None) -> bool:
+    if authorization and authorization.lower().startswith("bearer "):
+        try:
+            payload = decode_token(authorization.split(" ", 1)[1])
+            if payload.get("type") == "access" and payload.get("sub") == str(event.user_id):
+                return True
+        except jwt.PyJWTError:
+            pass
+    if share_token:
+        try:
+            decode_share_token(share_token, scope="sos_evidence", resource_id=str(event.id))
+            return True
+        except (jwt.PyJWTError, ValueError):
+            pass
+    return False

@@ -13,7 +13,7 @@ export default function Privacy() {
       <div className="sp-body">
         <div className="sp-section">
           <h2>What we collect</h2>
-          <p>Your name, phone number, and password (stored hashed, never in plain text). The trusted contacts you add. Location data, but only when you start a Safe Journey or trigger an SOS alert — never tracked in the background otherwise. Audio recorded during an active SOS alert, used solely as evidence for that alert.</p>
+          <p>Your name, phone number, and password (stored hashed, never in plain text). The trusted contacts you add. Location data, but only when you start a Safe Journey or trigger an SOS alert — never tracked in the background otherwise. Audio, photo, and video recorded during an active SOS alert, used solely as evidence for that alert.</p>
         </div>
         <div className="sp-section">
           <h2>How we use it</h2>

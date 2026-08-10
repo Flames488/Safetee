@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Mic, MessageSquare, Bell, ChevronRight, ArrowLeft, UserPlus, KeyRound, Power, Fingerprint, Check, User } from 'lucide-react';
+import { MapPin, Mic, Camera, MessageSquare, Bell, ChevronRight, ArrowLeft, UserPlus, KeyRound, Power, Fingerprint, Check, User } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
 import Logo from '../components/Logo';
 import { Button, ProgressDots, Pill, PasswordInput } from '../components/ui';
@@ -11,6 +11,7 @@ import './onboarding.css';
 const PERMISSIONS = [
   { icon: MapPin, name: 'Location', why: 'Lets contacts see exactly where you are the moment you tap SOS.' },
   { icon: Mic, name: 'Microphone', why: 'Records ambient audio as evidence during an active alert.' },
+  { icon: Camera, name: 'Camera', why: 'Captures photo and video evidence during an active alert.' },
   { icon: MessageSquare, name: 'SMS', why: 'Sends your location by text if you lose data or signal.' },
   { icon: Bell, name: 'Notifications', why: 'Confirms your alert was delivered and contacts responded.' },
 ];

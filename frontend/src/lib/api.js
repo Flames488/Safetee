@@ -137,6 +137,10 @@ export const api = {
   // permanent "Sending…" placeholder.
   getActiveSOS: () => request('/sos/active'),
   activeSOS: () => request('/sos/active'),
+  createEvidenceUploadUrl: (eventId, payload) =>
+    request(`/sos/${eventId}/evidence/upload-url`, { method: 'POST', body: payload }),
+  confirmEvidence: (eventId, payload) =>
+    request(`/sos/${eventId}/evidence/confirm`, { method: 'POST', body: payload }),
 
   journeyHistory: () => request('/history/journeys'),
   sosHistory: () => request('/history/sos'),

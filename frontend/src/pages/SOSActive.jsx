@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mic, MapPin, Users, X } from 'lucide-react';
+import { Phone, Mic, MapPin, Users, X, Video, Camera } from 'lucide-react';
 import VitalRing, { VitalDot } from '../components/VitalRing';
 import { api } from '../lib/api';
+import { startEvidenceCapture } from '../lib/evidenceCapture';
 import './sos.css';
 
 // One contact can have multiple alert channels (push + SMS fallback) — pick
@@ -16,6 +17,19 @@ function contactAlertState(alerts, contactId) {
 }
 const STATE_LABEL = { queued: 'Sending…', sent: 'Sent', delivered: 'Sent', failed: 'Not delivered' };
 
+const EVIDENCE_ICON = { audio: Mic, video: Video, photo: Camera };
+const EVIDENCE_LABEL = { audio: 'Audio recording', video: 'Video recording', photo: 'Photo capture' };
+// Maps the granular status evidenceCapture.js reports into the same
+// done/failed/live vocabulary the contact-alert steps already use, so both
+// kinds of step render through one path below.
+const EVIDENCE_META = {
+  pending: { done: false, failed: false, live: false, stateLabel: 'Starting…' },
+  capturing: { done: true, failed: false, live: true, stateLabel: 'Recording' },
+  capped: { done: true, failed: false, live: false, stateLabel: 'Limit reached' },
+  error: { done: false, failed: true, live: false, stateLabel: 'Retrying…' },
+  unavailable: { done: false, failed: true, live: false, stateLabel: 'Unavailable' },
+};
+
 export default function SOSActive() {
   const [phase, setPhase] = useState('counting');
   const [count, setCount] = useState(5);
@@ -23,6 +37,7 @@ export default function SOSActive() {
   const [contacts, setContacts] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [elapsed, setElapsed] = useState(0);
+  const [evidenceStatus, setEvidenceStatus] = useState({ audio: null, video: null, photo: null });
   const holdTimer = useRef(null);
   const activeSince = useRef(null);
   const navigate = useNavigate();
@@ -80,6 +95,20 @@ export default function SOSActive() {
     return () => { cancelled = true; clearInterval(interval); };
   }, [phase, eventId]);
 
+  // Mic/camera are only ever touched here — once the local cancel window
+  // (the "counting" phase, see startHold) has actually closed on a real
+  // SOS event, never elsewhere in the app. A cancelled/practice trigger
+  // never requests a permission prompt or records anything.
+  useEffect(() => {
+    if (phase !== 'active' || !eventId) return;
+    let cancelled = false;
+    let stop = () => {};
+    startEvidenceCapture(eventId, (mediaType, status) =>
+      setEvidenceStatus((s) => ({ ...s, [mediaType]: status }))
+    ).then((fn) => { if (cancelled) fn(); else stop = fn; });
+    return () => { cancelled = true; stop(); };
+  }, [phase, eventId]);
+
   const startHold = () => {
     holdTimer.current = setTimeout(() => {
       const call = phase === 'counting' ? api.cancelSOS : api.resolveSOS;
@@ -91,14 +120,24 @@ export default function SOSActive() {
 
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-  // Real notification steps: one per trusted contact, plus location and
-  // audio. No fabricated names or fake "done" states — each contact's state
-  // comes straight from the backend's per-alert delivery status (polled
-  // above), not a client-side guess.
+  // Real notification + evidence steps. No fabricated names or fake "done"
+  // states — each contact's state comes straight from the backend's
+  // per-alert delivery status (polled above), and each evidence row comes
+  // straight from evidenceCapture.js reporting what the mic/camera are
+  // actually doing, not a client-side guess.
   const steps = [
-    { key: 'location', icon: MapPin, label: 'Location sent', state: 'delivered' },
-    ...contacts.map((c) => ({ key: c.id, icon: Users, label: `${c.name} notified`, state: contactAlertState(alerts, c.id) })),
-    { key: 'audio', icon: Mic, label: 'Audio recording', state: 'delivered', live: true },
+    { key: 'location', icon: MapPin, label: 'Location sent', done: true, failed: false, live: false, stateLabel: 'Sent' },
+    ...contacts.map((c) => {
+      const state = contactAlertState(alerts, c.id);
+      return {
+        key: c.id, icon: Users, label: `${c.name} notified`,
+        done: state === 'sent' || state === 'delivered', failed: state === 'failed', live: false,
+        stateLabel: STATE_LABEL[state],
+      };
+    }),
+    ...['audio', 'video', 'photo']
+      .filter((k) => evidenceStatus[k])
+      .map((k) => ({ key: `evidence-${k}`, icon: EVIDENCE_ICON[k], label: EVIDENCE_LABEL[k], ...EVIDENCE_META[evidenceStatus[k]] })),
   ];
 
   if (phase === 'counting') {
@@ -136,19 +175,15 @@ export default function SOSActive() {
       </p>
 
       <div className="sos-steps">
-        {steps.map((s) => {
-          const done = s.state === 'sent' || s.state === 'delivered';
-          const failed = s.state === 'failed';
-          return (
-            <div key={s.key} className={`sos-step ${done ? 'sos-step-done' : ''}`}>
-              <span className="sos-step-icon"><s.icon size={15} strokeWidth={2.2} /></span>
-              <span>{s.label}</span>
-              {s.live
-                ? <VitalDot color="red" size={7} />
-                : <span className={`sos-step-state ${done ? 'done' : ''} ${failed ? 'failed' : ''}`}>{STATE_LABEL[s.state]}</span>}
-            </div>
-          );
-        })}
+        {steps.map((s) => (
+          <div key={s.key} className={`sos-step ${s.done ? 'sos-step-done' : ''}`}>
+            <span className="sos-step-icon"><s.icon size={15} strokeWidth={2.2} /></span>
+            <span>{s.label}</span>
+            {s.live
+              ? <VitalDot color="red" size={7} />
+              : <span className={`sos-step-state ${s.done ? 'done' : ''} ${s.failed ? 'failed' : ''}`}>{s.stateLabel}</span>}
+          </div>
+        ))}
       </div>
 
       <div className="sos-spacer" />

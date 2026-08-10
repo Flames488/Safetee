@@ -16,7 +16,7 @@ const FEATURES = [
   { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.' },
   { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.' },
   { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.' },
-  { icon: Mic, name: 'Audio recording', desc: 'Ambient audio captured automatically as evidence during an alert.' },
+  { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.' },
   { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time — Safetee checks in until you\'re there.' },
 ];
 
