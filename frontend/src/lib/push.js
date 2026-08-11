@@ -31,3 +31,32 @@ export async function subscribeToPush() {
   await api.registerDevice({ endpoint, keys, platform: 'web' });
   return true;
 }
+
+// Called on every authenticated app load (see AuthContext.jsx), not just
+// from Settings' explicit "enable notifications" tap. Two things this
+// re-sync closes the gap on, both otherwise silent: (1) permission was
+// granted in a past session before push existed / before this device was
+// ever registered, and (2) the browser rotated the subscription
+// server-side (key rotation, storage pressure) — pushManager.getSubscription()
+// picks up whatever's current and subscribeToPush() re-registers it,
+// rather than the backend quietly holding a Device row for a dead
+// subscription until the user happens to revisit Settings.
+export function syncPushSubscriptionIfGranted() {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  subscribeToPush().catch((err) => console.error('Push subscription sync failed:', err));
+}
+
+// The service worker (see src/sw.js) can't itself complete backend
+// re-registration on pushsubscriptionchange — it has no access to
+// localStorage, so no auth token. It re-subscribes locally and posts the
+// new subscription to any open window instead; this is the window-side
+// half that finishes the job by sending it to POST /devices.
+export function listenForSubscriptionChanges() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type !== 'push-subscription-changed' || !event.data.subscription) return;
+    const { endpoint, keys } = event.data.subscription;
+    api.registerDevice({ endpoint, keys, platform: 'web' })
+      .catch((err) => console.error('Failed to sync rotated push subscription:', err));
+  });
+}

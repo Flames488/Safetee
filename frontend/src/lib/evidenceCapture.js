@@ -8,6 +8,17 @@ import { api, ApiError } from './api';
 const SEGMENT_MS = { audio: 20000, video: 20000 };
 const PHOTO_INTERVAL_MS = 60000;
 
+// A network outage can last the entire remainder of an SOS event (this is
+// exactly when signal is likely to be bad). Without backoff, capture would
+// keep encoding and attempting to upload a fresh segment every 20s/60s for
+// hours, burning battery/CPU on attempts that can't succeed. Doubles the
+// interval per consecutive failure, capped at 6x base (2min for a 20s
+// segment, 6min for photos) — still retrying, just not hammering.
+const MAX_BACKOFF_MULTIPLIER = 6;
+function backoffDelay(baseMs, consecutiveFailures) {
+  return baseMs * Math.min(2 ** consecutiveFailures, MAX_BACKOFF_MULTIPLIER);
+}
+
 const MIME_CANDIDATES = {
   audio: [
     ['audio/webm;codecs=opus', 'webm'],
@@ -48,7 +59,7 @@ async function uploadSegment(eventId, mediaType, blob, ext) {
 // container header, so a lone slice won't play back by itself. Instead we
 // start/stop a fresh MediaRecorder every SEGMENT_MS: more overhead, but
 // every segment that reaches storage is independently playable evidence.
-function startSegmentedRecorder(stream, mediaType, mime, onSegment, onError) {
+function startSegmentedRecorder(stream, mediaType, mime, onSegment, onError, getDelay) {
   let stopped = false;
   let recorder = null;
   let restartTimer = null;
@@ -66,7 +77,7 @@ function startSegmentedRecorder(stream, mediaType, mime, onSegment, onError) {
     recorder.start();
     restartTimer = setTimeout(() => {
       if (recorder.state !== 'inactive') recorder.stop();
-    }, SEGMENT_MS[mediaType]);
+    }, getDelay());
   };
   recordOne();
 
@@ -77,28 +88,35 @@ function startSegmentedRecorder(stream, mediaType, mime, onSegment, onError) {
   };
 }
 
-function startPhotoCapture(stream, onSegment, onError) {
+function startPhotoCapture(stream, onSegment, onError, getDelay) {
   const video = document.createElement('video');
   video.muted = true;
   video.playsInline = true;
   video.srcObject = stream;
   const canvas = document.createElement('canvas');
+  let stopped = false;
+  let timer = null;
 
+  // Self-rescheduling rather than setInterval so getDelay() (backoff) can
+  // actually change the cadence between shots instead of being fixed at
+  // whatever it was when the interval was created.
   const capture = () => {
-    if (video.readyState < 2) return; // no frame decoded yet — skip this tick
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    canvas.toBlob((blob) => { if (blob) onSegment(blob); }, 'image/jpeg', 0.8);
+    if (stopped) return;
+    if (video.readyState >= 2) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      canvas.toBlob((blob) => { if (blob) onSegment(blob); }, 'image/jpeg', 0.8);
+    }
+    timer = setTimeout(capture, getDelay());
   };
 
   video.play().catch(onError);
-  const interval = setInterval(capture, PHOTO_INTERVAL_MS);
-  const firstShot = setTimeout(capture, 1500); // one early photo, not a full minute of nothing
+  timer = setTimeout(capture, 1500); // one early photo, not a full base-interval of nothing
 
   return () => {
-    clearInterval(interval);
-    clearTimeout(firstShot);
+    stopped = true;
+    clearTimeout(timer);
     video.pause();
     video.srcObject = null;
   };
@@ -157,16 +175,27 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
   }
 
   const capsHit = new Set(); // media types the backend has already 409'd on — stop bothering it
+  const failureCounts = { audio: 0, video: 0, photo: 0 }; // consecutive failures — drives backoffDelay()
+
+  const reportError = (mediaType) => {
+    failureCounts[mediaType] = Math.min(failureCounts[mediaType] + 1, 10); // cap the counter itself; backoffDelay already caps the resulting delay
+    onStatus(mediaType, 'error');
+  };
+  const reportSuccess = (mediaType) => {
+    failureCounts[mediaType] = 0;
+    onStatus(mediaType, 'capturing');
+  };
+
   const pump = (mediaType, ext) => (blob) => {
     if (capsHit.has(mediaType)) return;
     uploadSegment(eventId, mediaType, blob, ext)
-      .then(() => onStatus(mediaType, 'capturing'))
+      .then(() => reportSuccess(mediaType))
       .catch((err) => {
         if (err instanceof ApiError && err.status === 409) {
           capsHit.add(mediaType);
           onStatus(mediaType, 'capped');
         } else {
-          onStatus(mediaType, 'error');
+          reportError(mediaType);
         }
       });
   };
@@ -185,7 +214,8 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
             'audio',
             picked.mime,
             pump('audio', picked.ext),
-            () => onStatus('audio', 'error')
+            () => reportError('audio'),
+            () => backoffDelay(SEGMENT_MS.audio, failureCounts.audio)
           )
         );
       } else {
@@ -209,7 +239,8 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
               'video',
               pickedVideo.mime,
               pump('video', pickedVideo.ext),
-              () => onStatus('video', 'error')
+              () => reportError('video'),
+              () => backoffDelay(SEGMENT_MS.video, failureCounts.video)
             )
           );
         } else {
@@ -218,7 +249,14 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
       }
       if (wantPhoto) {
         onStatus('photo', 'capturing');
-        teardowns.push(startPhotoCapture(videoOnlyStream, pump('photo', 'jpg'), () => onStatus('photo', 'error')));
+        teardowns.push(
+          startPhotoCapture(
+            videoOnlyStream,
+            pump('photo', 'jpg'),
+            () => reportError('photo'),
+            () => backoffDelay(PHOTO_INTERVAL_MS, failureCounts.photo)
+          )
+        );
       }
     } else {
       if (wantVideo) onStatus('video', 'unavailable');

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import TopBar from '../components/TopBar';
@@ -28,18 +28,31 @@ function fmt(dateStr) {
 export default function IncomingAlerts() {
   const [alerts, setAlerts] = useState(null);
   const [loadError, setLoadError] = useState(false);
+  const latestRequestId = useRef(0);
+  const cancelledRef = useRef(false);
 
-  const load = () => {
+  // A slower earlier poll resolving after a faster later one would
+  // otherwise clobber fresher data with stale data — requestId guards
+  // against that. Exposed via useCallback (not just effect-local) so the
+  // ErrorState's manual "Try again" button can trigger the same
+  // well-guarded load.
+  const load = useCallback(() => {
+    const requestId = ++latestRequestId.current;
     api.getIncomingAlerts()
-      .then((data) => { setAlerts(data); setLoadError(false); })
-      .catch(() => setLoadError(true));
-  };
+      .then((data) => {
+        if (!cancelledRef.current && requestId === latestRequestId.current) { setAlerts(data); setLoadError(false); }
+      })
+      .catch(() => {
+        if (!cancelledRef.current && requestId === latestRequestId.current) setLoadError(true);
+      });
+  }, []);
 
   useEffect(() => {
+    cancelledRef.current = false;
     load();
     const interval = setInterval(load, REFRESH_MS);
-    return () => clearInterval(interval);
-  }, []);
+    return () => { cancelledRef.current = true; clearInterval(interval); };
+  }, [load]);
 
   return (
     <>

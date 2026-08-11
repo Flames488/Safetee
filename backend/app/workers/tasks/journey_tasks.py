@@ -1,6 +1,8 @@
 import logging
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import update
+
 from app.db.sync_session import SyncSessionLocal
 from app.models.enums import JourneyStatus, SOSStatus, SOSTrigger
 from app.models.journey import Journey
@@ -25,6 +27,7 @@ def sweep_overdue_journeys():
         overdue = (
             db.query(Journey)
             .filter(Journey.status == JourneyStatus.active)
+            .limit(500)  # safety ceiling — journeys are short-lived, this shouldn't bind in practice
             .all()
         )
         for journey in overdue:
@@ -33,8 +36,23 @@ def sweep_overdue_journeys():
             if now < deadline or last_signal > deadline:
                 continue
 
+            # Atomic claim: if this sweep run takes longer than the 30s
+            # schedule interval, two runs can overlap and both load this
+            # journey as still 'active' before either commits. Only the
+            # UPDATE that actually flips active -> escalated (rowcount 1)
+            # proceeds to create an SOSEvent — the loser sees rowcount 0
+            # and skips, instead of both creating a duplicate SOSEvent and
+            # a duplicate contact-alert fanout for one overdue journey.
+            claim = db.execute(
+                update(Journey)
+                .where(Journey.id == journey.id, Journey.status == JourneyStatus.active)
+                .values(status=JourneyStatus.escalated)
+            )
+            db.commit()
+            if claim.rowcount == 0:
+                continue
+
             logger.warning("Journey %s missed check-in — escalating to SOS", journey.id)
-            journey.status = JourneyStatus.escalated
 
             event = SOSEvent(
                 user_id=journey.user_id,

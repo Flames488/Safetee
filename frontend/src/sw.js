@@ -28,6 +28,44 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// applicationServerKey needs raw bytes, not the base64url string itself —
+// duplicated from src/lib/push.js rather than imported, since this file
+// builds as its own service-worker bundle and shouldn't pull in api.js
+// (which touches localStorage, unavailable in a service worker).
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+// Browsers can silently rotate or expire a push subscription (key
+// rotation, storage pressure) with no app window open. Without this,
+// incoming-SOS push notifications just stop working with no recovery
+// path and nothing visibly wrong to the user. This re-subscribes locally
+// to keep a live subscription, then hands it to any open window via
+// postMessage — the service worker itself has no auth token to complete
+// the POST /devices re-registration (see listenForSubscriptionChanges in
+// src/lib/push.js, the other half of this). If no window is open, the
+// resubscribe still happened; the next authenticated app load re-syncs
+// whatever subscription exists then (see syncPushSubscriptionIfGranted).
+self.addEventListener('pushsubscriptionchange', (event) => {
+  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  if (!vapidKey) return;
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) })
+      .then((subscription) =>
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+          windowClients.forEach((client) =>
+            client.postMessage({ type: 'push-subscription-changed', subscription: subscription.toJSON() })
+          );
+        })
+      )
+      .catch(() => {})
+  );
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   // HashRouter — the app's real routes live after a `#`, so a plain path

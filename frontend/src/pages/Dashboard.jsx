@@ -137,7 +137,29 @@ export default function Dashboard() {
 
   useEffect(() => {
     api.getSubscription().then(setSub).catch(() => {});
-    api.getIncomingAlerts().then(setIncomingAlerts).catch(() => {});
+  }, []);
+
+  // Polls rather than fetching once — this banner is explicitly the
+  // fallback for a silently-failed push notification (denied permission,
+  // browser quirk, rotated subscription), so it has to actually refresh
+  // while the user is sitting on this screen, not just show whatever was
+  // true at the moment the page loaded.
+  useEffect(() => {
+    let cancelled = false;
+    let latestRequestId = 0;
+    const load = () => {
+      const requestId = ++latestRequestId;
+      api.getIncomingAlerts()
+        .then((data) => {
+          // A slower earlier request resolving after a faster later one
+          // would otherwise clobber fresher data with stale data.
+          if (!cancelled && requestId === latestRequestId) setIncomingAlerts(data);
+        })
+        .catch(() => {});
+    };
+    load();
+    const interval = setInterval(load, 20_000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
   const planBanner = subscriptionBanner(sub, user?.admin_role);

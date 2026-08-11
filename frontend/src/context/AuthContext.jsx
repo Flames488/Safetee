@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { api, hasSession, setUnauthorizedHandler } from '../lib/api';
+import { listenForSubscriptionChanges, syncPushSubscriptionIfGranted } from '../lib/push';
 
 const AuthContext = createContext(null);
 
@@ -15,6 +16,11 @@ export function AuthProvider({ children }) {
       setUser(null);
       setStatus('unauthenticated');
     });
+    // Wired once for the app's lifetime — the other half of this lives in
+    // src/sw.js's pushsubscriptionchange handler, which can't complete a
+    // backend re-registration itself (no auth token available to a
+    // service worker) and posts the rotated subscription here instead.
+    listenForSubscriptionChanges();
 
     if (!hasSession()) {
       setStatus('unauthenticated');
@@ -27,6 +33,15 @@ export function AuthProvider({ children }) {
       })
       .catch(() => setStatus('unauthenticated'));
   }, []);
+
+  // Re-syncs the current push subscription on every authenticated app
+  // load (not just when Settings' "enable notifications" tap fires) —
+  // catches permission granted in a past session before a device was
+  // ever registered, and a subscription silently rotated by the browser
+  // between sessions. See syncPushSubscriptionIfGranted's own comment.
+  useEffect(() => {
+    if (status === 'authenticated') syncPushSubscriptionIfGranted();
+  }, [status]);
 
   const login = async (phone, password) => {
     await api.login(phone, password);

@@ -27,6 +27,15 @@ export function useReliability() {
   const [activity, setActivity] = useState(null);
 
   useEffect(() => {
+    // getBattery() is async and the BatteryManager it resolves is a
+    // long-lived singleton — without tearing these listeners down on
+    // unmount, every remount (nav away and back, tab restore) adds two
+    // more permanent listeners tied to that render's stale setBattery
+    // closure, leaking indefinitely for the life of the tab.
+    let cancelled = false;
+    let batteryManager = null;
+    let updateBattery = null;
+
     if (!navigator.geolocation) setGps('unsupported');
     else queryPermission('geolocation').then(setGps);
 
@@ -36,10 +45,12 @@ export function useReliability() {
       navigator
         .getBattery()
         .then((b) => {
-          const update = () => setBattery({ level: b.level, charging: b.charging });
-          update();
-          b.addEventListener('levelchange', update);
-          b.addEventListener('chargingchange', update);
+          if (cancelled) return;
+          batteryManager = b;
+          updateBattery = () => setBattery({ level: b.level, charging: b.charging });
+          updateBattery();
+          b.addEventListener('levelchange', updateBattery);
+          b.addEventListener('chargingchange', updateBattery);
         })
         .catch(() => setBattery('unsupported'));
     } else {
@@ -66,6 +77,14 @@ export function useReliability() {
     api.systemStatus()
       .then((s) => setSmsReady(Boolean(s.sms_primary_configured || s.sms_fallback_configured)))
       .catch(() => setSmsReady(false));
+
+    return () => {
+      cancelled = true;
+      if (batteryManager && updateBattery) {
+        batteryManager.removeEventListener('levelchange', updateBattery);
+        batteryManager.removeEventListener('chargingchange', updateBattery);
+      }
+    };
   }, []);
 
   // "Tap to enable" is only true if tapping does something. These trigger

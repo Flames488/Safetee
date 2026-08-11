@@ -1,7 +1,7 @@
 import logging
 
 from app.core.config import settings
-from app.core.phone import normalize_phone_for_match
+from app.core.phone import normalize_phone
 from app.core.security import create_share_token
 from app.db.sync_session import SyncSessionLocal
 from app.models.contact import TrustedContact
@@ -29,14 +29,18 @@ def _matching_user_devices(db, phone: str) -> list[Device]:
     contact's phone happens to belong to a registered user (they're a
     contact who also uses the app), also push to their registered devices
     for a faster, richer in-app notification. No match found is the
-    common case and returns an empty list, not an error."""
-    target = normalize_phone_for_match(phone)
+    common case and returns an empty list, not an error. Exact match on
+    the indexed User.phone column — see normalize_phone's docstring for
+    why this isn't a fuzzy match (was previously an unindexed full-table
+    scan comparing last-10-digits, which was both slow and, more
+    importantly, could match the wrong real person's account)."""
+    target = normalize_phone(phone)
     if not target:
         return []
-    for candidate_id, candidate_phone in db.query(User.id, User.phone).all():
-        if normalize_phone_for_match(candidate_phone) == target:
-            return db.query(Device).filter(Device.user_id == candidate_id).all()
-    return []
+    matched_user = db.query(User.id).filter(User.phone == target).first()
+    if matched_user is None:
+        return []
+    return db.query(Device).filter(Device.user_id == matched_user.id).all()
 
 
 @celery_app.task(bind=True, max_retries=settings.sos_fanout_max_retries, default_retry_delay=10)
@@ -76,6 +80,12 @@ def fanout_sos_alerts(self, sos_event_id: str):
                 .filter_by(sos_event_id=event.id, contact_id=contact.id)
                 .first()
             )
+            if delivery is not None and delivery.status == AlertStatus.sent:
+                # Already delivered. task_acks_late means a worker crash/
+                # restart mid-fanout redelivers this whole task — without
+                # this check, every contact already successfully SMS'd
+                # would get a second, duplicate alert.
+                continue
             if delivery is None:
                 delivery = SOSAlertDelivery(
                     sos_event_id=event.id, contact_id=contact.id, channel="sms_twilio", attempt_count=0
@@ -167,12 +177,24 @@ def retry_failed_alerts():
             .limit(200)
             .all()
         )
+        if not failed:
+            return
+
+        # Batch-fetch instead of 3 separate db.get() round trips per
+        # delivery (up to 600 extra queries per run at the 200-row limit).
+        event_ids = {d.sos_event_id for d in failed}
+        contact_ids = {d.contact_id for d in failed}
+        events = {e.id: e for e in db.query(SOSEvent).filter(SOSEvent.id.in_(event_ids)).all()}
+        contacts = {c.id: c for c in db.query(TrustedContact).filter(TrustedContact.id.in_(contact_ids)).all()}
+        user_ids = {e.user_id for e in events.values()}
+        users = {u.id: u for u in db.query(User).filter(User.id.in_(user_ids)).all()}
+
         for delivery in failed:
-            event = db.get(SOSEvent, delivery.sos_event_id)
+            event = events.get(delivery.sos_event_id)
             if event is None or event.status == SOSStatus.cancelled:
                 continue
-            contact = db.get(TrustedContact, delivery.contact_id)
-            user = db.get(User, event.user_id)
+            contact = contacts.get(delivery.contact_id)
+            user = users.get(event.user_id)
             delivery.attempt_count += 1
             try:
                 channel, provider_ref = send_with_fallback(contact.phone, _alert_body(user, event))

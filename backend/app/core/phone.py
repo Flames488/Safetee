@@ -1,16 +1,18 @@
-import re
+def normalize_phone(phone: str) -> str:
+    """Whitespace-trim only — deliberately NOT a fuzzy/loose matcher.
 
-
-def normalize_phone_for_match(phone: str) -> str:
-    """Loose match key for "is this the same phone number", not a real
-    E.164 parser: digits only, last 10. Neither TrustedContact.phone nor
-    User.phone is normalized anywhere at write time (both are freeform
-    strings), so a contact typed as "(555) 123-4567" and an account signed
-    up as "+15551234567" need to compare equal here even though they're
-    different strings. Trade-off: this can't distinguish two genuinely
-    different numbers that happen to share their last 10 digits across
-    different country codes — acceptable for "should we also try a push
-    notification", not used for anything security-sensitive.
+    An earlier version of this matched on the last 10 digits only, on the
+    theory that it was "just for deciding whether to also try a push
+    notification." It ended up also gating access to another user's SOS
+    evidence and live location (`_is_trusted_contact_of` in
+    `app/api/v1/sos.py`) — where a different real phone number (a
+    different country code, a VOIP number deliberately chosen to collide)
+    matching on its last 10 digits would be treated as the same trusted
+    contact and granted access. Matching on the exact stored value is a
+    real limitation — no tolerance for a contact's phone being typed with
+    different formatting than the matching account signed up with — but it
+    fails closed: a missed match just denies a convenience feature, a
+    false match would leak private, safety-critical data to the wrong
+    person.
     """
-    digits = re.sub(r"\D", "", phone or "")
-    return digits[-10:] if len(digits) >= 10 else digits
+    return (phone or "").strip()

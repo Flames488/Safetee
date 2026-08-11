@@ -10,7 +10,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
-from app.core.phone import normalize_phone_for_match
+from app.core.phone import normalize_phone
 from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
 from app.models.contact import TrustedContact
@@ -279,13 +279,13 @@ async def _caller_may_view_evidence(
 
 
 async def _is_trusted_contact_of(db: AsyncSession, owner_id: uuid.UUID, phone: str) -> bool:
-    target = normalize_phone_for_match(phone)
+    target = normalize_phone(phone)
     if not target:
         return False
-    phones = (
-        await db.execute(select(TrustedContact.phone).where(TrustedContact.user_id == owner_id))
-    ).scalars().all()
-    return any(normalize_phone_for_match(p) == target for p in phones)
+    result = await db.execute(
+        select(TrustedContact.id).where(TrustedContact.user_id == owner_id, TrustedContact.phone == target)
+    )
+    return result.scalar_one_or_none() is not None
 
 
 @router.get("/incoming", response_model=list[IncomingAlertOut])
@@ -296,12 +296,16 @@ async def list_incoming_alerts(
     """SOS events triggered by someone who has the current user listed as
     a trusted contact — the in-app counterpart to the SMS alert, for
     contacts who happen to also be Safetee users."""
-    target = normalize_phone_for_match(user.phone)
+    target = normalize_phone(user.phone)
     if not target:
         return []
 
-    contact_rows = (await db.execute(select(TrustedContact.user_id, TrustedContact.phone))).all()
-    owner_ids = {row.user_id for row in contact_rows if normalize_phone_for_match(row.phone) == target}
+    # Exact match, indexed — see normalize_phone's docstring for why this
+    # isn't the fuzzy last-10-digits match it used to be.
+    contact_rows = (
+        await db.execute(select(TrustedContact.user_id).where(TrustedContact.phone == target))
+    ).scalars().all()
+    owner_ids = set(contact_rows)
     owner_ids.discard(user.id)  # never surface your own alerts as "incoming"
     if not owner_ids:
         return []

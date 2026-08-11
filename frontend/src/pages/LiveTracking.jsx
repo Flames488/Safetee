@@ -65,14 +65,23 @@ export default function LiveTracking() {
   // to show, but only actually calls the API for a real journey id.
   useEffect(() => {
     let cancelled = false;
+    let latestRequestId = 0;
 
     const checkin = async () => {
+      // Every scheduled check-in still actually sends its ping to the
+      // server unconditionally (each is a real, distinct check-in, not a
+      // redundant poll) — requestId only guards which one's result is
+      // allowed to update the displayed "last check-in" state, so a slow
+      // earlier call resolving after a faster later one can't show stale
+      // freshness info.
+      const requestId = ++latestRequestId;
+      const isLatest = () => !cancelled && requestId === latestRequestId;
+
       const coords = await getPosition();
       if (cancelled) return;
-      if (coords) setAccuracy(Math.round(coords.accuracy));
+      if (coords && isLatest()) setAccuracy(Math.round(coords.accuracy));
       if (!isRealJourney) {
-        setLastCheckin(coords ? 'ok' : 'error');
-        setCheckinAgo(0);
+        if (isLatest()) { setLastCheckin(coords ? 'ok' : 'error'); setCheckinAgo(0); }
         return;
       }
       try {
@@ -81,9 +90,9 @@ export default function LiveTracking() {
           lng: coords?.longitude ?? 3.3792,
           accuracy_m: coords?.accuracy ?? null,
         });
-        if (!cancelled) { setLastCheckin('ok'); setCheckinAgo(0); }
+        if (isLatest()) { setLastCheckin('ok'); setCheckinAgo(0); }
       } catch {
-        if (!cancelled) setLastCheckin('error');
+        if (isLatest()) setLastCheckin('error');
       }
     };
 

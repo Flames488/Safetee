@@ -90,15 +90,33 @@ export default function SOSActive() {
   useEffect(() => {
     if (phase !== 'active' || !eventId) return;
     let cancelled = false;
+    let latestRequestId = 0;
     const poll = () => {
+      const requestId = ++latestRequestId;
       api.getActiveSOS()
-        .then((event) => { if (!cancelled && event?.id === eventId) setAlerts(event.alerts || []); })
+        .then((event) => {
+          // A slower earlier poll resolving after a faster later one
+          // would otherwise clobber fresher delivery-status data with
+          // stale data — the exact signal this poll exists to show.
+          if (!cancelled && requestId === latestRequestId && event?.id === eventId) setAlerts(event.alerts || []);
+        })
         .catch(() => {});
     };
     poll();
     const interval = setInterval(poll, 4000);
     return () => { cancelled = true; clearInterval(interval); };
   }, [phase, eventId]);
+
+  // ?? true matches the backend's own default — only an explicit false (a
+  // preference the user actually saved) turns a type off. Read as three
+  // primitive booleans, not the whole `user` object, so the capture effect
+  // below only restarts (dropping mid-segment recording) when one of
+  // these actually changes — not on every AuthContext `user` reference
+  // change, which currently only happens once per session but would be a
+  // latent trap the moment something like a profile refetch is added.
+  const audioEnabled = user?.evidence_audio_enabled ?? true;
+  const videoEnabled = user?.evidence_video_enabled ?? true;
+  const photoEnabled = user?.evidence_photo_enabled ?? true;
 
   // Mic/camera are only ever touched here — once the local cancel window
   // (the "counting" phase, see startHold) has actually closed on a real
@@ -108,18 +126,18 @@ export default function SOSActive() {
     if (phase !== 'active' || !eventId) return;
     let cancelled = false;
     let stop = () => {};
-    // ?? true matches the backend's own default — only an explicit false
-    // (a preference the user actually saved) turns a type off.
-    const enabled = {
-      audio: user?.evidence_audio_enabled ?? true,
-      video: user?.evidence_video_enabled ?? true,
-      photo: user?.evidence_photo_enabled ?? true,
-    };
+    const enabled = { audio: audioEnabled, video: videoEnabled, photo: photoEnabled };
     startEvidenceCapture(eventId, enabled, (mediaType, status) =>
       setEvidenceStatus((s) => ({ ...s, [mediaType]: status }))
     ).then((fn) => { if (cancelled) fn(); else stop = fn; });
     return () => { cancelled = true; stop(); };
-  }, [phase, eventId, user]);
+  }, [phase, eventId, audioEnabled, videoEnabled, photoEnabled]);
+
+  // Without this, a hold started right as the screen unmounts (e.g. the
+  // event auto-resolved and something else navigated away) would still
+  // fire later against a stale context — the timer only cleared on
+  // mouseup/touchend/mouseleave before, never on unmount.
+  useEffect(() => () => clearTimeout(holdTimer.current), []);
 
   const startHold = () => {
     holdTimer.current = setTimeout(() => {

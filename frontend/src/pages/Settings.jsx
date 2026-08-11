@@ -36,13 +36,10 @@ export default function Settings() {
     queryPermission('geolocation').then(setLocation);
     queryPermission('microphone').then(setMic);
     if ('Notification' in window) {
-      const permission = Notification.permission === 'default' ? 'prompt' : Notification.permission;
-      setNotif(permission);
-      // Covers anyone who already granted notification permission before
-      // this feature existed — their device was never registered for
-      // push, so quietly do that now rather than waiting for them to
-      // toggle something that already looks "on".
-      if (permission === 'granted') subscribeToPush().catch(() => {});
+      setNotif(Notification.permission === 'default' ? 'prompt' : Notification.permission);
+      // Re-syncing an already-granted subscription happens centrally in
+      // AuthContext.jsx on every authenticated app load, not here — this
+      // effect only reads current permission state for display.
     } else {
       setNotif('unsupported');
     }
@@ -78,8 +75,9 @@ export default function Settings() {
     const result = await Notification.requestPermission();
     setNotif(result);
     // Best-effort — SMS is still the reliable fallback for every alert
-    // regardless of whether push subscription succeeds.
-    if (result === 'granted') subscribeToPush().catch(() => {});
+    // regardless of whether push subscription succeeds. Logged (not
+    // silently swallowed) so a real failure is at least diagnosable.
+    if (result === 'granted') subscribeToPush().catch((err) => console.error('Push subscription failed:', err));
   };
 
   const PERMISSIONS = [
