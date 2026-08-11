@@ -22,7 +22,9 @@ import Contacts from './pages/Contacts';
 import JourneySetup from './pages/JourneySetup';
 import LiveTracking from './pages/LiveTracking';
 import SOSActive from './pages/SOSActive';
+import SOSEvidence from './pages/SOSEvidence';
 import History from './pages/History';
+import IncomingAlerts from './pages/IncomingAlerts';
 import Settings from './pages/Settings';
 import PrivacyControls from './pages/PrivacyControls';
 import Billing from './pages/Billing';
@@ -104,7 +106,12 @@ export default function App() {
           <Route path="/app/journey" element={<AppScreen><JourneySetup /></AppScreen>} />
           <Route path="/app/tracking/:journeyId?" element={<FocusScreen guarded variant="immersive"><LiveTracking /></FocusScreen>} />
           <Route path="/app/sos" element={<FocusScreen guarded variant="immersive"><SOSActive /></FocusScreen>} />
+          {/* Public, not `guarded` — reachable by the event's own owner (normal
+              login) or by a trusted contact holding a share link with no
+              account at all. See SOSEvidence.jsx / notify_contacts_of_evidence. */}
+          <Route path="/track/:eventId/evidence" element={<FocusScreen variant="immersive"><SOSEvidence /></FocusScreen>} />
           <Route path="/app/history" element={<AppScreen><History /></AppScreen>} />
+          <Route path="/app/alerts" element={<AppScreen><IncomingAlerts /></AppScreen>} />
           <Route path="/app/settings" element={<AppScreen><Settings /></AppScreen>} />
           <Route path="/app/settings/privacy" element={<AppScreen><PrivacyControls /></AppScreen>} />
           <Route path="/app/settings/billing" element={<AppScreen><Billing /></AppScreen>} />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ShieldAlert, Navigation2, ChevronDown } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
@@ -100,6 +101,9 @@ export default function History() {
                       </>
                     )}
                 </p>
+              )}
+              {isOpen && e.kind === 'sos' && (
+                <Link className="hs-evidence-link" to={`/track/${e.id}/evidence`}>View evidence</Link>
               )}
             </Card>
           );

@@ -76,3 +76,19 @@ class SOSEventOut(BaseModel):
     resolved_at: datetime | None
     created_at: datetime
     alerts: list[SOSAlertOut] = []
+
+
+class IncomingAlertOut(BaseModel):
+    """An SOS event triggered by someone else who has the viewer listed as
+    a trusted contact — deliberately leaner than SOSEventOut (no cancel
+    window, no per-contact alert breakdown; that's the owner's business,
+    not the contact's)."""
+
+    id: uuid.UUID
+    status: SOSStatus
+    trigger: SOSTrigger
+    created_at: datetime
+    resolved_at: datetime | None
+    origin_lat: float | None
+    origin_lng: float | None
+    alerter_name: str

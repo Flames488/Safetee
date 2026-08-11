@@ -19,6 +19,10 @@ class UserOut(BaseModel):
     has_fake_pin: bool = False
     power_button_trigger_enabled: bool
     gesture_trigger_enabled: bool
+    share_location_enabled: bool
+    evidence_audio_enabled: bool
+    evidence_video_enabled: bool
+    evidence_photo_enabled: bool
     admin_role: AdminRole
     medical_info: str | None = None
 
@@ -37,6 +41,24 @@ class TriggerUpdate(BaseModel):
     clear_fake_pin: bool = False
     power_button_trigger_enabled: bool | None = None
     gesture_trigger_enabled: bool | None = None
+
+
+class PreferencesUpdate(BaseModel):
+    # What gets shared/captured during an emergency — distinct from
+    # TriggerUpdate, which controls how an SOS gets *started*, not what it
+    # does once it has. Every field left unset (None) is left unchanged.
+    share_location_enabled: bool | None = None
+    evidence_audio_enabled: bool | None = None
+    evidence_video_enabled: bool | None = None
+    evidence_photo_enabled: bool | None = None
+
+
+class DeviceRegister(BaseModel):
+    # Mirrors the browser's PushSubscription shape exactly — passed straight
+    # through to pywebpush's subscription_info, never reshaped in between.
+    endpoint: str
+    keys: dict[str, str]
+    platform: str = "web"
 
 
 class ContactCreate(BaseModel):

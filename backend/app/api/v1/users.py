@@ -12,7 +12,14 @@ from app.models.contact import TrustedContact
 from app.models.journey import Journey
 from app.models.sos_event import SOSEvent
 from app.models.user import User
-from app.schemas.user import AccountDeleteRequest, DataExportOut, ProfileUpdate, TriggerUpdate, UserOut
+from app.schemas.user import (
+    AccountDeleteRequest,
+    DataExportOut,
+    PreferencesUpdate,
+    ProfileUpdate,
+    TriggerUpdate,
+    UserOut,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -66,6 +73,32 @@ async def update_triggers(
         user.power_button_trigger_enabled = payload.power_button_trigger_enabled
     if payload.gesture_trigger_enabled is not None:
         user.gesture_trigger_enabled = payload.gesture_trigger_enabled
+
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.patch("/me/preferences", response_model=UserOut)
+async def update_preferences(
+    payload: PreferencesUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """What gets shared/captured during an emergency. These aren't just
+    display prefs — trigger_sos, checkin, and the evidence upload-url
+    endpoint all re-check the stored value directly, so flipping one off
+    here takes effect even if a stale client still tries to send that
+    data."""
+    if payload.share_location_enabled is not None:
+        user.share_location_enabled = payload.share_location_enabled
+    if payload.evidence_audio_enabled is not None:
+        user.evidence_audio_enabled = payload.evidence_audio_enabled
+    if payload.evidence_video_enabled is not None:
+        user.evidence_video_enabled = payload.evidence_video_enabled
+    if payload.evidence_photo_enabled is not None:
+        user.evidence_photo_enabled = payload.evidence_photo_enabled
 
     db.add(user)
     await db.commit()

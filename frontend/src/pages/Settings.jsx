@@ -6,6 +6,7 @@ import BottomNav from '../components/BottomNav';
 import { Card, Pill, Toggle, SectionLabel, Button, PasswordInput } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { queryPermission } from '../lib/useReliability';
+import { subscribeToPush } from '../lib/push';
 import { api } from '../lib/api';
 import './settings.css';
 
@@ -34,18 +35,30 @@ export default function Settings() {
   useEffect(() => {
     queryPermission('geolocation').then(setLocation);
     queryPermission('microphone').then(setMic);
-    if ('Notification' in window) setNotif(Notification.permission === 'default' ? 'prompt' : Notification.permission);
-    else setNotif('unsupported');
+    if ('Notification' in window) {
+      const permission = Notification.permission === 'default' ? 'prompt' : Notification.permission;
+      setNotif(permission);
+      // Covers anyone who already granted notification permission before
+      // this feature existed — their device was never registered for
+      // push, so quietly do that now rather than waiting for them to
+      // toggle something that already looks "on".
+      if (permission === 'granted') subscribeToPush().catch(() => {});
+    } else {
+      setNotif('unsupported');
+    }
     api.systemStatus()
       .then((s) => setSmsStatus(Boolean(s.sms_primary_configured || s.sms_fallback_configured)))
       .catch(() => setSmsStatus(false));
   }, []);
 
+  // Trusts the actual callback outcome rather than re-querying the
+  // Permissions API afterward — see the matching comment in useReliability.js
+  // for why (iOS Safari's geolocation permission query is unreliable).
   const requestLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      () => queryPermission('geolocation').then(setLocation),
-      () => queryPermission('geolocation').then(setLocation)
+      () => setLocation('granted'),
+      (error) => { if (error.code === error.PERMISSION_DENIED) setLocation('denied'); }
     );
   };
 
@@ -54,14 +67,19 @@ export default function Settings() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((t) => t.stop());
-    } catch { /* re-check below regardless */ }
-    queryPermission('microphone').then(setMic);
+      setMic('granted');
+    } catch (err) {
+      if (err.name === 'NotAllowedError') setMic('denied');
+    }
   };
 
   const requestNotif = async () => {
     if (!('Notification' in window)) return;
     const result = await Notification.requestPermission();
     setNotif(result);
+    // Best-effort — SMS is still the reliable fallback for every alert
+    // regardless of whether push subscription succeeds.
+    if (result === 'granted') subscribeToPush().catch(() => {});
   };
 
   const PERMISSIONS = [

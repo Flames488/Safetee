@@ -10,8 +10,10 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.phone import normalize_phone_for_match
 from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
+from app.models.contact import TrustedContact
 from app.models.enums import SOSStatus
 from app.models.sos_event import SOSEvent
 from app.models.user import User
@@ -20,6 +22,7 @@ from app.schemas.sos import (
     EvidenceOut,
     EvidenceUploadRequest,
     EvidenceUploadResponse,
+    IncomingAlertOut,
     MediaType,
     SOSEventOut,
     SOSTriggerRequest,
@@ -35,6 +38,11 @@ _EVIDENCE_CAP_SETTING = {
     "video": "evidence_max_video_chunks",
     "photo": "evidence_max_photos",
 }
+_EVIDENCE_PREFERENCE_ATTR = {
+    "audio": "evidence_audio_enabled",
+    "video": "evidence_video_enabled",
+    "photo": "evidence_photo_enabled",
+}
 
 
 def _evidence_cap(media_type: MediaType) -> int:
@@ -48,13 +56,17 @@ async def trigger_sos(
     user: User = Depends(get_current_user),
 ):
     now = datetime.now(UTC)
+    # Re-check the stored preference rather than trusting the client to
+    # simply omit lat/lng — a stale or tampered client could still send
+    # coordinates even with the toggle off.
+    share_location = user.share_location_enabled
     event = SOSEvent(
         user_id=user.id,
         journey_id=payload.journey_id,
         trigger=payload.trigger,
         status=SOSStatus.pending,
-        origin_lat=payload.lat,
-        origin_lng=payload.lng,
+        origin_lat=payload.lat if share_location else None,
+        origin_lng=payload.lng if share_location else None,
         cancel_window_ends_at=now + timedelta(seconds=settings.sos_cancel_window_seconds),
     )
     db.add(event)
@@ -146,6 +158,12 @@ async def create_evidence_upload_url(
 ):
     event = await _get_event(db, event_id, user.id)
 
+    # Defense-in-depth: the frontend already skips requesting a disabled
+    # media type, but a stale/tampered client could still call this
+    # directly, so re-check the stored preference here too.
+    if not getattr(user, _EVIDENCE_PREFERENCE_ATTR[payload.media_type]):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"{payload.media_type} evidence capture is disabled for this account")
+
     existing = getattr(event, _EVIDENCE_FIELD[payload.media_type])
     if len(existing) >= _evidence_cap(payload.media_type):
         raise HTTPException(
@@ -219,7 +237,7 @@ async def get_evidence(
     if event is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "SOS event not found")
 
-    if not _caller_may_view_evidence(event, authorization, share_token):
+    if not await _caller_may_view_evidence(db, event, authorization, share_token):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not authorized to view this event's evidence")
 
     try:
@@ -232,13 +250,24 @@ async def get_evidence(
     return EvidenceOut(audio_urls=audio_urls, video_urls=video_urls, photo_urls=photo_urls)
 
 
-def _caller_may_view_evidence(event: SOSEvent, authorization: str | None, share_token: str | None) -> bool:
+async def _caller_may_view_evidence(
+    db: AsyncSession, event: SOSEvent, authorization: str | None, share_token: str | None
+) -> bool:
     if authorization and authorization.lower().startswith("bearer "):
         try:
             payload = decode_token(authorization.split(" ", 1)[1])
-            if payload.get("type") == "access" and payload.get("sub") == str(event.user_id):
-                return True
-        except jwt.PyJWTError:
+            if payload.get("type") == "access":
+                caller_id = payload["sub"]
+                if caller_id == str(event.user_id):
+                    return True
+                # Not the owner — but a logged-in trusted contact should
+                # reach this via their own account too, not only the SMS
+                # link's token (that link may have expired, or they may
+                # simply prefer using the app they already have installed).
+                caller = await db.get(User, uuid.UUID(caller_id))
+                if caller and await _is_trusted_contact_of(db, event.user_id, caller.phone):
+                    return True
+        except (jwt.PyJWTError, ValueError, KeyError):
             pass
     if share_token:
         try:
@@ -247,3 +276,53 @@ def _caller_may_view_evidence(event: SOSEvent, authorization: str | None, share_
         except (jwt.PyJWTError, ValueError):
             pass
     return False
+
+
+async def _is_trusted_contact_of(db: AsyncSession, owner_id: uuid.UUID, phone: str) -> bool:
+    target = normalize_phone_for_match(phone)
+    if not target:
+        return False
+    phones = (
+        await db.execute(select(TrustedContact.phone).where(TrustedContact.user_id == owner_id))
+    ).scalars().all()
+    return any(normalize_phone_for_match(p) == target for p in phones)
+
+
+@router.get("/incoming", response_model=list[IncomingAlertOut])
+async def list_incoming_alerts(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """SOS events triggered by someone who has the current user listed as
+    a trusted contact — the in-app counterpart to the SMS alert, for
+    contacts who happen to also be Safetee users."""
+    target = normalize_phone_for_match(user.phone)
+    if not target:
+        return []
+
+    contact_rows = (await db.execute(select(TrustedContact.user_id, TrustedContact.phone))).all()
+    owner_ids = {row.user_id for row in contact_rows if normalize_phone_for_match(row.phone) == target}
+    owner_ids.discard(user.id)  # never surface your own alerts as "incoming"
+    if not owner_ids:
+        return []
+
+    result = await db.execute(
+        select(SOSEvent, User.full_name)
+        .join(User, User.id == SOSEvent.user_id)
+        .where(SOSEvent.user_id.in_(owner_ids))
+        .order_by(SOSEvent.created_at.desc())
+        .limit(50)
+    )
+    return [
+        IncomingAlertOut(
+            id=event.id,
+            status=event.status,
+            trigger=event.trigger,
+            created_at=event.created_at,
+            resolved_at=event.resolved_at,
+            origin_lat=event.origin_lat,
+            origin_lng=event.origin_lng,
+            alerter_name=alerter_name,
+        )
+        for event, alerter_name in result.all()
+    ]

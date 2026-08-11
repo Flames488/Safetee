@@ -61,13 +61,18 @@ async def checkin(
 ):
     journey = await _get_active_journey(db, journey_id, user.id)
     journey.last_checkin_at = datetime.now(UTC)
-    db.add(LocationPing(
-        journey_id=journey.id,
-        lat=payload.lat,
-        lng=payload.lng,
-        accuracy_m=payload.accuracy_m,
-        recorded_at=journey.last_checkin_at,
-    ))
+    # Liveness (last_checkin_at, used by the overdue-journey sweep) always
+    # updates regardless of the preference — only the location trail itself
+    # is opt-in. LocationPing.lat/lng are non-nullable, so honoring the
+    # toggle means skipping the row entirely, not writing a null location.
+    if user.share_location_enabled:
+        db.add(LocationPing(
+            journey_id=journey.id,
+            lat=payload.lat,
+            lng=payload.lng,
+            accuracy_m=payload.accuracy_m,
+            recorded_at=journey.last_checkin_at,
+        ))
     await db.commit()
 
 

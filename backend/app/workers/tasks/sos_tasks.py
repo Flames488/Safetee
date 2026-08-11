@@ -1,12 +1,15 @@
 import logging
 
 from app.core.config import settings
+from app.core.phone import normalize_phone_for_match
 from app.core.security import create_share_token
 from app.db.sync_session import SyncSessionLocal
 from app.models.contact import TrustedContact
+from app.models.device import Device
 from app.models.enums import AlertStatus, SOSStatus
 from app.models.sos_event import SOSAlertDelivery, SOSEvent
 from app.models.user import User
+from app.services.notifications.push import send_push
 from app.services.sms.fallback import SMSDeliveryFailed, send_with_fallback
 from app.workers.celery_app import celery_app
 
@@ -18,6 +21,22 @@ def _alert_body(user: User, event: SOSEvent) -> str:
     if event.origin_lat is not None and event.origin_lng is not None:
         maps_link = f" Live location: https://maps.google.com/?q={event.origin_lat},{event.origin_lng}"
     return f"SAFETEE ALERT: {user.full_name} has triggered an emergency alert and may need help.{maps_link}"
+
+
+def _matching_user_devices(db, phone: str) -> list[Device]:
+    """A trusted contact has no Safetee account by default — SMS above is
+    the unconditional, reliable path regardless of this. But if this
+    contact's phone happens to belong to a registered user (they're a
+    contact who also uses the app), also push to their registered devices
+    for a faster, richer in-app notification. No match found is the
+    common case and returns an empty list, not an error."""
+    target = normalize_phone_for_match(phone)
+    if not target:
+        return []
+    for candidate_id, candidate_phone in db.query(User.id, User.phone).all():
+        if normalize_phone_for_match(candidate_phone) == target:
+            return db.query(Device).filter(Device.user_id == candidate_id).all()
+    return []
 
 
 @celery_app.task(bind=True, max_retries=settings.sos_fanout_max_retries, default_retry_delay=10)
@@ -78,6 +97,14 @@ def fanout_sos_alerts(self, sos_event_id: str):
 
             db.commit()
 
+            for device in _matching_user_devices(db, contact.phone):
+                send_push(
+                    device.push_token,
+                    "SAFETEE Alert",
+                    f"{user.full_name} triggered an emergency alert",
+                    data={"url": "/app/alerts"},
+                )
+
         if any_failed:
             # let the periodic retry_failed_alerts sweep pick this up rather than
             # retrying the whole fanout (which would re-send to contacts that
@@ -110,6 +137,17 @@ def notify_contacts_of_evidence(sos_event_id: str):
                 send_with_fallback(contact.phone, body)
             except SMSDeliveryFailed as exc:
                 logger.error("Evidence notify for SOS %s: failed to reach %s: %s", sos_event_id, contact.phone, exc)
+
+            # A contact who's also a user gets in-app access via their own
+            # login (see get_evidence's phone-match check), so this deep
+            # link doesn't need the ?token= a non-account contact requires.
+            for device in _matching_user_devices(db, contact.phone):
+                send_push(
+                    device.push_token,
+                    "SAFETEE Evidence",
+                    f"Audio/video evidence is available for {user.full_name}'s alert",
+                    data={"url": f"/track/{event.id}/evidence"},
+                )
     finally:
         db.close()
 

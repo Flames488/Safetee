@@ -68,14 +68,24 @@ export function useReliability() {
       .catch(() => setSmsReady(false));
   }, []);
 
-  // "Tap to enable" is only true if tapping does something. These actually
-  // trigger the browser's native permission prompt, then re-read the real
-  // state afterward — nothing here just flips a label.
+  // "Tap to enable" is only true if tapping does something. These trigger
+  // the browser's native permission prompt, then trust the *actual outcome*
+  // of that call directly rather than re-querying the Permissions API
+  // afterward — iOS Safari's navigator.permissions.query({name:'geolocation'})
+  // is known to report stale state (often stuck on 'prompt' forever even
+  // after the user grants access), which made this tile look broken on
+  // iPhone even though the real permission prompt and location fetch both
+  // worked. A successful/denied callback is ground truth; a query result
+  // isn't.
   const requestGps = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      () => queryPermission('geolocation').then(setGps),
-      () => queryPermission('geolocation').then(setGps)
+      () => setGps('granted'),
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) setGps('denied');
+        // POSITION_UNAVAILABLE / TIMEOUT are transient — leave state alone
+        // so the tile stays tappable to retry instead of declaring defeat.
+      }
     );
   };
 
@@ -84,10 +94,12 @@ export function useReliability() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((t) => t.stop()); // only probing for permission, not recording
-    } catch {
-      // user denied — fall through to re-checking the real state below
+      setMic('granted');
+    } catch (err) {
+      if (err.name === 'NotAllowedError') setMic('denied');
+      // other errors (no device, device busy) are transient — leave state
+      // alone so the tile stays tappable to retry.
     }
-    queryPermission('microphone').then(setMic);
   };
 
   return { gps, mic, battery, contacts, journeyActive, smsReady, activity, requestGps, requestMic };

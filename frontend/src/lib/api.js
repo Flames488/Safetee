@@ -115,8 +115,12 @@ export const api = {
   getMe: () => request('/users/me'),
   updateProfile: (payload) => request('/users/me', { method: 'PATCH', body: payload }),
   updateTriggers: (payload) => request('/users/me/triggers', { method: 'PATCH', body: payload }),
+  updatePreferences: (payload) => request('/users/me/preferences', { method: 'PATCH', body: payload }),
   exportMyData: () => request('/users/me/export'),
   deleteAccount: (password) => request('/users/me', { method: 'DELETE', body: { password } }),
+
+  registerDevice: (payload) => request('/devices', { method: 'POST', body: payload }),
+  unregisterDevice: (endpoint) => request(`/devices?endpoint=${encodeURIComponent(endpoint)}`, { method: 'DELETE' }),
 
   listContacts: () => request('/contacts'),
   addContact: (payload) => request('/contacts', { method: 'POST', body: payload }),
@@ -137,10 +141,22 @@ export const api = {
   // permanent "Sending…" placeholder.
   getActiveSOS: () => request('/sos/active'),
   activeSOS: () => request('/sos/active'),
+  getIncomingAlerts: () => request('/sos/incoming'),
   createEvidenceUploadUrl: (eventId, payload) =>
     request(`/sos/${eventId}/evidence/upload-url`, { method: 'POST', body: payload }),
   confirmEvidence: (eventId, payload) =>
     request(`/sos/${eventId}/evidence/confirm`, { method: 'POST', body: payload }),
+  // A share-token viewer (a trusted contact) has no account at all, so
+  // this deliberately skips the authenticated request() path — no bearer
+  // token exists to attach, and none is needed since the token itself is
+  // the credential. Without a token, falls back to the normal authenticated
+  // path for the event's own owner viewing it from inside the app.
+  getEvidence: (eventId, shareToken) => {
+    const qs = shareToken ? `?share_token=${encodeURIComponent(shareToken)}` : '';
+    return shareToken
+      ? rawRequest(`/sos/${eventId}/evidence${qs}`, { auth: false })
+      : request(`/sos/${eventId}/evidence${qs}`);
+  },
 
   journeyHistory: () => request('/history/journeys'),
   sosHistory: () => request('/history/sos'),

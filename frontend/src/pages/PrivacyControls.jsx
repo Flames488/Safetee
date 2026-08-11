@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, User, HeartPulse, Download, ShieldAlert } from 'lucide-react';
+import { Users, User, HeartPulse, Download, ShieldAlert, MapPin, Mic, Video, Camera } from 'lucide-react';
 import TopBar from '../components/TopBar';
-import { Card, SectionLabel, Button, PasswordInput, Modal } from '../components/ui';
+import { Card, SectionLabel, Button, PasswordInput, Modal, Toggle } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './settings.css';
@@ -14,7 +14,16 @@ import './privacy-controls.css';
 // to the policy text itself.
 export default function PrivacyControls() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
+
+  const patchPreferences = async (payload) => {
+    try {
+      const updated = await api.updatePreferences(payload);
+      setUser(updated);
+    } catch {
+      // leave state as-is on failure — no optimistic flip to undo
+    }
+  };
 
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
@@ -86,6 +95,58 @@ export default function PrivacyControls() {
               <span className="st-desc">What's shared during an emergency</span>
             </span>
           </button>
+        </Card>
+
+        <SectionLabel>During an emergency</SectionLabel>
+        <Card className="st-group">
+          <div className="st-row">
+            <span className="st-icon"><MapPin size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Share location</strong>
+              <span className="st-desc">Sent with SOS alerts and journey check-ins</span>
+            </span>
+            <Toggle
+              checked={Boolean(user?.share_location_enabled)}
+              onChange={(v) => patchPreferences({ share_location_enabled: v })}
+              label="Share location"
+            />
+          </div>
+          <div className="st-row">
+            <span className="st-icon"><Mic size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Audio recording</strong>
+              <span className="st-desc">Captured as evidence during an active SOS</span>
+            </span>
+            <Toggle
+              checked={Boolean(user?.evidence_audio_enabled)}
+              onChange={(v) => patchPreferences({ evidence_audio_enabled: v })}
+              label="Audio recording"
+            />
+          </div>
+          <div className="st-row">
+            <span className="st-icon"><Video size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Video recording</strong>
+              <span className="st-desc">Captured as evidence during an active SOS</span>
+            </span>
+            <Toggle
+              checked={Boolean(user?.evidence_video_enabled)}
+              onChange={(v) => patchPreferences({ evidence_video_enabled: v })}
+              label="Video recording"
+            />
+          </div>
+          <div className="st-row">
+            <span className="st-icon"><Camera size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Photo capture</strong>
+              <span className="st-desc">Captured as evidence during an active SOS</span>
+            </span>
+            <Toggle
+              checked={Boolean(user?.evidence_photo_enabled)}
+              onChange={(v) => patchPreferences({ evidence_photo_enabled: v })}
+              label="Photo capture"
+            />
+          </div>
         </Card>
 
         <SectionLabel>Export</SectionLabel>

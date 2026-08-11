@@ -133,12 +133,19 @@ export default function Dashboard() {
     .toUpperCase();
 
   const [sub, setSub] = useState(null);
+  const [incomingAlerts, setIncomingAlerts] = useState([]);
 
   useEffect(() => {
     api.getSubscription().then(setSub).catch(() => {});
+    api.getIncomingAlerts().then(setIncomingAlerts).catch(() => {});
   }, []);
 
   const planBanner = subscriptionBanner(sub, user?.admin_role);
+  // A live emergency from someone who trusts this user as a contact
+  // outranks every other banner on this page — surfaced here, not just
+  // buried in the Alerts tab, since push notifications can fail silently
+  // (denied permission, browser quirks) and this is the fallback.
+  const activeIncoming = incomingAlerts.filter((a) => a.status === 'pending' || a.status === 'active');
 
   const RELIABILITY = [
     { icon: LocateFixed, label: 'GPS', ...permissionDisplay(gps, 'Connected'), onClick: gps === 'prompt' ? requestGps : null },
@@ -181,6 +188,21 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {activeIncoming.length > 0 && (
+          <div className="dash-billing-card dash-billing-bad">
+            <IconTile icon={ShieldAlert} tone="bad" size={36} />
+            <div className="dash-billing-text">
+              <strong>
+                {activeIncoming.length === 1
+                  ? `${activeIncoming[0].alerter_name} triggered an emergency alert`
+                  : `${activeIncoming.length} active emergency alerts`}
+              </strong>
+              <span>Someone who trusts you as a contact may need help right now.</span>
+            </div>
+            <Button size="sm" variant="primary" onClick={() => navigate('/app/alerts')}>View</Button>
+          </div>
+        )}
 
         {planBanner && (
           <div className={`dash-billing-card dash-billing-${planBanner.tone}`}>

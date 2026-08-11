@@ -4,6 +4,7 @@ import { Phone, Mic, MapPin, Users, X, Video, Camera } from 'lucide-react';
 import VitalRing, { VitalDot } from '../components/VitalRing';
 import { api } from '../lib/api';
 import { startEvidenceCapture } from '../lib/evidenceCapture';
+import { useAuth } from '../context/AuthContext';
 import './sos.css';
 
 // One contact can have multiple alert channels (push + SMS fallback) — pick
@@ -31,6 +32,7 @@ const EVIDENCE_META = {
 };
 
 export default function SOSActive() {
+  const { user } = useAuth();
   const [phase, setPhase] = useState('counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
@@ -52,7 +54,10 @@ export default function SOSActive() {
         .then((event) => event && setEventId(event.id))
         .catch(() => {}); // offline/demo mode — countdown still runs locally
 
-    if (navigator.geolocation) {
+    // The backend independently nulls lat/lng out server-side if this
+    // preference is off, but there's no reason to prompt for GPS or spend
+    // battery on it client-side when the value would just get discarded.
+    if (navigator.geolocation && (user?.share_location_enabled ?? true)) {
       navigator.geolocation.getCurrentPosition(
         (pos) => send(pos.coords.latitude, pos.coords.longitude),
         () => send(null, null),
@@ -103,11 +108,18 @@ export default function SOSActive() {
     if (phase !== 'active' || !eventId) return;
     let cancelled = false;
     let stop = () => {};
-    startEvidenceCapture(eventId, (mediaType, status) =>
+    // ?? true matches the backend's own default — only an explicit false
+    // (a preference the user actually saved) turns a type off.
+    const enabled = {
+      audio: user?.evidence_audio_enabled ?? true,
+      video: user?.evidence_video_enabled ?? true,
+      photo: user?.evidence_photo_enabled ?? true,
+    };
+    startEvidenceCapture(eventId, enabled, (mediaType, status) =>
       setEvidenceStatus((s) => ({ ...s, [mediaType]: status }))
     ).then((fn) => { if (cancelled) fn(); else stop = fn; });
     return () => { cancelled = true; stop(); };
-  }, [phase, eventId]);
+  }, [phase, eventId, user]);
 
   const startHold = () => {
     holdTimer.current = setTimeout(() => {

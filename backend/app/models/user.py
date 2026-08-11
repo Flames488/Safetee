@@ -21,6 +21,16 @@ class User(Base, UUIDMixin, TimestampMixin):
     power_button_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     gesture_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # What gets shared/captured during an actual emergency — default True
+    # (matches the app's core safety promise) but genuinely user-controlled.
+    # Enforced server-side at the point of use (trigger_sos, journey checkin,
+    # evidence upload-url), not just hidden in the frontend — see the
+    # comments there for why.
+    share_location_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    evidence_audio_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    evidence_video_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    evidence_photo_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
     # forgot-password OTP — short-lived, hashed the same way a password is;
     # the plaintext code is never stored, only ever sent once by SMS
     password_reset_otp_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)

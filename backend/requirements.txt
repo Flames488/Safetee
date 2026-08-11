@@ -19,3 +19,4 @@ tenacity==9.0.0
 sentry-sdk[fastapi,celery]==2.14.0
 websockets==13.0.1
 python-dotenv==1.0.1
+pywebpush==2.4.0

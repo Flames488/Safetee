@@ -107,29 +107,51 @@ function startPhotoCapture(stream, onSegment, onError) {
 // Drives audio/video/photo capture for one active SOS event. Every media
 // type degrades independently — a denied camera still leaves audio (and
 // vice versa) recording, since partial evidence beats none in an actual
-// emergency. `onStatus(mediaType, status)` reports one of
-// 'pending' | 'capturing' | 'capped' | 'error' | 'unavailable' per type so
-// the UI reflects what's really happening instead of a fabricated
-// "delivered". Returns a stop function; resolves once permissions have
-// been requested (not once recording has actually started — callers
-// should call onStatus for immediate UI feedback rather than await this
-// for anything but "is the mic/camera prompt done").
-export async function startEvidenceCapture(eventId, onStatus) {
-  onStatus('audio', 'pending');
-  onStatus('video', 'pending');
-  onStatus('photo', 'pending');
+// emergency. `enabled` ({audio, video, photo}) is the user's own Privacy
+// & data controls preference — a type that's off there is never so much
+// as requested here (no permission prompt, no onStatus call at all for
+// it), same as the backend's independent 403 if it's called anyway.
+// `onStatus(mediaType, status)` reports one of
+// 'pending' | 'capturing' | 'capped' | 'error' | 'unavailable' per
+// (enabled) type so the UI reflects what's really happening instead of a
+// fabricated "delivered". Returns a stop function; resolves once
+// permissions have been requested (not once recording has actually
+// started — callers should call onStatus for immediate UI feedback rather
+// than await this for anything but "is the mic/camera prompt done").
+export async function startEvidenceCapture(eventId, enabled, onStatus) {
+  const wantAudio = Boolean(enabled?.audio);
+  const wantVideo = Boolean(enabled?.video);
+  const wantPhoto = Boolean(enabled?.photo);
+  const wantCamera = wantVideo || wantPhoto;
+
+  if (!wantAudio && !wantCamera) return () => {}; // everything turned off in Settings — don't touch permissions at all
+
+  const reportUnavailable = () => {
+    if (wantAudio) onStatus('audio', 'unavailable');
+    if (wantVideo) onStatus('video', 'unavailable');
+    if (wantPhoto) onStatus('photo', 'unavailable');
+  };
+
+  if (wantAudio) onStatus('audio', 'pending');
+  if (wantVideo) onStatus('video', 'pending');
+  if (wantPhoto) onStatus('photo', 'pending');
 
   const teardowns = [];
   let fullStream;
   try {
-    fullStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    fullStream = await navigator.mediaDevices.getUserMedia({ audio: wantAudio, video: wantCamera });
   } catch {
-    try {
-      fullStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      onStatus('audio', 'unavailable');
-      onStatus('video', 'unavailable');
-      onStatus('photo', 'unavailable');
+    if (wantAudio && wantCamera) {
+      try {
+        fullStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (wantVideo) onStatus('video', 'unavailable');
+        if (wantPhoto) onStatus('photo', 'unavailable');
+      } catch {
+        reportUnavailable();
+        return () => {};
+      }
+    } else {
+      reportUnavailable();
       return () => {};
     }
   }
@@ -149,51 +171,59 @@ export async function startEvidenceCapture(eventId, onStatus) {
       });
   };
 
-  const audioTracks = fullStream.getAudioTracks();
-  const videoTracks = fullStream.getVideoTracks();
+  const audioTracks = wantAudio ? fullStream.getAudioTracks() : [];
+  const videoTracks = wantCamera ? fullStream.getVideoTracks() : [];
 
-  if (audioTracks.length > 0) {
-    const picked = pickMime('audio');
-    if (picked) {
-      onStatus('audio', 'capturing');
-      teardowns.push(
-        startSegmentedRecorder(
-          new MediaStream(audioTracks),
-          'audio',
-          picked.mime,
-          pump('audio', picked.ext),
-          () => onStatus('audio', 'error')
-        )
-      );
+  if (wantAudio) {
+    if (audioTracks.length > 0) {
+      const picked = pickMime('audio');
+      if (picked) {
+        onStatus('audio', 'capturing');
+        teardowns.push(
+          startSegmentedRecorder(
+            new MediaStream(audioTracks),
+            'audio',
+            picked.mime,
+            pump('audio', picked.ext),
+            () => onStatus('audio', 'error')
+          )
+        );
+      } else {
+        onStatus('audio', 'unavailable');
+      }
     } else {
       onStatus('audio', 'unavailable');
     }
-  } else {
-    onStatus('audio', 'unavailable');
   }
 
-  if (videoTracks.length > 0) {
-    const videoOnlyStream = new MediaStream(videoTracks);
-    const pickedVideo = pickMime('video');
-    if (pickedVideo) {
-      onStatus('video', 'capturing');
-      teardowns.push(
-        startSegmentedRecorder(
-          videoOnlyStream,
-          'video',
-          pickedVideo.mime,
-          pump('video', pickedVideo.ext),
-          () => onStatus('video', 'error')
-        )
-      );
+  if (wantCamera) {
+    if (videoTracks.length > 0) {
+      const videoOnlyStream = new MediaStream(videoTracks);
+      if (wantVideo) {
+        const pickedVideo = pickMime('video');
+        if (pickedVideo) {
+          onStatus('video', 'capturing');
+          teardowns.push(
+            startSegmentedRecorder(
+              videoOnlyStream,
+              'video',
+              pickedVideo.mime,
+              pump('video', pickedVideo.ext),
+              () => onStatus('video', 'error')
+            )
+          );
+        } else {
+          onStatus('video', 'unavailable');
+        }
+      }
+      if (wantPhoto) {
+        onStatus('photo', 'capturing');
+        teardowns.push(startPhotoCapture(videoOnlyStream, pump('photo', 'jpg'), () => onStatus('photo', 'error')));
+      }
     } else {
-      onStatus('video', 'unavailable');
+      if (wantVideo) onStatus('video', 'unavailable');
+      if (wantPhoto) onStatus('photo', 'unavailable');
     }
-    onStatus('photo', 'capturing');
-    teardowns.push(startPhotoCapture(videoOnlyStream, pump('photo', 'jpg'), () => onStatus('photo', 'error')));
-  } else {
-    onStatus('video', 'unavailable');
-    onStatus('photo', 'unavailable');
   }
 
   return () => {

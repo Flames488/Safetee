@@ -1,0 +1,23 @@
+.ev-wrap{ flex:1; display:flex; flex-direction:column; }
+
+.ev-loading{ padding:16px; text-align:center; color:var(--ink-1); font-size:13.5px; }
+
+/* Audio/video rows need the icon pinned to the top, not vertically centered
+   against a tall <audio>/<video> element the way a normal one-line st-row
+   centers its icon against text. */
+.ev-row{ align-items:flex-start; }
+.ev-media-col{ gap:8px; }
+.ev-media-col audio,
+.ev-media-col video{ width:100%; border-radius:var(--r-sm); }
+.ev-media-col video{ max-height:280px; background:#000; }
+
+.ev-photos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:8px; padding:10px; }
+.ev-photo{
+  display:block; aspect-ratio:1; border-radius:var(--r-sm); overflow:hidden; background:var(--bg-2);
+  border:1px solid var(--line);
+}
+.ev-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+@media (min-width:900px){
+  .ev-photos{ grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); }
+}

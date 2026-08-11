@@ -17,6 +17,7 @@ const NAV_GROUPS = [
       { to: '/app', label: 'Dashboard', icon: Home, end: true },
       { to: '/app/journey', label: 'Journey', icon: Navigation },
       { to: '/app/contacts', label: 'Trusted contacts', icon: Users },
+      { to: '/app/alerts', label: 'Alerts', icon: Bell },
       { to: '/app/history', label: 'History', icon: Clock },
     ],
   },

@@ -12,6 +12,11 @@
 
 .hs-detail{ padding:0 16px 14px 57px; font-size:12px; color:var(--ink-1); line-height:1.6; }
 
+.hs-evidence-link{
+  display:block; margin:0 16px 14px 57px; font-size:12px; font-weight:600; color:var(--brand);
+}
+.hs-evidence-link:hover{ text-decoration:underline; }
+
 @media (min-width:900px){
   .hs-list{ max-width:880px; margin:0 auto; padding:0; gap:12px; }
   .hs-row{ padding:16px; gap:14px; }

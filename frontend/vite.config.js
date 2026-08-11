@@ -8,6 +8,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Custom src/sw.js instead of the auto-generated one — needed for the
+      // push/notificationclick listeners that make emergency-alert push
+      // notifications actually show up and deep-link correctly.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+      },
       includeAssets: ['favicon.svg', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png', 'logo-mark.svg'],
       manifest: {
         name: 'Safetee — Personal Safety',
@@ -24,15 +33,6 @@ export default defineConfig({
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
-      },
-      workbox: {
-        // App-shell precaching only — journeys/SOS/contacts all need a live
-        // network round-trip to be trustworthy, so none of that is cached.
-        // This makes the app installable and lets it load instantly on
-        // repeat visits; it deliberately does not promise offline SOS
-        // triggering, which would be dishonest for a safety app to imply.
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],
