@@ -78,6 +78,18 @@ class Settings(BaseSettings):
     # while after the fact, not just during the live incident.
     share_token_expire_hours: int = 72
 
+    # Live location sharing (requests + "share at will") — always
+    # time-boxed, never indefinite. Default matches the duration presets
+    # the frontend offers (15/30/60); max is a hard backend-enforced
+    # ceiling regardless of what a client sends.
+    location_share_default_minutes: int = 30
+    location_share_max_minutes: int = 120
+    # A pending request nobody answered just stops being surfaced after
+    # this long — no Celery sweep needed, the incoming-requests query
+    # simply excludes it. Still technically 'pending' in the DB (an old
+    # link/notification could still accept it), just not shown as new.
+    location_request_expire_hours: int = 24
+
     # Admin dashboard — deliberately separate from normal login. The phone
     # number here is auto-promoted to super_admin on every login/getMe call
     # (see app/api/deps.py) so there's no manual DB write needed to bootstrap

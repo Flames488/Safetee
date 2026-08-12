@@ -63,6 +63,13 @@ class PaymentStatus(str, enum.Enum):
     abandoned = "abandoned"      # user never completed the Paystack checkout
 
 
+class LocationShareStatus(str, enum.Enum):
+    pending = "pending"     # a viewer requested it; owner hasn't responded yet
+    active = "active"       # owner accepted (or self-initiated) — check expires_at, not this alone, for "is it actually still live"
+    declined = "declined"   # owner declined a viewer's request
+    stopped = "stopped"     # owner ended an active share early
+
+
 class AdminRole(str, enum.Enum):
     none = "none"
     viewer = "viewer"            # read-only: stats and user list, no mutations

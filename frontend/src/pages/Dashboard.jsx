@@ -282,6 +282,10 @@ export default function Dashboard() {
             <Button full size="lg" icon={<Navigation size={17} />} onClick={() => navigate('/app/journey')}>
               Start Safe Journey
             </Button>
+
+            <Button full variant="secondary" icon={<LocateFixed size={17} />} onClick={() => navigate('/app/share-location')}>
+              Share my location
+            </Button>
           </div>
 
           <div className="dash-col-side">

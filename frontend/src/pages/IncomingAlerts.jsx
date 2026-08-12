@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShieldAlert } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShieldAlert, MapPin, Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow } from '../components/ui';
+import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker } from '../components/ui';
 import { api } from '../lib/api';
 import './history.css';
+import './network.css';
 
 const REFRESH_MS = 20_000;
 
@@ -22,50 +23,122 @@ function fmt(dateStr) {
   return new Date(dateStr).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-// The in-app counterpart to the SMS alert — for trusted contacts who also
-// use Safetee, so they don't have to depend on the SMS link arriving (or
-// still being unexpired) to check on someone. See GET /sos/incoming.
-export default function IncomingAlerts() {
-  const [alerts, setAlerts] = useState(null);
-  const [loadError, setLoadError] = useState(false);
+// Guards a poll loop against a slower earlier response clobbering fresher
+// data after a faster later one resolves — same pattern used across
+// Dashboard/SOSActive/LiveTracking's own polling.
+function useGuardedPoll(fetcher, intervalMs) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(false);
   const latestRequestId = useRef(0);
   const cancelledRef = useRef(false);
 
-  // A slower earlier poll resolving after a faster later one would
-  // otherwise clobber fresher data with stale data — requestId guards
-  // against that. Exposed via useCallback (not just effect-local) so the
-  // ErrorState's manual "Try again" button can trigger the same
-  // well-guarded load.
   const load = useCallback(() => {
     const requestId = ++latestRequestId.current;
-    api.getIncomingAlerts()
-      .then((data) => {
-        if (!cancelledRef.current && requestId === latestRequestId.current) { setAlerts(data); setLoadError(false); }
+    fetcher()
+      .then((result) => {
+        if (!cancelledRef.current && requestId === latestRequestId.current) { setData(result); setError(false); }
       })
       .catch(() => {
-        if (!cancelledRef.current && requestId === latestRequestId.current) setLoadError(true);
+        if (!cancelledRef.current && requestId === latestRequestId.current) setError(true);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     cancelledRef.current = false;
     load();
-    const interval = setInterval(load, REFRESH_MS);
+    const interval = setInterval(load, intervalMs);
     return () => { cancelledRef.current = true; clearInterval(interval); };
-  }, [load]);
+  }, [load, intervalMs]);
+
+  return { data, error, reload: load };
+}
+
+// The in-app counterpart to the SMS alert, plus the location
+// request/share network — for trusted contacts who also use Safetee, so
+// none of this depends on an SMS link arriving or still being unexpired.
+export default function IncomingAlerts() {
+  const navigate = useNavigate();
+  const { data: alerts, error: alertsError, reload: reloadAlerts } = useGuardedPoll(api.getIncomingAlerts, REFRESH_MS);
+  const { data: requests, error: requestsError, reload: reloadRequests } = useGuardedPoll(api.getIncomingLocationRequests, REFRESH_MS);
+
+  const [watchers, setWatchers] = useState(null);
+  const [requestedIds, setRequestedIds] = useState(() => new Set());
+  useEffect(() => {
+    api.getWatchers().then(setWatchers).catch(() => setWatchers([]));
+  }, []);
+
+  const [respondingId, setRespondingId] = useState(null); // which request's duration picker is open
+  const [duration, setDuration] = useState(30);
+  const [busyId, setBusyId] = useState(null);
+
+  const askForLocation = (userId) => {
+    setRequestedIds((s) => new Set(s).add(userId));
+    api.requestLocation(userId).catch(() => {
+      setRequestedIds((s) => { const next = new Set(s); next.delete(userId); return next; });
+    });
+  };
+
+  const decline = (id) => {
+    setBusyId(id);
+    api.declineLocationRequest(id).then(reloadRequests).finally(() => setBusyId(null));
+  };
+
+  const accept = (id) => {
+    setBusyId(id);
+    api.acceptLocationRequest(id, duration)
+      .then(() => navigate('/app/share-location'))
+      .catch(() => setBusyId(null));
+  };
 
   return (
     <>
-      <TopBar title="Alerts" back={false} subtitle="Emergencies from people who trust you as a contact" />
+      <TopBar title="Network" back={false} subtitle="Alerts, location requests, and people who trust you" />
       <div className="hs-list">
-        {alerts === null && !loadError && (
+        <SectionLabel>Location requests</SectionLabel>
+        {requests === null && !requestsError && <Card className="hs-card"><SkeletonRow columns={2} /></Card>}
+        {requestsError && <ErrorState message="Couldn't load location requests." onRetry={reloadRequests} />}
+        {requests?.length === 0 && !requestsError && (
+          <Card className="hs-card net-empty">Nobody's asked for your location right now.</Card>
+        )}
+        {requests?.map((r) => (
+          <Card key={r.id} className="hs-card">
+            <div className="hs-row">
+              <IconTile icon={MapPin} tone="info" size={32} />
+              <span className="hs-text">
+                <strong>{r.viewer_name}</strong>
+                <span>wants to see your location</span>
+                <span className="hs-date mono">{fmt(r.created_at)}</span>
+              </span>
+            </div>
+            {respondingId === r.id ? (
+              <div className="net-respond">
+                <DurationPicker value={duration} onChange={setDuration} />
+                <div className="net-respond-actions">
+                  <Button size="sm" variant="ghost" onClick={() => setRespondingId(null)} disabled={busyId === r.id}>Cancel</Button>
+                  <Button size="sm" onClick={() => accept(r.id)} disabled={busyId === r.id}>
+                    {busyId === r.id ? 'Starting…' : 'Start sharing'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="net-respond-actions">
+                <Button size="sm" variant="ghost" onClick={() => decline(r.id)} disabled={busyId === r.id}>Decline</Button>
+                <Button size="sm" onClick={() => { setRespondingId(r.id); setDuration(30); }} disabled={busyId === r.id}>Accept</Button>
+              </div>
+            )}
+          </Card>
+        ))}
+
+        <SectionLabel>Emergency alerts</SectionLabel>
+        {alerts === null && !alertsError && (
           <>
             <Card className="hs-card"><SkeletonRow columns={3} /></Card>
             <Card className="hs-card"><SkeletonRow columns={3} /></Card>
           </>
         )}
-        {loadError && <ErrorState message="Couldn't load your alerts right now." onRetry={load} />}
-        {alerts !== null && alerts.length === 0 && !loadError && (
+        {alertsError && <ErrorState message="Couldn't load your alerts right now." onRetry={reloadAlerts} />}
+        {alerts !== null && alerts.length === 0 && !alertsError && (
           <EmptyState
             icon={ShieldAlert}
             title="Nothing here"
@@ -94,6 +167,26 @@ export default function IncomingAlerts() {
                 </p>
               )}
               <Link className="hs-evidence-link" to={`/track/${a.id}/evidence`}>View evidence</Link>
+            </Card>
+          );
+        })}
+
+        <SectionLabel>People who trust you</SectionLabel>
+        {watchers === null && <Card className="hs-card"><SkeletonRow columns={2} /></Card>}
+        {watchers?.length === 0 && (
+          <Card className="hs-card net-empty">Nobody who's added you as a trusted contact is on Safetee yet.</Card>
+        )}
+        {watchers?.map((w) => {
+          const requested = requestedIds.has(w.user_id);
+          return (
+            <Card key={w.user_id} className="hs-card">
+              <div className="hs-row">
+                <IconTile icon={Users} tone="brand" size={32} />
+                <span className="hs-text"><strong>{w.full_name}</strong></span>
+                <Button size="sm" variant={requested ? 'ghost' : 'secondary'} disabled={requested} onClick={() => askForLocation(w.user_id)}>
+                  {requested ? 'Requested' : 'Request location'}
+                </Button>
+              </div>
             </Card>
           );
         })}

@@ -82,6 +82,13 @@
 .pill-brand{ color:var(--brand-bright); background:var(--brand-soft); border-color:var(--brand-line); }
 .pill-neutral{ color:var(--ink-1); background:var(--bg-2); }
 
+.duration-picker{ display:flex; gap:8px; }
+.duration-chip{
+  padding:8px 16px; border-radius:var(--r-pill); border:1px solid var(--line-strong);
+  background:var(--card); font-size:13px; font-weight:600; color:var(--ink-1); transition:all .15s ease;
+}
+.duration-chip-active{ background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
+
 .section-label{
   font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2);
   display:flex; align-items:center; gap:6px;

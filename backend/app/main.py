@@ -5,8 +5,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
-from app.api.v1 import admin, auth, billing, contacts, devices, history, journeys, sos, system, users
+from app.api.v1 import (
+    admin,
+    auth,
+    billing,
+    contacts,
+    devices,
+    history,
+    journeys,
+    locations,
+    sos,
+    system,
+    users,
+)
 from app.core.config import settings
+from app.websockets.location_sharing import router as location_ws_router
 from app.websockets.tracking import router as ws_router
 
 logging.basicConfig(level=logging.INFO)
@@ -30,11 +43,13 @@ app.include_router(billing.router, prefix=settings.api_v1_prefix)
 app.include_router(admin.router, prefix=settings.api_v1_prefix)
 app.include_router(contacts.router, prefix=settings.api_v1_prefix)
 app.include_router(devices.router, prefix=settings.api_v1_prefix)
+app.include_router(locations.router, prefix=settings.api_v1_prefix)
 app.include_router(journeys.router, prefix=settings.api_v1_prefix)
 app.include_router(sos.router, prefix=settings.api_v1_prefix)
 app.include_router(history.router, prefix=settings.api_v1_prefix)
 app.include_router(system.router, prefix=settings.api_v1_prefix)
 app.include_router(ws_router)
+app.include_router(location_ws_router)
 
 
 @app.get("/health")

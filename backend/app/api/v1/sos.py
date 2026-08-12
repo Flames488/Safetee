@@ -10,10 +10,8 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
-from app.core.phone import normalize_phone
 from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
-from app.models.contact import TrustedContact
 from app.models.enums import SOSStatus
 from app.models.sos_event import SOSEvent
 from app.models.user import User
@@ -27,6 +25,7 @@ from app.schemas.sos import (
     SOSEventOut,
     SOSTriggerRequest,
 )
+from app.services.contact_matching import is_trusted_contact_of, watched_owner_ids
 from app.services.storage.supabase_storage import SupabaseStorageError, supabase_storage
 from app.workers.tasks.sos_tasks import fanout_sos_alerts, notify_contacts_of_evidence
 
@@ -265,7 +264,7 @@ async def _caller_may_view_evidence(
                 # link's token (that link may have expired, or they may
                 # simply prefer using the app they already have installed).
                 caller = await db.get(User, uuid.UUID(caller_id))
-                if caller and await _is_trusted_contact_of(db, event.user_id, caller.phone):
+                if caller and await is_trusted_contact_of(db, event.user_id, caller.phone):
                     return True
         except (jwt.PyJWTError, ValueError, KeyError):
             pass
@@ -278,16 +277,6 @@ async def _caller_may_view_evidence(
     return False
 
 
-async def _is_trusted_contact_of(db: AsyncSession, owner_id: uuid.UUID, phone: str) -> bool:
-    target = normalize_phone(phone)
-    if not target:
-        return False
-    result = await db.execute(
-        select(TrustedContact.id).where(TrustedContact.user_id == owner_id, TrustedContact.phone == target)
-    )
-    return result.scalar_one_or_none() is not None
-
-
 @router.get("/incoming", response_model=list[IncomingAlertOut])
 async def list_incoming_alerts(
     db: AsyncSession = Depends(get_db),
@@ -296,16 +285,7 @@ async def list_incoming_alerts(
     """SOS events triggered by someone who has the current user listed as
     a trusted contact — the in-app counterpart to the SMS alert, for
     contacts who happen to also be Safetee users."""
-    target = normalize_phone(user.phone)
-    if not target:
-        return []
-
-    # Exact match, indexed — see normalize_phone's docstring for why this
-    # isn't the fuzzy last-10-digits match it used to be.
-    contact_rows = (
-        await db.execute(select(TrustedContact.user_id).where(TrustedContact.phone == target))
-    ).scalars().all()
-    owner_ids = set(contact_rows)
+    owner_ids = await watched_owner_ids(db, user.phone)
     owner_ids.discard(user.id)  # never surface your own alerts as "incoming"
     if not owner_ids:
         return []

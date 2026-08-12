@@ -1,0 +1,15 @@
+.net-empty{ padding:16px; font-size:13px; color:var(--ink-2); text-align:center; }
+
+.net-error{
+  font-size:12.5px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line);
+  border-radius:var(--r-sm); padding:10px 12px;
+}
+
+.net-respond{ padding:0 16px 14px 57px; display:flex; flex-direction:column; gap:12px; }
+.net-respond-actions{ display:flex; justify-content:flex-end; gap:8px; padding:0 16px 14px 57px; }
+.net-respond .net-respond-actions{ padding:0; }
+
+/* Standalone duration/confirm panel with no icon row above it to align
+   under (unlike .net-respond, used inline within an IncomingAlerts card
+   that already has one) — plain card padding instead of the 57px indent. */
+.net-duration-card{ padding:16px; display:flex; flex-direction:column; gap:12px; }

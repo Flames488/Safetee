@@ -77,6 +77,13 @@ class ContactOut(BaseModel):
     phone: str
     priority: int
     is_verified: bool
+    # Whether this contact's phone matches a registered Safetee account —
+    # only such contacts can receive a location share or a request (see
+    # app/api/v1/locations.py). Defaults False rather than failing outright
+    # for callers that build a ContactOut without setting it explicitly
+    # (e.g. DataExportOut) — a stale/unknown "no" is safe, a fabricated
+    # "yes" wouldn't be.
+    is_app_user: bool = False
 
 
 class AccountDeleteRequest(BaseModel):

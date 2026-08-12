@@ -17,12 +17,26 @@ router = APIRouter(prefix="/contacts", tags=["contacts"])
 async def list_contacts(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
-    result = await db.execute(
-        select(TrustedContact)
-        .where(TrustedContact.user_id == user.id)
-        .order_by(TrustedContact.priority.asc())
-    )
-    return result.scalars().all()
+    contacts = (
+        await db.execute(
+            select(TrustedContact)
+            .where(TrustedContact.user_id == user.id)
+            .order_by(TrustedContact.priority.asc())
+        )
+    ).scalars().all()
+
+    # One batched query for the whole list rather than one per contact —
+    # is_app_user drives whether "Request/share location" shows up for
+    # each contact in the frontend.
+    phones = {c.phone for c in contacts}
+    app_user_phones = set()
+    if phones:
+        app_user_phones = set(
+            (await db.execute(select(User.phone).where(User.phone.in_(phones)))).scalars().all()
+        )
+    for contact in contacts:
+        contact.is_app_user = contact.phone in app_user_phones
+    return contacts
 
 
 @router.post("", response_model=ContactOut, status_code=status.HTTP_201_CREATED)

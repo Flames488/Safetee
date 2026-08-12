@@ -97,6 +97,29 @@ export function Pill({ tone = 'neutral', children }) {
   return <span className={`pill pill-${tone}`}>{children}</span>;
 }
 
+const DEFAULT_DURATIONS = [15, 30, 60];
+
+// Shared between accepting a location request and starting a "share at
+// will" — every live location share is time-boxed (see LocationShare's
+// backend docstring), never indefinite, so both flows need the same
+// "how long" picker.
+export function DurationPicker({ value, onChange, options = DEFAULT_DURATIONS }) {
+  return (
+    <div className="duration-picker">
+      {options.map((mins) => (
+        <button
+          key={mins}
+          type="button"
+          className={`duration-chip ${value === mins ? 'duration-chip-active' : ''}`}
+          onClick={() => onChange(mins)}
+        >
+          {mins < 60 ? `${mins}m` : `${mins / 60}h`}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SectionLabel({ children }) {
   return <div className="section-label mono">{children}</div>;
 }

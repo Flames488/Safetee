@@ -126,6 +126,19 @@ export const api = {
   addContact: (payload) => request('/contacts', { method: 'POST', body: payload }),
   deleteContact: (id) => request(`/contacts/${id}`, { method: 'DELETE' }),
 
+  getWatchers: () => request('/locations/watchers'),
+  requestLocation: (targetUserId) =>
+    request('/locations/requests', { method: 'POST', body: { target_user_id: targetUserId } }),
+  getIncomingLocationRequests: () => request('/locations/requests/incoming'),
+  acceptLocationRequest: (id, durationMinutes) =>
+    request(`/locations/requests/${id}/accept`, { method: 'POST', body: { duration_minutes: durationMinutes } }),
+  declineLocationRequest: (id) => request(`/locations/requests/${id}/decline`, { method: 'POST' }),
+  shareLocation: (contactId, durationMinutes) =>
+    request('/locations/share', { method: 'POST', body: { contact_id: contactId, duration_minutes: durationMinutes } }),
+  getActiveShares: () => request('/locations/shares/active'),
+  stopShare: (id) => request(`/locations/shares/${id}/stop`, { method: 'POST' }),
+  getShare: (id) => request(`/locations/shares/${id}`),
+
   startJourney: (payload) => request('/journeys', { method: 'POST', body: payload }),
   getJourney: (id) => request(`/journeys/${id}`),
   checkinJourney: (id, payload) => request(`/journeys/${id}/checkin`, { method: 'POST', body: payload }),
