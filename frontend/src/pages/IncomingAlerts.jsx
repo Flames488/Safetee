@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker } from '../components/ui';
 import { api } from '../lib/api';
+import { timeLeft } from '../lib/time';
 import './history.css';
 import './network.css';
 
@@ -61,6 +62,7 @@ export default function IncomingAlerts() {
   const navigate = useNavigate();
   const { data: alerts, error: alertsError, reload: reloadAlerts } = useGuardedPoll(api.getIncomingAlerts, REFRESH_MS);
   const { data: requests, error: requestsError, reload: reloadRequests } = useGuardedPoll(api.getIncomingLocationRequests, REFRESH_MS);
+  const { data: viewing, error: viewingError, reload: reloadViewing } = useGuardedPoll(api.getViewingShares, REFRESH_MS);
 
   const [watchers, setWatchers] = useState(null);
   const [requestedIds, setRequestedIds] = useState(() => new Set());
@@ -127,6 +129,25 @@ export default function IncomingAlerts() {
                 <Button size="sm" onClick={() => { setRespondingId(r.id); setDuration(30); }} disabled={busyId === r.id}>Accept</Button>
               </div>
             )}
+          </Card>
+        ))}
+
+        <SectionLabel>Shared with you</SectionLabel>
+        {viewing === null && !viewingError && <Card className="hs-card"><SkeletonRow columns={2} /></Card>}
+        {viewingError && <ErrorState message="Couldn't load shared locations." onRetry={reloadViewing} />}
+        {viewing?.length === 0 && !viewingError && (
+          <Card className="hs-card net-empty">Nobody's currently sharing their location with you.</Card>
+        )}
+        {viewing?.map((s) => (
+          <Card key={s.id} className="hs-card">
+            <Link className="hs-row" to={`/track/location/${s.id}`}>
+              <IconTile icon={MapPin} tone="good" size={32} />
+              <span className="hs-text">
+                <strong>{s.owner_name}</strong>
+                <span>{timeLeft(s.expires_at)}</span>
+              </span>
+              <Pill tone="good">View live</Pill>
+            </Link>
           </Card>
         ))}
 

@@ -136,6 +136,7 @@ export const api = {
   shareLocation: (contactId, durationMinutes) =>
     request('/locations/share', { method: 'POST', body: { contact_id: contactId, duration_minutes: durationMinutes } }),
   getActiveShares: () => request('/locations/shares/active'),
+  getViewingShares: () => request('/locations/shares/viewing'),
   stopShare: (id) => request(`/locations/shares/${id}/stop`, { method: 'POST' }),
   getShare: (id) => request(`/locations/shares/${id}`),
 

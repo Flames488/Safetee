@@ -134,6 +134,7 @@ export default function Dashboard() {
 
   const [sub, setSub] = useState(null);
   const [incomingAlerts, setIncomingAlerts] = useState([]);
+  const [locationActivity, setLocationActivity] = useState({ requests: [], viewing: [] });
 
   useEffect(() => {
     api.getSubscription().then(setSub).catch(() => {});
@@ -156,6 +157,27 @@ export default function Dashboard() {
           if (!cancelled && requestId === latestRequestId) setIncomingAlerts(data);
         })
         .catch(() => {});
+    };
+    load();
+    const interval = setInterval(load, 20_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
+  // Same reasoning as the alerts poll above — a location request or an
+  // accepted share only ever reaches the requester/viewer through this
+  // Dashboard banner or the Network tab, since neither sends SMS the way
+  // SOS alerts do, so there's no fallback channel if push doesn't land.
+  useEffect(() => {
+    let cancelled = false;
+    let latestRequestId = 0;
+    const load = () => {
+      const requestId = ++latestRequestId;
+      Promise.all([
+        api.getIncomingLocationRequests().catch(() => []),
+        api.getViewingShares().catch(() => []),
+      ]).then(([requests, viewing]) => {
+        if (!cancelled && requestId === latestRequestId) setLocationActivity({ requests, viewing });
+      });
     };
     load();
     const interval = setInterval(load, 20_000);
@@ -223,6 +245,25 @@ export default function Dashboard() {
               <span>Someone who trusts you as a contact may need help right now.</span>
             </div>
             <Button size="sm" variant="primary" onClick={() => navigate('/app/alerts')}>View</Button>
+          </div>
+        )}
+
+        {(locationActivity.requests.length > 0 || locationActivity.viewing.length > 0) && (
+          <div className="dash-billing-card dash-billing-info">
+            <IconTile icon={LocateFixed} tone="info" size={36} />
+            <div className="dash-billing-text">
+              <strong>
+                {locationActivity.requests.length > 0
+                  ? (locationActivity.requests.length === 1
+                    ? `${locationActivity.requests[0].viewer_name} wants to see your location`
+                    : `${locationActivity.requests.length} location requests waiting`)
+                  : (locationActivity.viewing.length === 1
+                    ? `${locationActivity.viewing[0].owner_name} is sharing their location with you`
+                    : `${locationActivity.viewing.length} people sharing their location with you`)}
+              </strong>
+              <span>Open Network to respond or view live.</span>
+            </div>
+            <Button size="sm" variant="secondary" onClick={() => navigate('/app/alerts')}>View</Button>
           </div>
         )}
 

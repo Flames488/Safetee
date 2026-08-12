@@ -272,6 +272,30 @@ async def list_active_shares(
     return await _build_outs(db, shares)
 
 
+@router.get("/shares/viewing", response_model=list[LocationShareOut])
+async def list_viewing_shares(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """The other side of /shares/active — locations currently shared *with*
+    the current user (from an accepted request or a self-initiated share
+    someone sent them). Without this, the only way to find a granted share
+    is the deep link in its push notification, which silently doesn't
+    exist for anyone who hasn't set up push."""
+    shares = (
+        await db.execute(
+            select(LocationShare)
+            .where(
+                LocationShare.viewer_id == user.id,
+                LocationShare.status == LocationShareStatus.active,
+                LocationShare.expires_at > datetime.now(UTC),
+            )
+            .order_by(LocationShare.created_at.desc())
+        )
+    ).scalars().all()
+    return await _build_outs(db, shares)
+
+
 @router.post("/shares/{share_id}/stop", response_model=LocationShareOut)
 async def stop_share(
     share_id: uuid.UUID,

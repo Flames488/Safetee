@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
+from app.core.phone import normalize_phone
 from app.db.session import get_db
 from app.models.contact import TrustedContact
 from app.models.user import User
@@ -28,14 +29,27 @@ async def list_contacts(
     # One batched query for the whole list rather than one per contact —
     # is_app_user drives whether "Request/share location" shows up for
     # each contact in the frontend.
-    phones = {c.phone for c in contacts}
+    phones = {normalize_phone(c.phone) for c in contacts}
     app_user_phones = set()
     if phones:
         app_user_phones = set(
             (await db.execute(select(User.phone).where(User.phone.in_(phones)))).scalars().all()
         )
+
+    dirty = False
     for contact in contacts:
-        contact.is_app_user = contact.phone in app_user_phones
+        contact.is_app_user = normalize_phone(contact.phone) in app_user_phones
+        # There's no SMS-OTP contact-verification flow built (is_verified
+        # otherwise never gets set at all) — but a phone that matches a
+        # registered account has already proven ownership of that number
+        # via that account's own signup, which is stronger evidence than
+        # nothing. Persisted, not just computed for this response, so it's
+        # reflected everywhere ContactOut is used (export, etc.).
+        if contact.is_app_user and not contact.is_verified:
+            contact.is_verified = True
+            dirty = True
+    if dirty:
+        await db.commit()
     return contacts
 
 
@@ -46,6 +60,12 @@ async def create_contact(
     user: User = Depends(get_current_user),
 ):
     contact = TrustedContact(user_id=user.id, **payload.model_dump())
+    matched = (
+        await db.execute(select(User.id).where(User.phone == normalize_phone(contact.phone)))
+    ).scalar_one_or_none()
+    if matched is not None:
+        contact.is_app_user = True
+        contact.is_verified = True
     db.add(contact)
     await db.commit()
     await db.refresh(contact)
