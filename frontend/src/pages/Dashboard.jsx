@@ -115,7 +115,7 @@ const ACTIVITY_META = {
 };
 
 const TIPS = [
-  { icon: Lightbulb, text: 'Test your hidden trigger (fake PIN, power button, or gesture) somewhere safe so it becomes muscle memory.' },
+  { icon: Lightbulb, text: 'Test your hidden trigger (fake PIN, or shake to alert) somewhere safe so it becomes muscle memory.' },
   { icon: UserCheck, text: 'Keep at least one trusted contact verified — confirming their number first makes delivery more reliable.' },
   { icon: Navigation, text: 'Start a Safe Journey before walking somewhere unfamiliar, even a short distance — it costs nothing and checks in automatically.' },
 ];

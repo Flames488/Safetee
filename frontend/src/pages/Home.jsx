@@ -12,7 +12,7 @@ import './home.css';
 
 const FEATURES = [
   { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.' },
-  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN, power-button pattern, or secret gesture — for when opening the app isn\'t safe.' },
+  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open — for when opening the real SOS screen isn\'t safe.' },
   { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.' },
   { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.' },
   { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.' },
@@ -21,8 +21,8 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { icon: UserPlus, name: 'Set up in minutes', desc: 'Add your trusted contacts and choose a hidden trigger — a fake PIN, a power-button pattern, or a secret gesture.' },
-  { icon: Fingerprint, name: 'Trigger silently, or with one tap', desc: 'Hold for SOS from the app, or use your hidden trigger from any screen — even a locked one.' },
+  { icon: UserPlus, name: 'Set up in minutes', desc: 'Add your trusted contacts and choose a hidden trigger — a fake PIN, or a secret shake.' },
+  { icon: Fingerprint, name: 'Trigger silently, or with one tap', desc: 'Hold for SOS from the app, use your fake PIN at login, or shake your phone while Safetee is open.' },
   { icon: Send, name: 'Help finds you', desc: 'Your location, audio, and alert reach your trusted contacts immediately — and by SMS if you lose signal.' },
 ];
 

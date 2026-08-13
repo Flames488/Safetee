@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Mic, Camera, MessageSquare, Bell, ChevronRight, ArrowLeft, UserPlus, KeyRound, Power, Fingerprint, Check, User } from 'lucide-react';
+import { MapPin, Mic, Camera, MessageSquare, Bell, ChevronRight, ArrowLeft, UserPlus, KeyRound, Fingerprint, Check, User } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
 import Logo from '../components/Logo';
 import { Button, ProgressDots, Pill, PasswordInput } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
+import { motionPermissionNeeded, requestMotionPermission } from '../lib/shakeDetector';
 import { api } from '../lib/api';
 import './onboarding.css';
 
@@ -16,10 +17,13 @@ const PERMISSIONS = [
   { icon: Bell, name: 'Notifications', why: 'Confirms your alert was delivered and contacts responded.' },
 ];
 
+// Power button was dropped from here (2026-08-14): there is no web API on
+// any platform, iOS or Android, that exposes a hardware button press to a
+// page — it never actually worked, on either OS. Shake is the one hidden
+// trigger a PWA can genuinely detect (see lib/shakeDetector.js).
 const TRIGGERS = [
   { id: 'pin', icon: KeyRound, name: 'Fake PIN', desc: 'A decoy code silently sends an alert while unlocking your phone normally.' },
-  { id: 'power', icon: Power, name: 'Power button', desc: 'Five quick presses trigger SOS without opening the app.' },
-  { id: 'gesture', icon: Fingerprint, name: 'Secret gesture', desc: 'A custom hold-and-swipe pattern from any screen.' },
+  { id: 'gesture', icon: Fingerprint, name: 'Shake to alert', desc: 'Shake your phone firmly 3 times while Safetee is open.' },
 ];
 
 // Step order: welcome -> scenario -> create account -> permissions ->
@@ -39,7 +43,10 @@ export default function Onboarding() {
   const [contactError, setContactError] = useState('');
   const [contactBusy, setContactBusy] = useState(false);
   const [trigger, setTrigger] = useState('pin');
-  const { signup, status } = useAuth();
+  const [pinValue, setPinValue] = useState('');
+  const [triggerError, setTriggerError] = useState('');
+  const [triggerBusy, setTriggerBusy] = useState(false);
+  const { signup, setUser, status } = useAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
   const intendedTier = state?.intendedTier || null;
@@ -81,6 +88,44 @@ export default function Onboarding() {
       setContactError(err.message || 'Could not save this contact. You can add them later from Contacts.');
     } finally {
       setContactBusy(false);
+    }
+  };
+
+  const handleSaveTrigger = async () => {
+    setTriggerError('');
+    if (trigger === 'pin') {
+      if (pinValue.length < 4) { setTriggerError('PIN must be at least 4 digits.'); return; }
+      setTriggerBusy(true);
+      try {
+        setUser(await api.updateTriggers({ fake_pin: pinValue }));
+        setStep(STEP.DONE);
+      } catch (err) {
+        setTriggerError(err.message || 'Could not save your PIN. You can set it up later in Settings.');
+      } finally {
+        setTriggerBusy(false);
+      }
+      return;
+    }
+
+    // gesture — iOS gates the accelerometer behind a permission prompt
+    // that must fire from directly inside this click handler.
+    setTriggerBusy(true);
+    try {
+      const granted = await requestMotionPermission();
+      if (!granted) {
+        setTriggerError(
+          motionPermissionNeeded()
+            ? 'Motion access was denied — you can enable it later in Settings.'
+            : "This device doesn't support motion detection — pick a fake PIN instead, or set this up later."
+        );
+        return;
+      }
+      setUser(await api.updateTriggers({ gesture_trigger_enabled: true }));
+      setStep(STEP.DONE);
+    } catch (err) {
+      setTriggerError(err.message || 'Could not save this trigger. You can set it up later in Settings.');
+    } finally {
+      setTriggerBusy(false);
     }
   };
 
@@ -225,7 +270,11 @@ export default function Onboarding() {
           <p className="ob-p">Use this when opening the app or speaking out loud isn't safe. Choose your default — you can set up the rest in Settings.</p>
           <div className="ob-list">
             {TRIGGERS.map((t) => (
-              <button key={t.id} className={`ob-trigger ${trigger === t.id ? 'ob-trigger-on' : ''}`} onClick={() => setTrigger(t.id)}>
+              <button
+                key={t.id}
+                className={`ob-trigger ${trigger === t.id ? 'ob-trigger-on' : ''}`}
+                onClick={() => { setTrigger(t.id); setTriggerError(''); }}
+              >
                 <span className="ob-perm-icon"><t.icon size={18} strokeWidth={2} /></span>
                 <span className="ob-perm-text">
                   <strong>{t.name}</strong>
@@ -234,8 +283,21 @@ export default function Onboarding() {
               </button>
             ))}
           </div>
+          {trigger === 'pin' && (
+            <label className="ob-field">
+              <span className="mono">Choose a 4–6 digit fake PIN</span>
+              <PasswordInput
+                placeholder="e.g. 4821" inputMode="numeric" maxLength={6}
+                value={pinValue} onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ''))}
+              />
+            </label>
+          )}
+          {triggerError && <p className="ob-error" role="alert">{triggerError}</p>}
           <div className="ob-spacer" />
-          <Button full size="lg" onClick={() => setStep(STEP.DONE)}>Set as my trigger</Button>
+          <Button full size="lg" onClick={handleSaveTrigger} disabled={triggerBusy}>
+            {triggerBusy ? 'Saving…' : 'Set as my trigger'}
+          </Button>
+          <button className="ob-skip-step mono" onClick={() => setStep(STEP.DONE)}>I'll set this up later</button>
         </div>
       )}
 
@@ -246,7 +308,7 @@ export default function Onboarding() {
           </VitalRing>
           <h1 className="ob-h1">You're covered.</h1>
           <p className="ob-p">
-            Your trigger, contact and permissions are set. Safetee is now watching quietly in the background.
+            You're set up. Safetee is ready whenever you need it.
             {intendedTier && ' One more step to finish choosing your plan.'}
           </p>
           <div className="ob-spacer" />

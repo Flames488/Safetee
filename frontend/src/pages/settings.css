@@ -36,6 +36,7 @@
 .st-pin-form input:focus{ border-color:var(--green-line); }
 .st-pin-error{ font-size:11.5px; color:var(--red); }
 .st-pin-hint{ font-size:11.5px; color:var(--ink-2); line-height:1.5; }
+.st-gesture-error{ margin:0 12px 10px; }
 .st-pin-form .btn{ margin-top:0; }
 
 .st-body > .btn{ margin-top:12px; }

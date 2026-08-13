@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Mic, MessageSquare, Bell, KeyRound, Power, Fingerprint, User, Lock, CreditCard, ChevronRight, LogOut, X } from 'lucide-react';
+import { MapPin, Mic, MessageSquare, Bell, KeyRound, Fingerprint, User, Lock, CreditCard, ChevronRight, LogOut, X } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, Toggle, SectionLabel, Button, PasswordInput } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { queryPermission } from '../lib/useReliability';
 import { subscribeToPush } from '../lib/push';
+import { motionPermissionNeeded, requestMotionPermission } from '../lib/shakeDetector';
 import { api } from '../lib/api';
 import './settings.css';
 
@@ -31,6 +32,7 @@ export default function Settings() {
   const [pinDraft, setPinDraft] = useState(null); // null = form closed
   const [pinValue, setPinValue] = useState('');
   const [pinError, setPinError] = useState('');
+  const [gestureError, setGestureError] = useState('');
 
   useEffect(() => {
     queryPermission('geolocation').then(setLocation);
@@ -106,6 +108,27 @@ export default function Settings() {
     setPinValue('');
   };
 
+  // iOS gates the accelerometer behind an explicit permission prompt that
+  // only works fired from directly inside a click handler — can't be
+  // requested silently ahead of time, so the toggle itself is what asks.
+  // Android has no such gate; requestMotionPermission() resolves true
+  // immediately there.
+  const toggleGesture = async (enabled) => {
+    setGestureError('');
+    if (enabled) {
+      const granted = await requestMotionPermission();
+      if (!granted) {
+        setGestureError(
+          motionPermissionNeeded()
+            ? 'Motion access was denied — enable it for this site in your phone settings, then try again.'
+            : "This device doesn't support motion detection, so the shake trigger can't work here."
+        );
+        return;
+      }
+    }
+    patchTriggers({ gesture_trigger_enabled: enabled });
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -178,29 +201,22 @@ export default function Settings() {
           )}
 
           <div className="st-row">
-            <span className="st-icon"><Power size={16} strokeWidth={2.1} /></span>
-            <span className="st-row-text">
-              <strong>Power button ×5</strong>
-              <span className="st-desc">Works from any screen</span>
-            </span>
-            <Toggle
-              checked={Boolean(user?.power_button_trigger_enabled)}
-              onChange={(v) => patchTriggers({ power_button_trigger_enabled: v })}
-              label="Power button trigger"
-            />
-          </div>
-          <div className="st-row">
             <span className="st-icon"><Fingerprint size={16} strokeWidth={2.1} /></span>
             <span className="st-row-text">
-              <strong>Secret gesture</strong>
-              <span className="st-desc">{user?.gesture_trigger_enabled ? 'Enabled' : 'Not configured'}</span>
+              <strong>Shake to alert</strong>
+              <span className="st-desc">
+                {user?.gesture_trigger_enabled
+                  ? 'Shake your phone firmly 3 times while Safetee is open to silently alert your contacts'
+                  : "Shake your phone firmly 3 times while Safetee is open — works only while the app is open, not from a locked screen"}
+              </span>
             </span>
             <Toggle
               checked={Boolean(user?.gesture_trigger_enabled)}
-              onChange={(v) => patchTriggers({ gesture_trigger_enabled: v })}
-              label="Secret gesture trigger"
+              onChange={toggleGesture}
+              label="Shake-to-alert trigger"
             />
           </div>
+          {gestureError && <p className="st-pin-error st-gesture-error">{gestureError}</p>}
         </Card>
 
         <SectionLabel>Account</SectionLabel>

@@ -29,7 +29,7 @@ const TRIGGER_LABEL = {
   button: 'SOS button',
   fake_pin: 'fake PIN',
   power_button: 'power button',
-  gesture: 'secret gesture',
+  gesture: 'shake to alert',
   journey_timeout: 'missed journey check-in',
 };
 

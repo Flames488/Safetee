@@ -5,6 +5,7 @@ import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { startShakeDetection } from '../lib/shakeDetector';
 import './app-shell.css';
 
 // Grouped nav (label + items) rather than one flat list — the single
@@ -67,6 +68,20 @@ export default function AppShell({ children }) {
   useEffect(() => {
     api.listContacts().then(setContacts).catch(() => {});
   }, []);
+
+  // Secret gesture trigger — only active while an AppShell-wrapped screen
+  // is mounted (Dashboard, Contacts, Settings, etc.), not on the immersive
+  // SOS/tracking screens, which don't use AppShell at all — shaking again
+  // mid-SOS would be pointless anyway. Navigating away from any /app/*
+  // page unmounts this effect and stops listening, same as it stops
+  // listening entirely once the toggle is off.
+  useEffect(() => {
+    if (!user?.gesture_trigger_enabled) return;
+    const stop = startShakeDetection(() => {
+      navigate('/app/sos', { state: { trigger: 'gesture' } });
+    });
+    return stop;
+  }, [user?.gesture_trigger_enabled, navigate]);
 
   const handleLogout = () => {
     logout();

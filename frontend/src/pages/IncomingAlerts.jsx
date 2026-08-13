@@ -24,7 +24,7 @@ const STATUS_META = {
   cancelled: { label: 'Cancelled', tone: 'neutral' },
 };
 
-const TRIGGER_LABEL = { button: 'SOS button', power_button: 'Power button', gesture: 'Secret gesture', fake_pin: 'Fake PIN' };
+const TRIGGER_LABEL = { button: 'SOS button', power_button: 'Power button', gesture: 'Shake to alert', fake_pin: 'Fake PIN' };
 
 function fmt(dateStr) {
   return new Date(dateStr).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });

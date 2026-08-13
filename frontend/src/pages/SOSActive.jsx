@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Phone, Mic, MapPin, Users, X, Video, Camera } from 'lucide-react';
 import VitalRing, { VitalDot } from '../components/VitalRing';
 import { api } from '../lib/api';
@@ -33,6 +33,12 @@ const EVIDENCE_META = {
 
 export default function SOSActive() {
   const { user } = useAuth();
+  const location = useLocation();
+  // Reached either from the Dashboard's hold-for-SOS button (no state,
+  // defaults to 'button') or from the secret-gesture shake detector in
+  // AppShell.jsx, which passes { trigger: 'gesture' } — same screen, same
+  // cancel window, just a different value recorded on the SOSEvent.
+  const trigger = location.state?.trigger || 'button';
   const [phase, setPhase] = useState('counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
@@ -50,7 +56,7 @@ export default function SOSActive() {
   // so a slow/dropped network call here never delays the actual alert.
   useEffect(() => {
     const send = (lat, lng) =>
-      api.triggerSOS({ trigger: 'button', lat, lng })
+      api.triggerSOS({ trigger, lat, lng })
         .then((event) => event && setEventId(event.id))
         .catch(() => {}); // offline/demo mode — countdown still runs locally
 
