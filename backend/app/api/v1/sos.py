@@ -3,16 +3,18 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import exists, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.scheduler import run_soon
 from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
-from app.models.enums import SOSStatus
+from app.models.enums import SOSStatus, SOSTrigger
+from app.models.sos_acknowledgment import SOSAcknowledgment
 from app.models.sos_event import SOSEvent
 from app.models.user import User
 from app.schemas.sos import (
@@ -81,8 +83,10 @@ async def trigger_sos(
 
     # Fires after the cancel window. fanout_sos_alerts re-checks event.status
     # itself, so a cancel recorded in the meantime is enough to no-op it —
-    # no task revocation plumbing required.
-    fanout_sos_alerts.apply_async(args=[str(event.id)], countdown=settings.sos_cancel_window_seconds)
+    # no task revocation plumbing required. Runs in-process (see
+    # app/core/scheduler.py) rather than via Celery's broker — nothing
+    # consumes that queue in production.
+    run_soon(fanout_sos_alerts, str(event.id), delay=settings.sos_cancel_window_seconds)
 
     return event
 
@@ -124,12 +128,14 @@ async def resolve_sos(
 async def get_active_sos(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
+    # Same invisibility rule as sos_history — see POST /auth/login.
     result = await db.execute(
         select(SOSEvent)
         .options(selectinload(SOSEvent.alerts))
         .where(
             SOSEvent.user_id == user.id,
             SOSEvent.status.in_([SOSStatus.pending, SOSStatus.active]),
+            SOSEvent.trigger != SOSTrigger.fake_pin,
         )
         .order_by(SOSEvent.created_at.desc())
     )
@@ -215,7 +221,7 @@ async def confirm_evidence(
     await db.refresh(event, attribute_names=[field_name, "evidence_notified_at"])
 
     if is_first_evidence:
-        notify_contacts_of_evidence.delay(str(event.id))
+        run_soon(notify_contacts_of_evidence, str(event.id))
 
     return event
 
@@ -290,10 +296,18 @@ async def list_incoming_alerts(
     if not owner_ids:
         return []
 
+    # Once this viewer has explicitly acknowledged an alert, it stops
+    # showing up here (and therefore in the Dashboard banner, which reads
+    # from this same endpoint) — filtered in SQL, not fetched-then-hidden,
+    # so it doesn't eat into the 50-row limit below.
+    already_acked = exists().where(
+        SOSAcknowledgment.sos_event_id == SOSEvent.id,
+        SOSAcknowledgment.user_id == user.id,
+    )
     result = await db.execute(
         select(SOSEvent, User.full_name)
         .join(User, User.id == SOSEvent.user_id)
-        .where(SOSEvent.user_id.in_(owner_ids))
+        .where(SOSEvent.user_id.in_(owner_ids), not_(already_acked))
         .order_by(SOSEvent.created_at.desc())
         .limit(50)
     )
@@ -310,3 +324,31 @@ async def list_incoming_alerts(
         )
         for event, alerter_name in result.all()
     ]
+
+
+@router.post("/{event_id}/acknowledge", status_code=status.HTTP_204_NO_CONTENT)
+async def acknowledge_alert(
+    event_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """A trusted contact marks an alert as seen — dismisses it from their
+    own incoming-alerts view (Dashboard banner, Network page) only. Doesn't
+    touch the SOS event's own resolved/cancelled status; only the alerter
+    can mark themselves safe. Idempotent."""
+    event = await db.get(SOSEvent, event_id)
+    if event is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "SOS event not found")
+    if event.user_id != user.id and not await is_trusted_contact_of(db, event.user_id, user.phone):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not authorized")
+
+    existing = (
+        await db.execute(
+            select(SOSAcknowledgment).where(
+                SOSAcknowledgment.sos_event_id == event_id, SOSAcknowledgment.user_id == user.id
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        db.add(SOSAcknowledgment(sos_event_id=event_id, user_id=user.id))
+        await db.commit()

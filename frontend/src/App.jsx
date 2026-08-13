@@ -27,6 +27,7 @@ import History from './pages/History';
 import IncomingAlerts from './pages/IncomingAlerts';
 import ShareLocation from './pages/ShareLocation';
 import LocationShareView from './pages/LocationShareView';
+import JourneyShareView from './pages/JourneyShareView';
 import Settings from './pages/Settings';
 import PrivacyControls from './pages/PrivacyControls';
 import Billing from './pages/Billing';
@@ -116,6 +117,10 @@ export default function App() {
           <Route path="/app/alerts" element={<AppScreen><IncomingAlerts /></AppScreen>} />
           <Route path="/app/share-location" element={<AppScreen><ShareLocation /></AppScreen>} />
           <Route path="/track/location/:shareId" element={<FocusScreen guarded variant="immersive"><LocationShareView /></FocusScreen>} />
+          {/* Public, not `guarded` — reached via the SMS link sent when a
+              journey starts, for a trusted contact with no account at all.
+              Authorizes purely via the share_token in the URL. */}
+          <Route path="/track/journey/:journeyId" element={<FocusScreen variant="immersive"><JourneyShareView /></FocusScreen>} />
           <Route path="/app/settings" element={<AppScreen><Settings /></AppScreen>} />
           <Route path="/app/settings/privacy" element={<AppScreen><PrivacyControls /></AppScreen>} />
           <Route path="/app/settings/billing" element={<AppScreen><Billing /></AppScreen>} />

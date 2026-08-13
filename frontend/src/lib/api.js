@@ -103,8 +103,8 @@ async function request(path, opts = {}) {
 }
 
 export const api = {
-  login: (phone, password) =>
-    rawRequest('/auth/login', { method: 'POST', body: { phone, password }, auth: false }).then(setTokens),
+  login: (phone, password, lat, lng) =>
+    rawRequest('/auth/login', { method: 'POST', body: { phone, password, lat, lng }, auth: false }).then(setTokens),
   signup: (payload) =>
     rawRequest('/auth/signup', { method: 'POST', body: payload, auth: false }).then(setTokens),
   logout: () => clearTokens(),
@@ -156,6 +156,7 @@ export const api = {
   getActiveSOS: () => request('/sos/active'),
   activeSOS: () => request('/sos/active'),
   getIncomingAlerts: () => request('/sos/incoming'),
+  acknowledgeAlert: (eventId) => request(`/sos/${eventId}/acknowledge`, { method: 'POST' }),
   createEvidenceUploadUrl: (eventId, payload) =>
     request(`/sos/${eventId}/evidence/upload-url`, { method: 'POST', body: payload }),
   confirmEvidence: (eventId, payload) =>

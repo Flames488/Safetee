@@ -167,6 +167,9 @@ export default function Dashboard() {
   // accepted share only ever reaches the requester/viewer through this
   // Dashboard banner or the Network tab, since neither sends SMS the way
   // SOS alerts do, so there's no fallback channel if push doesn't land.
+  // Polls faster than the alerts effect (8s vs 20s) since this is
+  // currently the only confirmation a requester gets that a request was
+  // accepted.
   useEffect(() => {
     let cancelled = false;
     let latestRequestId = 0;
@@ -180,7 +183,7 @@ export default function Dashboard() {
       });
     };
     load();
-    const interval = setInterval(load, 20_000);
+    const interval = setInterval(load, 8_000);
     return () => { cancelled = true; clearInterval(interval); };
   }, []);
 

@@ -65,6 +65,11 @@ def sweep_overdue_journeys():
             db.commit()
             db.refresh(event)
 
-            fanout_sos_alerts.delay(str(event.id))
+            # This sweep already runs off the main event loop (invoked via
+            # run_in_threadpool from the in-process periodic scheduler —
+            # see app/core/scheduler.py), so a direct synchronous `.apply()`
+            # here is fine and, unlike `.delay()`, doesn't depend on a
+            # Celery worker process actually consuming the broker queue.
+            fanout_sos_alerts.apply(args=[str(event.id)])
     finally:
         db.close()

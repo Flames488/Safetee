@@ -1,8 +1,16 @@
 from celery import Celery
-from celery.schedules import crontab
 
 from app.core.config import settings
 
+# Kept only so `@celery_app.task` still gives every task callable a plain
+# `.apply(...)` — run synchronously in-process by app/core/scheduler.py.
+# There is deliberately no broker consumer anywhere (Render's free tier has
+# no free Background Worker instance type — see scheduler.py's module
+# docstring), so nothing here is ever dispatched via `.delay()`/
+# `.apply_async()`, and there is no beat_schedule: if a stray Celery worker
+# or beat process is ever pointed at this app (e.g. a local docker-compose
+# profile), it must find an empty schedule and an unused queue rather than
+# double-executing sweeps that the in-process scheduler already runs.
 celery_app = Celery(
     "safetee",
     broker=settings.redis_url,
@@ -25,20 +33,3 @@ celery_app.conf.update(
     result_expires=3600,
     timezone="UTC",
 )
-
-# Beat schedule: journeys are swept every 30s so a missed check-in escalates
-# to SOS within, worst case, 30s + grace period — not a full minute-cron away.
-celery_app.conf.beat_schedule = {
-    "sweep-overdue-journeys": {
-        "task": "app.workers.tasks.journey_tasks.sweep_overdue_journeys",
-        "schedule": 30.0,
-    },
-    "retry-failed-sos-alerts": {
-        "task": "app.workers.tasks.sos_tasks.retry_failed_alerts",
-        "schedule": crontab(minute="*/2"),
-    },
-    "sweep-expired-subscriptions": {
-        "task": "app.workers.tasks.billing_tasks.sweep_expired_subscriptions",
-        "schedule": crontab(minute=0),  # hourly — expiry isn't as time-critical as an SOS
-    },
-}

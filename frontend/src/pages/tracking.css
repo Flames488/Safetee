@@ -38,6 +38,7 @@
 
 .tk-note{ padding:13px 14px; }
 .tk-note p{ font-size:12.5px; color:var(--ink-1); line-height:1.6; }
+.tk-note p.tk-note-warn{ color:var(--amber); margin-top:6px; }
 
 .tk-sos{ text-align:center; font-size:13px; color:var(--red); font-weight:600; padding:4px; }
 .tk-cancel{

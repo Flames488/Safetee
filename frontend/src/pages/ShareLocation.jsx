@@ -26,6 +26,8 @@ export default function ShareLocation() {
   const [duration, setDuration] = useState(30);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
+  const [wsStatuses, setWsStatuses] = useState({}); // shareId -> 'connecting'|'connected'|'reconnecting'|'ended'
+  const [geoError, setGeoError] = useState(false);
 
   const connectionsRef = useRef(new Map()); // shareId -> {publish, close}
 
@@ -48,7 +50,12 @@ export default function ShareLocation() {
     }
     for (const share of activeShares) {
       if (!connectionsRef.current.has(share.id)) {
-        connectionsRef.current.set(share.id, connectLocationShare(share.id));
+        connectionsRef.current.set(
+          share.id,
+          connectLocationShare(share.id, {
+            onStatus: (status) => setWsStatuses((s) => ({ ...s, [share.id]: status })),
+          })
+        );
       }
     }
   }, [activeShares]);
@@ -61,10 +68,11 @@ export default function ShareLocation() {
     const publish = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          setGeoError(false);
           const frame = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: pos.coords.accuracy };
           connectionsRef.current.forEach((conn) => conn.publish(frame));
         },
-        () => {},
+        () => setGeoError(true),
         { timeout: 8000 }
       );
     };
@@ -102,18 +110,29 @@ export default function ShareLocation() {
         {activeShares.length > 0 && (
           <>
             <SectionLabel>Currently sharing</SectionLabel>
-            {activeShares.map((s) => (
-              <Card key={s.id} className="hs-card">
-                <div className="hs-row">
-                  <IconTile icon={MapPin} tone="good" size={32} />
-                  <span className="hs-text">
-                    <strong>{s.viewer_name}</strong>
-                    <span>{timeLeft(s.expires_at)}</span>
-                  </span>
-                  <Button size="sm" variant="ghost" icon={<X size={14} />} onClick={() => stop(s.id)}>Stop</Button>
-                </div>
+            {geoError && (
+              <Card className="hs-card net-duration-card">
+                <p className="net-error" role="alert">
+                  Can't read your location — check that location access is allowed for this site, then reopen this page.
+                </p>
               </Card>
-            ))}
+            )}
+            {activeShares.map((s) => {
+              const wsStatus = wsStatuses[s.id];
+              const connLabel = wsStatus === 'reconnecting' ? 'Reconnecting…' : wsStatus === 'connecting' ? 'Connecting…' : null;
+              return (
+                <Card key={s.id} className="hs-card">
+                  <div className="hs-row">
+                    <IconTile icon={MapPin} tone="good" size={32} />
+                    <span className="hs-text">
+                      <strong>{s.viewer_name}</strong>
+                      <span>{connLabel || timeLeft(s.expires_at)}</span>
+                    </span>
+                    <Button size="sm" variant="ghost" icon={<X size={14} />} onClick={() => stop(s.id)}>Stop</Button>
+                  </div>
+                </Card>
+              );
+            })}
           </>
         )}
 

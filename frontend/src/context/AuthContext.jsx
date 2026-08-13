@@ -43,8 +43,8 @@ export function AuthProvider({ children }) {
     if (status === 'authenticated') syncPushSubscriptionIfGranted();
   }, [status]);
 
-  const login = async (phone, password) => {
-    await api.login(phone, password);
+  const login = async (phone, password, lat, lng) => {
+    await api.login(phone, password, lat, lng);
     const me = await api.getMe();
     setUser(me);
     setStatus('authenticated');

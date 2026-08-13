@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BatteryMedium, LocateFixed, CheckCircle2, XCircle } from 'lucide-react';
 import { VitalDot } from '../components/VitalRing';
 import { Card, Button, Pill, ConfirmDialog } from '../components/ui';
 import { api } from '../lib/api';
+import { connectJourneyTracking } from '../lib/journeyTracking';
 import { joinNames } from '../lib/time';
 import './tracking.css';
 
@@ -58,6 +59,20 @@ export default function LiveTracking() {
       );
     });
 
+  // The websocket is what actually makes a notified contact's share link
+  // show live movement — the HTTP check-in below (already existed) only
+  // ever updated last_checkin_at for the overdue-journey sweep, nothing
+  // ever streamed a real-time position to anyone watching. Owner-only:
+  // opens once the journey is real, publishes alongside each check-in.
+  const wsRef = useRef(null);
+  const [wsStatus, setWsStatus] = useState(null);
+  useEffect(() => {
+    if (!isRealJourney) return;
+    const conn = connectJourneyTracking(journeyId, { onStatus: setWsStatus });
+    wsRef.current = conn;
+    return () => { wsRef.current = null; conn.close(); };
+  }, [journeyId, isRealJourney]);
+
   // Sends a live check-in every 30s while this screen is mounted — this is
   // what lets the backend's auto-escalation sweep tell "still moving,
   // running late" apart from "went silent." Runs for the demo/mock journey
@@ -80,6 +95,9 @@ export default function LiveTracking() {
       const coords = await getPosition();
       if (cancelled) return;
       if (coords && isLatest()) setAccuracy(Math.round(coords.accuracy));
+      if (coords) {
+        wsRef.current?.publish({ lat: coords.latitude, lng: coords.longitude, accuracy_m: coords.accuracy });
+      }
       if (!isRealJourney) {
         if (isLatest()) { setLastCheckin(coords ? 'ok' : 'error'); setCheckinAgo(0); }
         return;
@@ -171,6 +189,9 @@ export default function LiveTracking() {
             {notifyContacts?.length === 0 &&
               "No one is being notified on this journey — add a trusted contact next time to share live updates."}
           </p>
+          {notifyContacts?.length > 0 && wsStatus === 'reconnecting' && (
+            <p className="tk-note-warn">Reconnecting live updates — contacts may see a brief gap.</p>
+          )}
         </Card>
 
         <Button full size="lg" icon={<CheckCircle2 size={18} />} onClick={handleArrived}>

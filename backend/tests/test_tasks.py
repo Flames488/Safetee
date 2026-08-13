@@ -100,7 +100,7 @@ async def test_journey_sweep_escalates_a_genuinely_overdue_journey(auth_client):
         from app.workers.tasks.journey_tasks import sweep_overdue_journeys
         sweep_overdue_journeys.apply()
 
-    assert mock_fanout.delay.called
+    assert mock_fanout.apply.called
 
     db = SyncSessionLocal()
     journey = db.get(Journey, journey_id)
@@ -123,7 +123,7 @@ async def test_journey_sweep_leaves_on_time_journeys_alone(auth_client):
         from app.workers.tasks.journey_tasks import sweep_overdue_journeys
         sweep_overdue_journeys.apply()
 
-    assert not mock_fanout.delay.called
+    assert not mock_fanout.apply.called
     db = SyncSessionLocal()
     journey = db.get(Journey, journey_id)
     assert journey.status == JourneyStatus.active
@@ -147,6 +147,6 @@ async def test_journey_sweep_does_not_double_escalate(auth_client):
     from app.workers.tasks.journey_tasks import sweep_overdue_journeys
     with patch("app.workers.tasks.journey_tasks.fanout_sos_alerts") as mock_fanout:
         sweep_overdue_journeys.apply()
-        assert mock_fanout.delay.call_count == 1
+        assert mock_fanout.apply.call_count == 1
         sweep_overdue_journeys.apply()
-        assert mock_fanout.delay.call_count == 1  # unchanged — already escalated
+        assert mock_fanout.apply.call_count == 1  # unchanged — already escalated

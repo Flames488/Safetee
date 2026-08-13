@@ -146,7 +146,11 @@ export default function Settings() {
             <span className="st-icon"><KeyRound size={16} strokeWidth={2.1} /></span>
             <span className="st-row-text">
               <strong>Fake PIN</strong>
-              <span className="st-desc">{user?.has_fake_pin ? 'A PIN is set on this account' : 'Not configured'}</span>
+              <span className="st-desc">
+                {user?.has_fake_pin
+                  ? "Entering it at login silently alerts your contacts — you'll be signed in normally, with no visible sign anything happened"
+                  : 'Enter it instead of your password at login to silently alert your contacts, with no visible sign anything happened'}
+              </span>
             </span>
             {user?.has_fake_pin ? (
               <Button size="sm" variant="ghost" disabled={triggerBusy} onClick={() => patchTriggers({ clear_fake_pin: true })}>Remove</Button>
@@ -164,6 +168,10 @@ export default function Settings() {
                 placeholder="e.g. 4821" inputMode="numeric" maxLength={6}
                 value={pinValue} onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ''))}
               />
+              <p className="st-pin-hint">
+                Use it in the password field on the login screen instead of your real password.
+                It won't look any different from a normal sign-in — but it silently alerts your trusted contacts.
+              </p>
               {pinError && <p className="st-pin-error">{pinError}</p>}
               <Button size="sm" onClick={submitPin} disabled={triggerBusy}>Save PIN</Button>
             </div>

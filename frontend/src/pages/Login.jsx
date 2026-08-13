@@ -6,6 +6,30 @@ import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import './login.css';
 
+// Best-effort, silent location for the backend to attach if this login
+// happens to be a fake-PIN duress match (see POST /auth/login) — never
+// requests permission itself, since a prompt appearing on an otherwise
+// ordinary-looking login screen would be exactly the kind of visible tell
+// duress mode exists to avoid. Only reads a location already granted from
+// an earlier session (e.g. from using the SOS button before), and gives up
+// fast so a slow GPS fix never makes a normal login feel slower.
+async function silentLocation() {
+  if (!navigator.geolocation || !navigator.permissions) return {};
+  try {
+    const perm = await navigator.permissions.query({ name: 'geolocation' });
+    if (perm.state !== 'granted') return {};
+  } catch {
+    return {};
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => resolve({}),
+      { timeout: 1500, maximumAge: 60_000 },
+    );
+  });
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const { login, status } = useAuth();
@@ -27,7 +51,8 @@ export default function Login() {
     // that's what's happening rather than leaving a plain spinner up.
     const wakeTimer = setTimeout(() => setWaking(true), 2500);
     try {
-      await login(phone, password);
+      const { lat, lng } = await silentLocation();
+      await login(phone, password, lat, lng);
       navigate('/app');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

@@ -4,14 +4,18 @@ from datetime import UTC, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.security import create_share_token
 from app.db.session import get_db
+from app.models.contact import TrustedContact
 from app.models.enums import JourneyStatus
 from app.models.journey import Journey, LocationPing
 from app.models.user import User
 from app.schemas.journey import JourneyCheckin, JourneyCreate, JourneyOut
+from app.services.sms.fallback import SMSDeliveryFailed, send_with_fallback
 
 router = APIRouter(prefix="/journeys", tags=["journeys"])
 
@@ -36,6 +40,27 @@ async def start_journey(
     db.add(journey)
     await db.commit()
     await db.refresh(journey)
+
+    # Previously nothing ever sent notified contacts a link at all — the
+    # journey's own websocket + share-token auth already supported a
+    # contact viewing it live, but no code path ever minted or delivered
+    # that token. Sent synchronously (thread-pooled), not via Celery, so
+    # this actually works today regardless of whether safetee-worker
+    # exists — same reasoning as the location-sharing feature's push.
+    if user.share_location_enabled and journey.notify_contact_ids:
+        contact_ids = {uuid.UUID(cid) for cid in journey.notify_contact_ids}
+        contacts = (
+            await db.execute(select(TrustedContact).where(TrustedContact.id.in_(contact_ids)))
+        ).scalars().all()
+        for contact in contacts:
+            token = create_share_token(scope="journey", resource_id=str(journey.id), contact_id=str(contact.id))
+            link = f"{settings.frontend_url}/#/track/journey/{journey.id}?token={token}"
+            body = f"SAFETEE: {user.full_name} started a Safe Journey and is sharing their live location with you. {link}"
+            try:
+                await run_in_threadpool(send_with_fallback, contact.phone, body)
+            except SMSDeliveryFailed:
+                pass  # best-effort, matches the location-sharing push's own tolerance for individual failures
+
     return journey
 
 

@@ -52,7 +52,7 @@
 
 @media (max-width:520px){
   .dash-billing-card{ flex-wrap:wrap; }
-  .dash-billing-card .btn{ width:100%; margin-left:44px; }
+  .dash-billing-card .btn{ width:calc(100% - 44px); margin-left:44px; }
 }
 
 .dash-reliability{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }

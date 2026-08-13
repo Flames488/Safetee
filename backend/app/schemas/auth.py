@@ -11,6 +11,13 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     phone: str
     password: str
+    # Best-effort, silent — only ever read on a fake-PIN duress match (see
+    # POST /auth/login). Populated by the frontend only if geolocation
+    # permission was already granted from an earlier session; never
+    # triggers a permission prompt itself, since that would be a visible
+    # tell during what's supposed to look like an ordinary login.
+    lat: float | None = None
+    lng: float | None = None
 
 
 class TokenResponse(BaseModel):

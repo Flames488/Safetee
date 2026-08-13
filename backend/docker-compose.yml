@@ -25,6 +25,12 @@ services:
       timeout: 3s
       retries: 10
 
+  # Delayed/periodic work (SOS fanout, journey sweeps, password-reset SMS)
+  # runs in-process on this container now — see app/core/scheduler.py and
+  # app/main.py's lifespan. No separate worker/beat containers: Render's
+  # free tier has no free Background Worker instance type, so those never
+  # actually ran in production, and celery_app.py no longer defines a beat
+  # schedule for them to consume even if started.
   api:
     build: .
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -38,24 +44,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  worker:
-    build: .
-    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
-    env_file: .env
-    volumes:
-      - .:/app
-    depends_on:
-      - api
-
-  beat:
-    build: .
-    command: celery -A app.workers.celery_app beat --loglevel=info
-    env_file: .env
-    volumes:
-      - .:/app
-    depends_on:
-      - api
 
 volumes:
   postgres_data:

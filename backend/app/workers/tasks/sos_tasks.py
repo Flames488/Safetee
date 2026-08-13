@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from app.core.config import settings
 from app.core.phone import normalize_phone
@@ -7,6 +8,7 @@ from app.db.sync_session import SyncSessionLocal
 from app.models.contact import TrustedContact
 from app.models.device import Device
 from app.models.enums import AlertStatus, SOSStatus
+from app.models.journey import Journey
 from app.models.sos_event import SOSAlertDelivery, SOSEvent
 from app.models.user import User
 from app.services.notifications.push import send_push
@@ -60,12 +62,28 @@ def fanout_sos_alerts(self, sos_event_id: str):
         db.commit()
 
         user = db.get(User, event.user_id)
-        contacts = (
+        contacts_query = (
             db.query(TrustedContact)
             .filter(TrustedContact.user_id == event.user_id)
             .order_by(TrustedContact.priority.asc())
-            .all()
         )
+
+        # A journey escalation only notifies the contacts the user actually
+        # picked when starting that journey — previously this filter never
+        # applied and every trusted contact got notified regardless of
+        # what "who to notify" selection the journey was created with. A
+        # manually-triggered SOS (no journey_id, or a journey with an
+        # empty/missing selection) still notifies everyone — there's
+        # either no selection to honor, or honoring an empty one would
+        # mean nobody hears about a genuine emergency, which is worse than
+        # over-notifying.
+        if event.journey_id is not None:
+            journey = db.get(Journey, event.journey_id)
+            if journey is not None and journey.notify_contact_ids:
+                notify_ids = {uuid.UUID(cid) for cid in journey.notify_contact_ids}
+                contacts_query = contacts_query.filter(TrustedContact.id.in_(notify_ids))
+
+        contacts = contacts_query.all()
 
         if not contacts:
             logger.error("SOS %s fired with zero trusted contacts on file", sos_event_id)

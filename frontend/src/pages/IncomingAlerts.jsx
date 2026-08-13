@@ -10,6 +10,12 @@ import './history.css';
 import './network.css';
 
 const REFRESH_MS = 20_000;
+// Faster than REFRESH_MS — this is currently the *only* confirmation a
+// requester gets that their location request was accepted, since push
+// can silently not be set up (denied permission, never subscribed). A
+// tighter poll here is a direct, deliberate trade of a bit more traffic
+// for actually noticing the acceptance quickly.
+const LOCATION_REFRESH_MS = 8_000;
 
 const STATUS_META = {
   pending: { label: 'Alert triggered', tone: 'bad' },
@@ -61,8 +67,8 @@ function useGuardedPoll(fetcher, intervalMs) {
 export default function IncomingAlerts() {
   const navigate = useNavigate();
   const { data: alerts, error: alertsError, reload: reloadAlerts } = useGuardedPoll(api.getIncomingAlerts, REFRESH_MS);
-  const { data: requests, error: requestsError, reload: reloadRequests } = useGuardedPoll(api.getIncomingLocationRequests, REFRESH_MS);
-  const { data: viewing, error: viewingError, reload: reloadViewing } = useGuardedPoll(api.getViewingShares, REFRESH_MS);
+  const { data: requests, error: requestsError, reload: reloadRequests } = useGuardedPoll(api.getIncomingLocationRequests, LOCATION_REFRESH_MS);
+  const { data: viewing, error: viewingError, reload: reloadViewing } = useGuardedPoll(api.getViewingShares, LOCATION_REFRESH_MS);
 
   const [watchers, setWatchers] = useState(null);
   const [requestedIds, setRequestedIds] = useState(() => new Set());
@@ -73,6 +79,7 @@ export default function IncomingAlerts() {
   const [respondingId, setRespondingId] = useState(null); // which request's duration picker is open
   const [duration, setDuration] = useState(30);
   const [busyId, setBusyId] = useState(null);
+  const [ackingId, setAckingId] = useState(null);
 
   const askForLocation = (userId) => {
     setRequestedIds((s) => new Set(s).add(userId));
@@ -91,6 +98,11 @@ export default function IncomingAlerts() {
     api.acceptLocationRequest(id, duration)
       .then(() => navigate('/app/share-location'))
       .catch(() => setBusyId(null));
+  };
+
+  const acknowledge = (id) => {
+    setAckingId(id);
+    api.acknowledgeAlert(id).then(reloadAlerts).finally(() => setAckingId(null));
   };
 
   return (
@@ -187,7 +199,12 @@ export default function IncomingAlerts() {
                   <a href={mapsLink} target="_blank" rel="noreferrer">View last known location</a>
                 </p>
               )}
-              <Link className="hs-evidence-link" to={`/track/${a.id}/evidence`}>View evidence</Link>
+              <div className="net-respond-actions">
+                <Link className="hs-evidence-link" to={`/track/${a.id}/evidence`}>View evidence</Link>
+                <Button size="sm" variant="ghost" onClick={() => acknowledge(a.id)} disabled={ackingId === a.id}>
+                  {ackingId === a.id ? 'Acknowledging…' : 'Acknowledge'}
+                </Button>
+              </div>
             </Card>
           );
         })}

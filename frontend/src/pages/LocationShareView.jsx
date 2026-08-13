@@ -33,6 +33,7 @@ export default function LocationShareView() {
   const [error, setError] = useState('');
   const [frame, setFrame] = useState(null); // last {lat, lng, accuracy_m}
   const [frameAt, setFrameAt] = useState(null);
+  const [wsStatus, setWsStatus] = useState('connecting');
   const [, setTick] = useState(0); // forces a re-render each second so timeLeft/timeAgo stay live
   const connRef = useRef(null);
 
@@ -54,6 +55,7 @@ export default function LocationShareView() {
     if (!isLive) return;
     const conn = connectLocationShare(shareId, {
       onFrame: (f) => { setFrame(f); setFrameAt(Date.now()); },
+      onStatus: setWsStatus,
     });
     connRef.current = conn;
     return () => conn.close();
@@ -93,6 +95,10 @@ export default function LocationShareView() {
                   Open in Google Maps
                 </Button>
               </>
+            ) : wsStatus === 'reconnecting' ? (
+              <p>Reconnecting… the server may be waking up after being idle, this can take up to a minute.</p>
+            ) : wsStatus === 'connecting' ? (
+              <p>Connecting…</p>
             ) : (
               <p>Waiting for {share.owner_name} to send their first location update…</p>
             )}

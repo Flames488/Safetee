@@ -1,7 +1,18 @@
-# Render Blueprint — deploys the backend (API + Celery worker + beat) plus
-# managed Postgres and Redis. The frontend is deployed separately on Vercel
-# (see frontend/vercel.json); once its URL is known, set ALLOWED_ORIGINS and
+# Render Blueprint — deploys the backend API plus managed Postgres and
+# Redis. The frontend is deployed separately on Vercel (see
+# frontend/vercel.json); once its URL is known, set ALLOWED_ORIGINS and
 # FRONTEND_URL below in the Render dashboard and redeploy the API.
+#
+# No separate worker/beat services: Render's free tier has no free instance
+# type for a Background Worker (starts at $7/mo), so safetee-worker and
+# safetee-beat were previously declared here but never actually ran — every
+# SOS alert, journey escalation, and password-reset SMS was silently queued
+# into Redis with nothing consuming it. Delayed and periodic work now runs
+# in-process on this same web service instead (see backend/app/core/
+# scheduler.py and app/main.py's lifespan) at zero extra cost. If this ever
+# needs to move to a real worker again (e.g. outgrowing the free web
+# dyno), re-add these as paid Background Worker services and restore
+# celery_app.conf.beat_schedule (see backend/app/workers/celery_app.py).
 #
 # Secrets marked `sync: false` are never committed — fill them in once in
 # the Render dashboard after the first blueprint deploy.
@@ -68,56 +79,4 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
-
-  - type: worker
-    name: safetee-worker
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: safetee-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: safetee-redis
-          property: connectionString
-      - key: SECRET_KEY
-        sync: false
-      - key: TWILIO_ACCOUNT_SID
-        sync: false
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-      - key: TWILIO_FROM_NUMBER
-        sync: false
-      - key: TERMII_API_KEY
-        sync: false
-      - key: WEB_PUSH_PUBLIC_KEY
-        sync: false
-      - key: WEB_PUSH_PRIVATE_KEY
-        sync: false
-
-  - type: worker
-    name: safetee-beat
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    dockerCommand: celery -A app.workers.celery_app beat --loglevel=info
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: safetee-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: safetee-redis
-          property: connectionString
-      - key: SECRET_KEY
         sync: false
