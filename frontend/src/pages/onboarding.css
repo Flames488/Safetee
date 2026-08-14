@@ -37,6 +37,7 @@
   transition:border-color .15s ease, background .15s ease;
 }
 .ob-perm-on, .ob-trigger-on{ border-color:var(--green-line); background:var(--green-soft); }
+.ob-perm-denied{ opacity:.6; cursor:default; }
 .ob-perm-icon{
   width:36px; height:36px; border-radius:10px; background:var(--bg-2);
   display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--green);
@@ -44,7 +45,8 @@
 .ob-perm-text{ display:flex; flex-direction:column; gap:3px; flex:1; }
 .ob-perm-text strong{ font-size:14px; }
 .ob-perm-text em{ font-style:normal; font-size:12px; color:var(--ink-2); line-height:1.5; }
-.ob-perm-check{ width:20px; height:20px; color:var(--green); flex-shrink:0; margin-top:2px; }
+.ob-perm-check{ min-width:20px; height:20px; color:var(--green); flex-shrink:0; margin-top:2px; display:flex; align-items:center; }
+.ob-perm-denied-label{ font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap; }
 
 .ob-icon-badge{
   width:46px; height:46px; border-radius:14px; background:var(--green-soft); border:1px solid var(--green-line);

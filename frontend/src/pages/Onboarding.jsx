@@ -6,15 +6,55 @@ import Logo from '../components/Logo';
 import { Button, ProgressDots, Pill, PasswordInput } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { motionPermissionNeeded, requestMotionPermission } from '../lib/shakeDetector';
+import { subscribeToPush } from '../lib/push';
 import { api } from '../lib/api';
 import './onboarding.css';
 
+// `sms` has no `request` — there's no browser permission for it at all, it's
+// a server-side capability (Twilio/Termii), not something a device grants.
+// It's listed for information only, never toggled.
 const PERMISSIONS = [
-  { icon: MapPin, name: 'Location', why: 'Lets contacts see exactly where you are the moment you tap SOS.' },
-  { icon: Mic, name: 'Microphone', why: 'Records ambient audio as evidence during an active alert.' },
-  { icon: Camera, name: 'Camera', why: 'Captures photo and video evidence during an active alert.' },
-  { icon: MessageSquare, name: 'SMS', why: 'Sends your location by text if you lose data or signal.' },
-  { icon: Bell, name: 'Notifications', why: 'Confirms your alert was delivered and contacts responded.' },
+  {
+    id: 'location', icon: MapPin, name: 'Location', why: 'Lets contacts see exactly where you are the moment you tap SOS.',
+    request: () => new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve('unsupported');
+      navigator.geolocation.getCurrentPosition(() => resolve('granted'), () => resolve('denied'));
+    }),
+  },
+  {
+    id: 'microphone', icon: Mic, name: 'Microphone', why: 'Records ambient audio as evidence during an active alert.',
+    request: async () => {
+      if (!navigator.mediaDevices?.getUserMedia) return 'unsupported';
+      try {
+        (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop());
+        return 'granted';
+      } catch {
+        return 'denied';
+      }
+    },
+  },
+  {
+    id: 'camera', icon: Camera, name: 'Camera', why: 'Captures photo and video evidence during an active alert.',
+    request: async () => {
+      if (!navigator.mediaDevices?.getUserMedia) return 'unsupported';
+      try {
+        (await navigator.mediaDevices.getUserMedia({ video: true })).getTracks().forEach((t) => t.stop());
+        return 'granted';
+      } catch {
+        return 'denied';
+      }
+    },
+  },
+  { id: 'sms', icon: MessageSquare, name: 'SMS', why: 'Sends your location by text if you lose data or signal — included automatically, nothing to grant.' },
+  {
+    id: 'notifications', icon: Bell, name: 'Notifications', why: 'Confirms your alert was delivered and contacts responded.',
+    request: async () => {
+      if (!('Notification' in window)) return 'unsupported';
+      const result = await Notification.requestPermission();
+      if (result === 'granted') subscribeToPush().catch(() => {});
+      return result === 'granted' ? 'granted' : 'denied';
+    },
+  },
 ];
 
 // Power button was dropped from here (2026-08-14): there is no web API on
@@ -35,7 +75,7 @@ const TOTAL_STEPS = 7;
 
 export default function Onboarding() {
   const [step, setStep] = useState(STEP.WELCOME);
-  const [granted, setGranted] = useState([]);
+  const [permState, setPermState] = useState({}); // id -> 'granted' | 'denied' | 'unsupported'
   const [account, setAccount] = useState({ full_name: '', phone: '', password: '' });
   const [accountError, setAccountError] = useState('');
   const [accountBusy, setAccountBusy] = useState(false);
@@ -59,7 +99,14 @@ export default function Onboarding() {
   const minStep = status === 'authenticated' ? STEP.PERMISSIONS : STEP.SCENARIO;
   const goBack = () => setStep((s) => Math.max(minStep, s - 1));
 
-  const toggleGrant = (name) => setGranted((g) => (g.includes(name) ? g.filter((x) => x !== name) : [...g, name]));
+  // Each tile requests the real browser permission when tapped — nothing
+  // here was ever wired to an actual API before (see project memory), it
+  // only toggled decorative local state while telling the user it was on.
+  const requestPermission = async (p) => {
+    if (!p.request || permState[p.id]) return; // already resolved, or nothing to request (sms)
+    const result = await p.request();
+    setPermState((s) => ({ ...s, [p.id]: result }));
+  };
 
   const handleCreateAccount = async () => {
     setAccountBusy(true);
@@ -222,21 +269,31 @@ export default function Onboarding() {
           <p className="ob-p">Nothing runs in the background without your say-so. You can change any of this later in Settings.</p>
           <div className="ob-list">
             {PERMISSIONS.map((p) => {
-              const on = granted.includes(p.name);
+              const state = p.id === 'sms' ? 'granted' : permState[p.id]; // sms is always-on, nothing to grant
+              const on = state === 'granted';
+              const denied = state === 'denied' || state === 'unsupported';
               return (
-                <button key={p.name} className={`ob-perm ${on ? 'ob-perm-on' : ''}`} onClick={() => toggleGrant(p.name)}>
+                <button
+                  key={p.id}
+                  className={`ob-perm ${on ? 'ob-perm-on' : ''} ${denied ? 'ob-perm-denied' : ''}`}
+                  onClick={() => requestPermission(p)}
+                  disabled={!p.request || Boolean(state)}
+                >
                   <span className="ob-perm-icon"><p.icon size={18} strokeWidth={2} /></span>
                   <span className="ob-perm-text">
                     <strong>{p.name}</strong>
                     <em>{p.why}</em>
                   </span>
-                  <span className="ob-perm-check">{on && <Check size={16} strokeWidth={3} />}</span>
+                  <span className="ob-perm-check">
+                    {on && <Check size={16} strokeWidth={3} />}
+                    {denied && <span className="ob-perm-denied-label">{state === 'unsupported' ? 'Not available' : 'Blocked'}</span>}
+                  </span>
                 </button>
               );
             })}
           </div>
           <div className="ob-spacer" />
-          <Button full size="lg" onClick={() => setStep(STEP.CONTACT)}>Allow &amp; continue</Button>
+          <Button full size="lg" onClick={() => setStep(STEP.CONTACT)}>Continue</Button>
         </div>
       )}
 
