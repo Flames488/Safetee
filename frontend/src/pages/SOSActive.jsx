@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Phone, Mic, MapPin, Users, X, Video, Camera } from 'lucide-react';
 import VitalRing, { VitalDot } from '../components/VitalRing';
+import { Button, Modal, PasswordInput } from '../components/ui';
 import { api } from '../lib/api';
 import { startEvidenceCapture } from '../lib/evidenceCapture';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +47,10 @@ export default function SOSActive() {
   const [alerts, setAlerts] = useState([]);
   const [elapsed, setElapsed] = useState(0);
   const [evidenceStatus, setEvidenceStatus] = useState({ audio: null, video: null, photo: null });
+  const [safeOpen, setSafeOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [safeError, setSafeError] = useState('');
+  const [resolving, setResolving] = useState(false);
   const holdTimer = useRef(null);
   const activeSince = useRef(null);
   const navigate = useNavigate();
@@ -145,14 +150,35 @@ export default function SOSActive() {
   // mouseup/touchend/mouseleave before, never on unmount.
   useEffect(() => () => clearTimeout(holdTimer.current), []);
 
+  // During the countdown, silencing this is still just aborting a false
+  // alarm before anyone's been told anything — no contact alerted yet, no
+  // evidence captured, nothing to protect against someone else's hand on
+  // the phone. Once an alert has actually fanned out (the 'active' phase,
+  // which is the only time resolveSOS is ever called), that's no longer
+  // true, so marking safe opens a password prompt instead of firing
+  // immediately — see handleMarkSafe.
   const startHold = () => {
     holdTimer.current = setTimeout(() => {
-      const call = phase === 'counting' ? api.cancelSOS : api.resolveSOS;
-      if (eventId) call(eventId).catch(() => {});
-      navigate('/app');
+      if (phase === 'counting') {
+        if (eventId) api.cancelSOS(eventId).catch(() => {});
+        navigate('/app');
+      } else {
+        setSafeOpen(true);
+      }
     }, 900);
   };
   const endHold = () => clearTimeout(holdTimer.current);
+
+  const closeSafe = () => { setSafeOpen(false); setPassword(''); setSafeError(''); };
+
+  const handleMarkSafe = () => {
+    if (!password) { setSafeError('Enter your password to confirm.'); return; }
+    setSafeError('');
+    setResolving(true);
+    api.resolveSOS(eventId, password)
+      .then(() => navigate('/app'))
+      .catch((err) => { setSafeError(err.message || 'Could not verify password.'); setResolving(false); });
+  };
 
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
@@ -197,6 +223,7 @@ export default function SOSActive() {
   }
 
   return (
+    <>
     <div className="sos-screen sos-active">
       <div className="sos-active-top">
         <span className="sos-live-pill mono"><VitalDot color="red" size={7} /> SOS ACTIVE</span>
@@ -234,5 +261,26 @@ export default function SOSActive() {
         <X size={15} strokeWidth={2.4} /> Hold to mark as safe
       </button>
     </div>
+
+    <Modal open={safeOpen} onClose={closeSafe} title="Mark yourself safe?" width={420}>
+      <p className="confirm-body">
+        This stops the alert and evidence capture for everyone tracking it. Enter your password to confirm
+        it's really you.
+      </p>
+      <PasswordInput
+        value={password}
+        onChange={(e) => { setPassword(e.target.value); setSafeError(''); }}
+        placeholder="Enter your password to confirm"
+        autoComplete="current-password"
+      />
+      {safeError && <p className="sos-error" role="alert">{safeError}</p>}
+      <div className="confirm-actions">
+        <Button variant="ghost" onClick={closeSafe} disabled={resolving}>Keep alert active</Button>
+        <Button variant="danger" disabled={resolving} onClick={handleMarkSafe}>
+          {resolving ? 'Verifying…' : "I'm safe"}
+        </Button>
+      </div>
+    </Modal>
+    </>
   );
 }

@@ -24,6 +24,14 @@ class SOSTriggerRequest(BaseModel):
     journey_id: uuid.UUID | None = None
 
 
+class SOSResolveRequest(BaseModel):
+    # The frontend only ever calls /resolve once an alert has already fanned
+    # out (see SOSActive.jsx — cancel, not resolve, is used during the
+    # pending/countdown window). Without this, anyone holding the phone or
+    # watch could silence a real emergency with a single hold gesture.
+    password: str
+
+
 class EvidenceUploadRequest(BaseModel):
     media_type: MediaType
     file_extension: str

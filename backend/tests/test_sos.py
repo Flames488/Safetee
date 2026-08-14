@@ -58,7 +58,7 @@ async def test_resolve_marks_safe_regardless_of_status(auth_client):
         event.status = SOSStatus.active
         await db.commit()
 
-    r = await auth_client.post(f"/api/v1/sos/{sos_id}/resolve")
+    r = await auth_client.post(f"/api/v1/sos/{sos_id}/resolve", json={"password": "supersecret123"})
     assert r.status_code == 200
     assert r.json()["status"] == "resolved"
 
@@ -66,12 +66,31 @@ async def test_resolve_marks_safe_regardless_of_status(auth_client):
     assert r.json() is None
 
 
+async def test_resolve_with_wrong_password_is_rejected(auth_client):
+    """Marking safe has to actually be the account holder — anyone who's
+    simply holding the phone or watch during an active alert must not be
+    able to silence it without the password."""
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    async with AsyncSessionLocal() as db:
+        event = await db.get(SOSEvent, sos_id)
+        event.status = SOSStatus.active
+        await db.commit()
+
+    r = await auth_client.post(f"/api/v1/sos/{sos_id}/resolve", json={"password": "wrong-password"})
+    assert r.status_code == 403
+
+    r = await auth_client.get("/api/v1/sos/active")
+    assert r.json()["id"] == sos_id  # still active — the bad attempt didn't resolve it
+
+
 async def test_sos_history_lists_past_events(auth_client):
     r1 = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
     await auth_client.post(f"/api/v1/sos/{r1.json()['id']}/cancel")
 
     r2 = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "power_button"})
-    await auth_client.post(f"/api/v1/sos/{r2.json()['id']}/resolve")
+    await auth_client.post(f"/api/v1/sos/{r2.json()['id']}/resolve", json={"password": "supersecret123"})
 
     r = await auth_client.get("/api/v1/history/sos")
     assert r.status_code == 200

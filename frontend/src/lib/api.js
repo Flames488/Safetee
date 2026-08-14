@@ -148,7 +148,10 @@ export const api = {
 
   triggerSOS: (payload) => request('/sos/trigger', { method: 'POST', body: payload }),
   cancelSOS: (id) => request(`/sos/${id}/cancel`, { method: 'POST' }),
-  resolveSOS: (id) => request(`/sos/${id}/resolve`, { method: 'POST' }),
+  // Password-confirmed — see backend/app/api/v1/sos.py's resolve_sos: once
+  // an alert has fanned out, silencing it has to take more than a hold
+  // gesture anyone with the phone/watch in hand could perform.
+  resolveSOS: (id, password) => request(`/sos/${id}/resolve`, { method: 'POST', body: { password } }),
   // Already existed on the backend (returns the pending/active event with
   // its per-contact `alerts`) but was never called from the frontend —
   // SOSActive polls this to show real delivery status instead of a
@@ -175,6 +178,11 @@ export const api = {
 
   journeyHistory: () => request('/history/journeys'),
   sosHistory: () => request('/history/sos'),
+  // Password-confirmed for the same reason account deletion is — someone
+  // else with the phone unlocked shouldn't be able to wipe the alert
+  // record. Only finished journeys/alerts are eligible (see backend);
+  // anything still active or pending is left alone regardless.
+  clearHistory: (password) => request('/history', { method: 'DELETE', body: { password } }),
 
   systemStatus: () => request('/system/status', { auth: false }),
 

@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Navigation2, ChevronDown } from 'lucide-react';
+import { ShieldAlert, Navigation2, ChevronDown, Trash2 } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow } from '../components/ui';
+import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, Button, Modal, PasswordInput } from '../components/ui';
 import { api } from '../lib/api';
 import './history.css';
+
+// Mirrors the backend's own eligibility rule (clear_history in
+// backend/app/api/v1/history.py) so the button never claims to remove an
+// entry the server is actually going to leave behind.
+const SOS_CLEARABLE = new Set(['resolved', 'cancelled']);
+const JOURNEY_CLEARABLE = new Set(['arrived', 'escalated', 'cancelled']);
+const isClearable = (e) => (e.kind === 'sos' ? SOS_CLEARABLE : JOURNEY_CLEARABLE).has(e.status);
 
 // Mirrors the same status → label mapping Dashboard.jsx uses for the
 // "Recent activity" preview, so the two never describe the same event
@@ -44,6 +51,11 @@ export default function History() {
   const [loadError, setLoadError] = useState(false);
   const [open, setOpen] = useState(null);
 
+  const [clearOpen, setClearOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [clearError, setClearError] = useState('');
+  const [clearing, setClearing] = useState(false);
+
   const load = () => {
     setEvents(null);
     setLoadError(false);
@@ -59,9 +71,31 @@ export default function History() {
   };
   useEffect(load, []);
 
+  const closeClear = () => { setClearOpen(false); setPassword(''); setClearError(''); };
+
+  const handleClear = () => {
+    if (!password) { setClearError('Enter your password to confirm.'); return; }
+    setClearError('');
+    setClearing(true);
+    api.clearHistory(password)
+      .then(() => { closeClear(); load(); })
+      .catch((err) => { setClearError(err.message || 'Could not clear your history.'); setClearing(false); });
+  };
+
+  const hasClearable = events?.some(isClearable) ?? false;
+
   return (
     <>
-      <TopBar title="Emergency history" back={false} subtitle="Every alert and journey, kept for your records" />
+      <TopBar
+        title="Emergency history"
+        back={false}
+        subtitle="Every alert and journey, kept for your records"
+        action={hasClearable ? (
+          <Button size="sm" variant="ghost" onClick={() => setClearOpen(true)}>
+            <Trash2 size={14} strokeWidth={2.2} /> Clear
+          </Button>
+        ) : undefined}
+      />
       <div className="hs-list">
         {events === null && (
           <>
@@ -110,6 +144,26 @@ export default function History() {
         })}
       </div>
       <BottomNav />
+
+      <Modal open={clearOpen} onClose={closeClear} title="Clear history?" width={420}>
+        <p className="confirm-body">
+          Removes resolved and cancelled alerts and journeys from this list. Anything still active or
+          pending is kept regardless. This can't be undone.
+        </p>
+        <PasswordInput
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setClearError(''); }}
+          placeholder="Enter your password to confirm"
+          autoComplete="current-password"
+        />
+        {clearError && <p className="hs-error" role="alert">{clearError}</p>}
+        <div className="confirm-actions">
+          <Button variant="ghost" onClick={closeClear} disabled={clearing}>Cancel</Button>
+          <Button variant="danger" disabled={clearing} onClick={handleClear}>
+            {clearing ? 'Clearing…' : 'Clear history'}
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 }

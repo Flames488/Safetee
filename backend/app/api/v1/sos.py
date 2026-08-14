@@ -11,7 +11,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.scheduler import run_soon
-from app.core.security import decode_share_token, decode_token
+from app.core.security import decode_share_token, decode_token, verify_password
 from app.db.session import get_db
 from app.models.enums import SOSStatus, SOSTrigger
 from app.models.sos_acknowledgment import SOSAcknowledgment
@@ -25,6 +25,7 @@ from app.schemas.sos import (
     IncomingAlertOut,
     MediaType,
     SOSEventOut,
+    SOSResolveRequest,
     SOSTriggerRequest,
 )
 from app.services.contact_matching import is_trusted_contact_of, watched_owner_ids
@@ -113,10 +114,17 @@ async def cancel_sos(
 @router.post("/{event_id}/resolve", response_model=SOSEventOut)
 async def resolve_sos(
     event_id: uuid.UUID,
+    payload: SOSResolveRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     event = await _get_event(db, event_id, user.id)
+    # Password-gated: unlike cancel_sos (only reachable inside the brief
+    # pending/countdown window), this is the "mark myself safe" action once
+    # a real alert has already gone out — it must not be something anyone
+    # who's simply holding the phone or watch can do.
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Incorrect password")
     event.status = SOSStatus.resolved
     event.resolved_at = datetime.now(UTC)
     await db.commit()
