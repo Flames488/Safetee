@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,7 +18,6 @@ class UserOut(BaseModel):
     email: str | None
     is_verified: bool
     has_fake_pin: bool = False
-    power_button_trigger_enabled: bool
     gesture_trigger_enabled: bool
     share_location_enabled: bool
     evidence_audio_enabled: bool
@@ -39,7 +39,6 @@ class TriggerUpdate(BaseModel):
     # an empty string rather than omitting the field.
     fake_pin: str | None = Field(default=None, min_length=4, max_length=12)
     clear_fake_pin: bool = False
-    power_button_trigger_enabled: bool | None = None
     gesture_trigger_enabled: bool | None = None
 
 
@@ -66,6 +65,10 @@ class ContactCreate(BaseModel):
     relationship_label: str | None = None
     phone: str
     priority: int = 100
+
+
+class ContactMoveRequest(BaseModel):
+    direction: Literal["up", "down"]
 
 
 class ContactOut(BaseModel):

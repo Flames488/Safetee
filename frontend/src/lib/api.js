@@ -125,6 +125,10 @@ export const api = {
   listContacts: () => request('/contacts'),
   addContact: (payload) => request('/contacts', { method: 'POST', body: payload }),
   deleteContact: (id) => request(`/contacts/${id}`, { method: 'DELETE' }),
+  // Swaps this contact with its neighbor in notify order, then renumbers
+  // the whole list server-side — see move_contact in contacts.py. Returns
+  // the full re-ordered list.
+  moveContact: (id, direction) => request(`/contacts/${id}/move`, { method: 'POST', body: { direction } }),
 
   getWatchers: () => request('/locations/watchers'),
   requestLocation: (targetUserId) =>
@@ -157,7 +161,6 @@ export const api = {
   // SOSActive polls this to show real delivery status instead of a
   // permanent "Sending…" placeholder.
   getActiveSOS: () => request('/sos/active'),
-  activeSOS: () => request('/sos/active'),
   getIncomingAlerts: () => request('/sos/incoming'),
   acknowledgeAlert: (eventId) => request(`/sos/${eventId}/acknowledge`, { method: 'POST' }),
   createEvidenceUploadUrl: (eventId, payload) =>

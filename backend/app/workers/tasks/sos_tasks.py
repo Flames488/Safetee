@@ -65,7 +65,11 @@ def fanout_sos_alerts(self, sos_event_id: str):
         contacts_query = (
             db.query(TrustedContact)
             .filter(TrustedContact.user_id == event.user_id)
-            .order_by(TrustedContact.priority.asc())
+            # created_at tiebreak — see contacts.py's list_contacts for why:
+            # every contact starts at the same default priority, so without
+            # this, fanout order for an untouched contact list wouldn't
+            # reliably match what the Contacts page displays as the order.
+            .order_by(TrustedContact.priority.asc(), TrustedContact.created_at.asc())
         )
 
         # A journey escalation only notifies the contacts the user actually

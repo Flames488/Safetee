@@ -9,7 +9,7 @@ from app.core.phone import normalize_phone
 from app.db.session import get_db
 from app.models.contact import TrustedContact
 from app.models.user import User
-from app.schemas.user import ContactCreate, ContactOut
+from app.schemas.user import ContactCreate, ContactMoveRequest, ContactOut
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
@@ -22,7 +22,11 @@ async def list_contacts(
         await db.execute(
             select(TrustedContact)
             .where(TrustedContact.user_id == user.id)
-            .order_by(TrustedContact.priority.asc())
+            # created_at as a tiebreak: every contact starts at the same
+            # default priority (see the model), so without this, contacts
+            # tied on priority would sort in whatever order Postgres feels
+            # like on a given query — not necessarily the same order twice.
+            .order_by(TrustedContact.priority.asc(), TrustedContact.created_at.asc())
         )
     ).scalars().all()
 
@@ -88,3 +92,39 @@ async def delete_contact(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
     await db.delete(contact)
     await db.commit()
+
+
+@router.post("/{contact_id}/move", response_model=list[ContactOut])
+async def move_contact(
+    contact_id: uuid.UUID,
+    payload: ContactMoveRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Swaps this contact with its neighbor in the notify-order list, then
+    renumbers everyone to a clean 0..N-1 sequence. Renumbering the whole
+    list (not just the two being swapped) is what makes this work correctly
+    the first time it's ever called for a given user — every contact starts
+    at the same default priority (see the model), so a plain two-way swap
+    of tied values would be a no-op."""
+    contacts = (
+        await db.execute(
+            select(TrustedContact)
+            .where(TrustedContact.user_id == user.id)
+            .order_by(TrustedContact.priority.asc(), TrustedContact.created_at.asc())
+        )
+    ).scalars().all()
+
+    idx = next((i for i, c in enumerate(contacts) if c.id == contact_id), None)
+    if idx is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
+
+    swap_idx = idx - 1 if payload.direction == "up" else idx + 1
+    if 0 <= swap_idx < len(contacts):
+        contacts[idx], contacts[swap_idx] = contacts[swap_idx], contacts[idx]
+    # else: already at that end of the list — no-op, not an error
+
+    for rank, contact in enumerate(contacts):
+        contact.priority = rank
+    await db.commit()
+    return contacts

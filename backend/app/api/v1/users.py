@@ -69,8 +69,6 @@ async def update_triggers(
     elif payload.fake_pin:
         user.fake_pin_hash = hash_password(payload.fake_pin)
 
-    if payload.power_button_trigger_enabled is not None:
-        user.power_button_trigger_enabled = payload.power_button_trigger_enabled
     if payload.gesture_trigger_enabled is not None:
         user.gesture_trigger_enabled = payload.gesture_trigger_enabled
 

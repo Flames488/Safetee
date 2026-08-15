@@ -18,7 +18,10 @@ class TrustedContact(Base, UUIDMixin, TimestampMixin):
     # (sos_tasks.py) to find whether this contact is also a registered user.
     phone: Mapped[str] = mapped_column(String(20), index=True)
 
-    # lower = notified first; enforced unique-per-user in a migration constraint
+    # lower = notified first. Not DB-unique per user — every contact starts
+    # at the same default, and ties are expected until reordered via
+    # POST /contacts/{id}/move (see contacts.py), which normalizes the
+    # whole list to a clean 0..N-1 sequence on first use.
     priority: Mapped[int] = mapped_column(Integer, default=100)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 

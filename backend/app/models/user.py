@@ -18,6 +18,12 @@ class User(Base, UUIDMixin, TimestampMixin):
 
     # hidden-trigger config — stored, never logged in plaintext responses
     fake_pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # No hardware power-button press is reachable from a web API on any
+    # platform (see shakeDetector.js's file comment) — this was replaced by
+    # gesture_trigger_enabled and is no longer settable via the API or read
+    # by anything (see TriggerUpdate/UserOut). Left mapped rather than
+    # dropped via migration purely so existing rows keep inserting cleanly;
+    # always False for every account now.
     power_button_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     gesture_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 

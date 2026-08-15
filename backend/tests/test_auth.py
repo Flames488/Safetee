@@ -1,3 +1,7 @@
+from sqlalchemy import select
+
+from app.db.session import AsyncSessionLocal
+from app.models.user import User
 
 
 async def test_signup_returns_tokens(client):
@@ -56,6 +60,26 @@ async def test_login_with_unregistered_phone_is_rejected(client):
         "/api/v1/auth/login", json={"phone": "+2348109999999", "password": "whatever12345"}
     )
     assert r.status_code == 401
+
+
+async def test_login_with_correct_password_but_suspended_account_is_rejected(client):
+    """A suspended account must fail clearly at login rather than getting a
+    token pair that then 401s on every subsequent request via
+    get_current_user's own is_active check."""
+    await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Chidi", "phone": "+2348100005521", "password": "supersecret123"},
+    )
+
+    async with AsyncSessionLocal() as db:
+        user = (await db.execute(select(User).where(User.phone == "+2348100005521"))).scalar_one()
+        user.is_active = False
+        await db.commit()
+
+    r = await client.post(
+        "/api/v1/auth/login", json={"phone": "+2348100005521", "password": "supersecret123"}
+    )
+    assert r.status_code == 403
 
 
 async def test_long_password_hashes_and_verifies_correctly(client):

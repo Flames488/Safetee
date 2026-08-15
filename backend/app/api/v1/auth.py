@@ -79,6 +79,12 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
 
     if user is not None and verify_password(payload.password, user.password_hash):
+        # Without this, a suspended account still got a "successful" login
+        # response and a real token pair — get_current_user's own is_active
+        # check would then 401 every single request made with it, so the
+        # account just looked broken instead of clearly suspended.
+        if not user.is_active:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "This account has been suspended")
         return TokenResponse(
             access_token=create_access_token(str(user.id)),
             refresh_token=create_refresh_token(str(user.id)),

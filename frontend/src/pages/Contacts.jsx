@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Phone, MessageCircle, ShieldCheck, X, Trash2 } from 'lucide-react';
+import { Plus, Phone, MessageCircle, ShieldCheck, X, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, Button, Field, ConfirmDialog, ErrorState, SkeletonRow, useToast } from '../components/ui';
@@ -17,6 +17,7 @@ export default function Contacts() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [removeTarget, setRemoveTarget] = useState(null);
+  const [movingId, setMovingId] = useState(null);
   const toast = useToast();
 
   const load = () => {
@@ -47,6 +48,17 @@ export default function Contacts() {
       setFormError(err.message || 'Could not save this contact. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const moveContact = async (id, direction) => {
+    setMovingId(id);
+    try {
+      setContacts(await api.moveContact(id, direction));
+    } catch (err) {
+      toast(err.message || 'Could not reorder contacts right now.', { tone: 'bad' });
+    } finally {
+      setMovingId(null);
     }
   };
 
@@ -123,6 +135,24 @@ export default function Contacts() {
 
         {contacts?.map((c, i) => (
           <Card key={c.id} className="ct-card">
+            {contacts.length > 1 && (
+              <div className="ct-reorder">
+                <button
+                  aria-label={`Move ${c.name} up`}
+                  onClick={() => moveContact(c.id, 'up')}
+                  disabled={i === 0 || movingId === c.id}
+                >
+                  <ChevronUp size={14} strokeWidth={2.4} />
+                </button>
+                <button
+                  aria-label={`Move ${c.name} down`}
+                  onClick={() => moveContact(c.id, 'down')}
+                  disabled={i === contacts.length - 1 || movingId === c.id}
+                >
+                  <ChevronDown size={14} strokeWidth={2.4} />
+                </button>
+              </div>
+            )}
             <div className="ct-avatar mono">{c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</div>
             <div className="ct-info">
               <div className="ct-name-row">
