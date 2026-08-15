@@ -181,8 +181,11 @@ export const api = {
   // Password-confirmed for the same reason account deletion is — someone
   // else with the phone unlocked shouldn't be able to wipe the alert
   // record. Only finished journeys/alerts are eligible (see backend);
-  // anything still active or pending is left alone regardless.
-  clearHistory: (password) => request('/history', { method: 'DELETE', body: { password } }),
+  // anything still active or pending is left alone regardless. Pass
+  // sosIds/journeyIds to clear only specific entries; omit both to clear
+  // everything eligible.
+  clearHistory: (password, { sosIds, journeyIds } = {}) =>
+    request('/history', { method: 'DELETE', body: { password, sos_ids: sosIds, journey_ids: journeyIds } }),
 
   systemStatus: () => request('/system/status', { auth: false }),
 

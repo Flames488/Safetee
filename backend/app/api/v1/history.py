@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import delete, select
@@ -19,6 +21,13 @@ router = APIRouter(prefix="/history", tags=["history"])
 
 class HistoryClearRequest(BaseModel):
     password: str
+    # Omitted (None) on either means "every eligible entry of that kind" —
+    # what the original one-tap "Clear all" did, and still does. An empty
+    # list is different from omitted: it means the caller (the per-item
+    # selection UI in History.jsx) deliberately selected zero entries of
+    # that kind, so nothing of that kind should be touched.
+    sos_ids: list[uuid.UUID] | None = None
+    journey_ids: list[uuid.UUID] | None = None
 
 
 @router.get("/journeys", response_model=list[JourneyOut])
@@ -61,20 +70,23 @@ async def clear_history(
     who's simply gotten hold of an already-unlocked phone shouldn't be able
     to wipe the record of past alerts. Only finished journeys/SOS events are
     eligible — anything still active or pending is left alone no matter what,
-    so this can never be used to make an in-progress emergency disappear."""
+    so this can never be used to make an in-progress emergency disappear.
+    Pass sos_ids/journey_ids to clear only specific entries (the History
+    page's per-item selection); omit both to clear everything eligible."""
     if not verify_password(payload.password, user.password_hash):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Incorrect password")
 
-    await db.execute(
-        delete(SOSEvent).where(
-            SOSEvent.user_id == user.id,
-            SOSEvent.status.in_([SOSStatus.resolved, SOSStatus.cancelled]),
-        )
-    )
-    await db.execute(
-        delete(Journey).where(
-            Journey.user_id == user.id,
-            Journey.status.in_([JourneyStatus.arrived, JourneyStatus.escalated, JourneyStatus.cancelled]),
-        )
-    )
+    sos_clause = [SOSEvent.user_id == user.id, SOSEvent.status.in_([SOSStatus.resolved, SOSStatus.cancelled])]
+    if payload.sos_ids is not None:
+        sos_clause.append(SOSEvent.id.in_(payload.sos_ids))
+    await db.execute(delete(SOSEvent).where(*sos_clause))
+
+    journey_clause = [
+        Journey.user_id == user.id,
+        Journey.status.in_([JourneyStatus.arrived, JourneyStatus.escalated, JourneyStatus.cancelled]),
+    ]
+    if payload.journey_ids is not None:
+        journey_clause.append(Journey.id.in_(payload.journey_ids))
+    await db.execute(delete(Journey).where(*journey_clause))
+
     await db.commit()

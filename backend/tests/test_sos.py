@@ -1,6 +1,12 @@
+from datetime import datetime
+
 from app.db.session import AsyncSessionLocal
 from app.models.enums import SOSStatus
 from app.models.sos_event import SOSEvent
+
+
+def _parse(ts: str) -> datetime:
+    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
 
 
 async def test_trigger_sos_creates_pending_event(auth_client):
@@ -10,6 +16,17 @@ async def test_trigger_sos_creates_pending_event(auth_client):
     assert body["status"] == "pending"
     assert body["trigger"] == "button"
     assert body["alerts"] == []
+
+
+async def test_gesture_trigger_has_no_cancel_window(auth_client):
+    """Unlike button, a shake-gesture trigger has to fan out immediately —
+    see trigger_sos's skip_cancel_window. cancel_window_ends_at landing at
+    (or before) "now" is what fanout_sos_alerts and the frontend both key
+    off of to skip the countdown."""
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "gesture"})
+    assert r.status_code == 201
+    body = r.json()
+    assert _parse(body["cancel_window_ends_at"]) <= _parse(body["created_at"])
 
 
 async def test_active_sos_reflects_pending_event(auth_client):

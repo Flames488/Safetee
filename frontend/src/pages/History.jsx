@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Navigation2, ChevronDown, Trash2 } from 'lucide-react';
+import { ShieldAlert, Navigation2, ChevronDown, Trash2, Square, SquareCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, Button, Modal, PasswordInput } from '../components/ui';
@@ -8,7 +8,7 @@ import { api } from '../lib/api';
 import './history.css';
 
 // Mirrors the backend's own eligibility rule (clear_history in
-// backend/app/api/v1/history.py) so the button never claims to remove an
+// backend/app/api/v1/history.py) so selection never offers to remove an
 // entry the server is actually going to leave behind.
 const SOS_CLEARABLE = new Set(['resolved', 'cancelled']);
 const JOURNEY_CLEARABLE = new Set(['arrived', 'escalated', 'cancelled']);
@@ -51,6 +51,12 @@ export default function History() {
   const [loadError, setLoadError] = useState(false);
   const [open, setOpen] = useState(null);
 
+  // Selection replaced the old single-tap "clear everything" button — the
+  // person deciding what disappears from their own record should be able
+  // to pick exactly which entries, not just all-or-nothing.
+  const [selecting, setSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+
   const [clearOpen, setClearOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [clearError, setClearError] = useState('');
@@ -71,18 +77,35 @@ export default function History() {
   };
   useEffect(load, []);
 
+  const clearableEvents = events?.filter(isClearable) ?? [];
+  const hasClearable = clearableEvents.length > 0;
+  const allSelected = hasClearable && clearableEvents.every((e) => selectedIds.has(e.id));
+
+  const startSelecting = () => { setSelecting(true); setSelectedIds(new Set()); };
+  const stopSelecting = () => { setSelecting(false); setSelectedIds(new Set()); };
+  const toggleOne = (id) => {
+    setSelectedIds((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(clearableEvents.map((e) => e.id)));
+  };
+
   const closeClear = () => { setClearOpen(false); setPassword(''); setClearError(''); };
 
   const handleClear = () => {
     if (!password) { setClearError('Enter your password to confirm.'); return; }
     setClearError('');
     setClearing(true);
-    api.clearHistory(password)
-      .then(() => { closeClear(); load(); })
-      .catch((err) => { setClearError(err.message || 'Could not clear your history.'); setClearing(false); });
+    const sosIds = events.filter((e) => e.kind === 'sos' && selectedIds.has(e.id)).map((e) => e.id);
+    const journeyIds = events.filter((e) => e.kind === 'journey' && selectedIds.has(e.id)).map((e) => e.id);
+    api.clearHistory(password, { sosIds, journeyIds })
+      .then(() => { closeClear(); stopSelecting(); load(); })
+      .catch((err) => { setClearError(err.message || 'Could not clear the selected entries.'); setClearing(false); });
   };
-
-  const hasClearable = events?.some(isClearable) ?? false;
 
   return (
     <>
@@ -91,11 +114,26 @@ export default function History() {
         back={false}
         subtitle="Every alert and journey, kept for your records"
         action={hasClearable ? (
-          <Button size="sm" variant="ghost" onClick={() => setClearOpen(true)}>
-            <Trash2 size={14} strokeWidth={2.2} /> Clear
-          </Button>
+          selecting ? (
+            <Button size="sm" variant="ghost" onClick={stopSelecting}>Cancel</Button>
+          ) : (
+            <Button size="sm" variant="ghost" onClick={startSelecting}>
+              <Trash2 size={14} strokeWidth={2.2} /> Select
+            </Button>
+          )
         ) : undefined}
       />
+      {selecting && (
+        <div className="hs-select-bar">
+          <button className="hs-select-all" onClick={toggleAll}>
+            {allSelected ? <SquareCheck size={16} strokeWidth={2.2} /> : <Square size={16} strokeWidth={2.2} />}
+            Select all
+          </button>
+          <Button size="sm" variant="danger" disabled={selectedIds.size === 0} onClick={() => setClearOpen(true)}>
+            Delete{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+          </Button>
+        </div>
+      )}
       <div className="hs-list">
         {events === null && (
           <>
@@ -110,9 +148,22 @@ export default function History() {
         {events?.map((e) => {
           const meta = META[e.kind][e.status] || { title: e.status, tone: 'neutral' };
           const isOpen = open === e.id;
+          const clearable = isClearable(e);
+          const selected = selectedIds.has(e.id);
           return (
             <Card key={e.id} className="hs-card">
-              <button className="hs-row" onClick={() => setOpen(isOpen ? null : e.id)}>
+              <button
+                className="hs-row"
+                onClick={() => {
+                  if (selecting) { if (clearable) toggleOne(e.id); return; }
+                  setOpen(isOpen ? null : e.id);
+                }}
+              >
+                {selecting && (
+                  clearable
+                    ? (selected ? <SquareCheck size={18} strokeWidth={2.2} className="hs-check" /> : <Square size={18} strokeWidth={2.2} className="hs-check" />)
+                    : <span className="hs-check hs-check-spacer" />
+                )}
                 <IconTile icon={e.kind === 'sos' ? ShieldAlert : Navigation2} tone={meta.tone} size={32} />
                 <span className="hs-text">
                   <strong>{meta.title}</strong>
@@ -120,9 +171,9 @@ export default function History() {
                   <span className="hs-date mono">{fmt(e.created_at)}</span>
                 </span>
                 <Pill tone={meta.tone}>{e.status}</Pill>
-                <ChevronDown size={15} className={`hs-chev ${isOpen ? 'hs-chev-open' : ''}`} />
+                {!selecting && <ChevronDown size={15} className={`hs-chev ${isOpen ? 'hs-chev-open' : ''}`} />}
               </button>
-              {isOpen && (
+              {isOpen && !selecting && (
                 <p className="hs-detail">
                   {e.kind === 'journey'
                     ? `Expected to arrive within ${e.expected_minutes} min · Expected by ${fmt(e.expected_arrival_at)}`
@@ -136,7 +187,7 @@ export default function History() {
                     )}
                 </p>
               )}
-              {isOpen && e.kind === 'sos' && (
+              {isOpen && !selecting && e.kind === 'sos' && (
                 <Link className="hs-evidence-link" to={`/track/${e.id}/evidence`}>View evidence</Link>
               )}
             </Card>
@@ -145,10 +196,9 @@ export default function History() {
       </div>
       <BottomNav />
 
-      <Modal open={clearOpen} onClose={closeClear} title="Clear history?" width={420}>
+      <Modal open={clearOpen} onClose={closeClear} title={`Delete ${selectedIds.size} selected ${selectedIds.size === 1 ? 'entry' : 'entries'}?`} width={420}>
         <p className="confirm-body">
-          Removes resolved and cancelled alerts and journeys from this list. Anything still active or
-          pending is kept regardless. This can't be undone.
+          Anything still active or pending is kept regardless of selection. This can't be undone.
         </p>
         <PasswordInput
           value={password}
@@ -160,7 +210,7 @@ export default function History() {
         <div className="confirm-actions">
           <Button variant="ghost" onClick={closeClear} disabled={clearing}>Cancel</Button>
           <Button variant="danger" disabled={clearing} onClick={handleClear}>
-            {clearing ? 'Clearing…' : 'Clear history'}
+            {clearing ? 'Deleting…' : 'Delete'}
           </Button>
         </div>
       </Modal>

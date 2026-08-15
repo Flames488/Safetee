@@ -62,6 +62,22 @@ async def trigger_sos(
     # simply omit lat/lng — a stale or tampered client could still send
     # coordinates even with the toggle off.
     share_location = user.share_location_enabled
+
+    # The shake gesture (like the duress PIN and a journey-timeout
+    # escalation — see auth.py's login and journey_tasks.py) is opt-in and
+    # requires three distinct hard shakes within 1.2s (see
+    # shakeDetector.js's SHAKE_DELTA_THRESHOLD/SHAKES_NEEDED), well above
+    # ordinary handling jostle — so unlike the button, an accidental fire
+    # is already unlikely by the time this endpoint is even called. Skipping
+    # the cancel window here means someone who deliberately triggered it
+    # covertly (can't safely reach for a visible "cancel" screen without
+    # tipping off whoever they're hiding it from) gets contacts alerted and
+    # evidence capture started immediately, not several seconds later. The
+    # button trigger keeps the cancel window — it's a visible, deliberate
+    # tap made with the app already open, exactly the case a brief "oops,
+    # false alarm" window is meant for.
+    skip_cancel_window = payload.trigger == SOSTrigger.gesture
+
     event = SOSEvent(
         user_id=user.id,
         journey_id=payload.journey_id,
@@ -69,7 +85,7 @@ async def trigger_sos(
         status=SOSStatus.pending,
         origin_lat=payload.lat if share_location else None,
         origin_lng=payload.lng if share_location else None,
-        cancel_window_ends_at=now + timedelta(seconds=settings.sos_cancel_window_seconds),
+        cancel_window_ends_at=now if skip_cancel_window else now + timedelta(seconds=settings.sos_cancel_window_seconds),
     )
     db.add(event)
     await db.commit()
@@ -82,12 +98,12 @@ async def trigger_sos(
     # assignment still triggers a lazy-load of the *old* value first).
     set_committed_value(event, "alerts", [])
 
-    # Fires after the cancel window. fanout_sos_alerts re-checks event.status
-    # itself, so a cancel recorded in the meantime is enough to no-op it —
-    # no task revocation plumbing required. Runs in-process (see
-    # app/core/scheduler.py) rather than via Celery's broker — nothing
-    # consumes that queue in production.
-    run_soon(fanout_sos_alerts, str(event.id), delay=settings.sos_cancel_window_seconds)
+    # Fires after the cancel window (zero for a gesture trigger — see
+    # above). fanout_sos_alerts re-checks event.status itself, so a cancel
+    # recorded in the meantime is enough to no-op it — no task revocation
+    # plumbing required. Runs in-process (see app/core/scheduler.py) rather
+    # than via Celery's broker — nothing consumes that queue in production.
+    run_soon(fanout_sos_alerts, str(event.id), delay=0 if skip_cancel_window else settings.sos_cancel_window_seconds)
 
     return event
 

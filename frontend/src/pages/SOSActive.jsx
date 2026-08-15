@@ -37,10 +37,14 @@ export default function SOSActive() {
   const location = useLocation();
   // Reached either from the Dashboard's hold-for-SOS button (no state,
   // defaults to 'button') or from the secret-gesture shake detector in
-  // AppShell.jsx, which passes { trigger: 'gesture' } — same screen, same
-  // cancel window, just a different value recorded on the SOSEvent.
+  // AppShell.jsx, which passes { trigger: 'gesture' }. Unlike button, a
+  // gesture trigger skips the visible countdown entirely (see trigger_sos
+  // on the backend, which fans out immediately for it too) — the whole
+  // point of a covert gesture is that reaching for a big red "cancel"
+  // screen isn't safe to do in front of whoever the alert is being hidden
+  // from, so this jumps straight to 'active' instead.
   const trigger = location.state?.trigger || 'button';
-  const [phase, setPhase] = useState('counting');
+  const [phase, setPhase] = useState(trigger === 'gesture' ? 'active' : 'counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
   const [contacts, setContacts] = useState([]);
@@ -52,7 +56,10 @@ export default function SOSActive() {
   const [safeError, setSafeError] = useState('');
   const [resolving, setResolving] = useState(false);
   const holdTimer = useRef(null);
-  const activeSince = useRef(null);
+  // Set immediately for a gesture trigger, which starts in 'active' phase
+  // directly (see `phase` above) — the counting-phase effect below is what
+  // sets this for every other trigger, once its countdown reaches 0.
+  const activeSince = useRef(trigger === 'gesture' ? Date.now() : null);
   const navigate = useNavigate();
 
   // Fire the real trigger the instant this screen mounts — the countdown

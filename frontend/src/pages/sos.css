@@ -16,6 +16,12 @@
   margin-top:34px; padding:15px 28px; border-radius:99px; border:1.5px solid var(--red-line);
   color:var(--red); font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px;
   background:rgba(255,75,87,.06);
+  /* A held press otherwise reads as a text-selection gesture on mobile —
+     the label highlights and a Copy/Look Up callout pops up instead of the
+     hold registering, which on "Hold to mark as safe" is a safety-relevant
+     button that has to actually respond to being held. */
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
 }
 
 .sos-active-top{ display:flex; align-items:center; justify-content:space-between; }

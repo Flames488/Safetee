@@ -8,6 +8,16 @@ import { api, ApiError } from './api';
 const SEGMENT_MS = { audio: 20000, video: 20000 };
 const PHOTO_INTERVAL_MS = 60000;
 
+// fetch has no built-in timeout. A video segment's PUT is much larger than
+// audio/photo and, on the slow/flaky connection an SOS is disproportionately
+// likely to be triggered on, can hang indefinitely rather than failing —
+// which left the status stuck on "Recording" forever with no upload ever
+// completing, failing, or retrying (audio/photo are small enough to
+// usually resolve one way or the other before this would ever matter).
+// Aborting after this turns a silent hang into a normal failure the
+// existing backoff/retry path in pump() already handles.
+const UPLOAD_TIMEOUT_MS = 30000;
+
 // A network outage can last the entire remainder of an SOS event (this is
 // exactly when signal is likely to be bad). Without backoff, capture would
 // keep encoding and attempting to upload a fresh segment every 20s/60s for
@@ -48,7 +58,14 @@ async function uploadSegment(eventId, mediaType, blob, ext) {
   // Straight to Supabase, not through our backend — the signed URL already
   // is a one-time write token, and proxying multi-MB blobs through the
   // free-tier API would burn its bandwidth for nothing.
-  const res = await fetch(uploadUrl, { method: 'PUT', body: blob });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+  let res;
+  try {
+    res = await fetch(uploadUrl, { method: 'PUT', body: blob, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) throw new Error(`upload failed (${res.status})`);
   await api.confirmEvidence(eventId, { media_type: mediaType, path });
 }
