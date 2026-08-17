@@ -45,6 +45,15 @@ def _matching_user_devices(db, phone: str) -> list[Device]:
     return db.query(Device).filter(Device.user_id == matched_user.id).all()
 
 
+def _send_push_and_prune(db, device: Device, title: str, body: str, data: dict) -> None:
+    """A permanently-dead subscription (send_push returning "expired") was
+    previously just logged and left in place — retried, and failing the
+    same way, on every future alert forever. Delete the row instead."""
+    if send_push(device.push_token, title, body, data=data) == "expired":
+        db.delete(device)
+        db.commit()
+
+
 @celery_app.task(bind=True, max_retries=settings.sos_fanout_max_retries, default_retry_delay=10)
 def fanout_sos_alerts(self, sos_event_id: str):
     """Notifies every trusted contact for a triggered SOS event, in priority
@@ -130,10 +139,8 @@ def fanout_sos_alerts(self, sos_event_id: str):
             db.commit()
 
             for device in _matching_user_devices(db, contact.phone):
-                send_push(
-                    device.push_token,
-                    "SAFETEE Alert",
-                    f"{user.full_name} triggered an emergency alert",
+                _send_push_and_prune(
+                    db, device, "SAFETEE Alert", f"{user.full_name} triggered an emergency alert",
                     data={"url": "/app/alerts"},
                 )
 
@@ -174,10 +181,8 @@ def notify_contacts_of_evidence(sos_event_id: str):
             # login (see get_evidence's phone-match check), so this deep
             # link doesn't need the ?token= a non-account contact requires.
             for device in _matching_user_devices(db, contact.phone):
-                send_push(
-                    device.push_token,
-                    "SAFETEE Evidence",
-                    f"Audio/video evidence is available for {user.full_name}'s alert",
+                _send_push_and_prune(
+                    db, device, "SAFETEE Evidence", f"Audio/video evidence is available for {user.full_name}'s alert",
                     data={"url": f"/track/{event.id}/evidence"},
                 )
     finally:

@@ -12,6 +12,17 @@ from app.schemas.user import DeviceRegister
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
+_LIKE_ESCAPE = "\\"
+
+
+def _escape_like(value: str) -> str:
+    """`.contains()` compiles to a `LIKE '%...%'`, where `%`/`_` are
+    wildcards — a push endpoint URL routinely contains `_` and can contain
+    `%`, so without escaping, unregistering one device could accidentally
+    also match (and delete) a different device of the same user whose
+    token merely differs by one character at that position."""
+    return value.replace(_LIKE_ESCAPE, _LIKE_ESCAPE * 2).replace("%", rf"{_LIKE_ESCAPE}%").replace("_", rf"{_LIKE_ESCAPE}_")
+
 
 @router.post("", status_code=status.HTTP_204_NO_CONTENT)
 async def register_device(
@@ -44,9 +55,12 @@ async def unregister_device(
     """Called when the user turns notifications off. Matches by substring
     since push_token stores the whole subscription JSON blob, not just the
     endpoint — safe because endpoint URLs are unique, random per-subscription
-    paths."""
+    paths, as long as LIKE wildcards in it are escaped (see _escape_like)."""
     result = await db.execute(
-        select(Device).where(Device.user_id == user.id, Device.push_token.contains(endpoint))
+        select(Device).where(
+            Device.user_id == user.id,
+            Device.push_token.contains(_escape_like(endpoint), escape=_LIKE_ESCAPE),
+        )
     )
     for device in result.scalars().all():
         await db.delete(device)

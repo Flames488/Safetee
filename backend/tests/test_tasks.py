@@ -2,9 +2,11 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 from app.db.sync_session import SyncSessionLocal
+from app.models.device import Device
 from app.models.enums import JourneyStatus
 from app.models.journey import Journey
 from app.models.sos_event import SOSAlertDelivery, SOSEvent
+from app.models.user import User
 from app.services.sms.fallback import SMSDeliveryFailed
 
 
@@ -53,6 +55,43 @@ async def test_fanout_marks_delivery_failed_when_sms_fails(auth_client):
     deliveries = db.query(SOSAlertDelivery).filter_by(sos_event_id=sos_id).all()
     assert deliveries[0].status.value == "failed"
     assert deliveries[0].attempt_count == 1
+    db.close()
+
+
+async def test_fanout_prunes_device_on_expired_push_subscription(client, auth_client):
+    """A contact who's also a registered Safetee user gets an in-app push
+    in addition to SMS (see _matching_user_devices). If their subscription
+    is permanently gone (send_push returning "expired"), the stale Device
+    row must be deleted — not retried forever on every future alert."""
+    contact_signup = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Contact User", "phone": "+2340000000001", "password": "supersecret123"},
+    )
+    contact_token = contact_signup.json()["access_token"]
+    await client.post(
+        "/api/v1/devices",
+        headers={"Authorization": f"Bearer {contact_token}"},
+        json={"endpoint": "https://fcm.googleapis.com/fcm/send/dead", "keys": {"p256dh": "x", "auth": "y"}},
+    )
+
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    with (
+        patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send,
+        patch("app.workers.tasks.sos_tasks.send_push") as mock_push,
+    ):
+        mock_send.return_value = ("sms_twilio", "SM-fake-ref")
+        mock_push.return_value = "expired"
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        fanout_sos_alerts.apply(args=[sos_id])
+
+    assert mock_push.called
+    db = SyncSessionLocal()
+    contact_user = db.query(User).filter_by(phone="+2340000000001").one()
+    remaining = db.query(Device).filter_by(user_id=contact_user.id).all()
+    assert remaining == []
     db.close()
 
 

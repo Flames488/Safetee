@@ -46,8 +46,17 @@ async def _push_all(db: AsyncSession, user_id: uuid.UUID, title: str, body: str,
     location requests/shares actually work even while safetee-worker
     doesn't exist in production, which nothing else in the app can claim
     right now."""
+    dirty = False
     for device in await _devices_for(db, user_id):
-        await run_in_threadpool(send_push, device.push_token, title, body, {"url": url})
+        result = await run_in_threadpool(send_push, device.push_token, title, body, {"url": url})
+        # A permanently-dead subscription was previously just logged and
+        # left in place — retried, and failing the same way, on every
+        # future request/share forever. Delete the row instead.
+        if result == "expired":
+            await db.delete(device)
+            dirty = True
+    if dirty:
+        await db.commit()
 
 
 async def _build_outs(db: AsyncSession, shares: list[LocationShare]) -> list[LocationShareOut]:
