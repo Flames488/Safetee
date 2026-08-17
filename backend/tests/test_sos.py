@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.db.session import AsyncSessionLocal
 from app.models.enums import SOSStatus
@@ -21,12 +21,25 @@ async def test_trigger_sos_creates_pending_event(auth_client):
 async def test_gesture_trigger_has_no_cancel_window(auth_client):
     """Unlike button, a shake-gesture trigger has to fan out immediately —
     see trigger_sos's skip_cancel_window. cancel_window_ends_at landing at
-    (or before) "now" is what fanout_sos_alerts and the frontend both key
-    off of to skip the countdown."""
+    (approximately) "now" is what fanout_sos_alerts and the frontend both
+    key off of to skip the countdown.
+
+    Deliberately bounded against timestamps taken by *this test's own*
+    clock, not against the response's `created_at` — that column comes
+    from Postgres's own `NOW()`, a different clock than the Python
+    process's `datetime.now(UTC)` that sets `cancel_window_ends_at`, and
+    the two aren't guaranteed to agree to the microsecond even when the
+    request genuinely completes first (confirmed flaky in practice, not
+    just theoretical). `auth_client` talks to the app in-process over
+    ASGITransport (see conftest.py), so `before`/`after` here and the
+    server-side clock genuinely are the same clock — safe to bound against.
+    """
+    before = datetime.now(UTC)
     r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "gesture"})
+    after = datetime.now(UTC)
     assert r.status_code == 201
     body = r.json()
-    assert _parse(body["cancel_window_ends_at"]) <= _parse(body["created_at"])
+    assert before <= _parse(body["cancel_window_ends_at"]) <= after
 
 
 async def test_active_sos_reflects_pending_event(auth_client):
