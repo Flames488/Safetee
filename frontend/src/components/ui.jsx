@@ -248,7 +248,7 @@ export function Modal({ open, onClose, title, children, width }) {
   return (
     <div className="overlay-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
-        className="modal glass"
+        className="modal"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -302,7 +302,7 @@ export function Drawer({ open, onClose, title, children }) {
   if (!open) return null;
   return (
     <div className="overlay-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="drawer glass" role="dialog" aria-modal="true" aria-label={title} ref={ref} tabIndex={-1}>
+      <div className="drawer" role="dialog" aria-modal="true" aria-label={title} ref={ref} tabIndex={-1}>
         <div className="modal-head">
           <h2>{title}</h2>
           <button className="overlay-close" onClick={onClose} aria-label="Close"><X size={16} strokeWidth={2.2} /></button>

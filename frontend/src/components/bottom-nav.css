@@ -1,10 +1,11 @@
 .bottom-nav{
   display:flex; align-items:center; justify-content:space-around;
   padding:10px 12px calc(14px + env(safe-area-inset-bottom));
-  background:var(--glass-bg);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border-top:1px solid var(--glass-border);
+  /* Solid, not .glass's translucent-plus-blur — backdrop-filter silently
+     doesn't render on some mobile browsers, which left page content
+     visible right through the nav bar instead of hidden behind it. */
+  background:var(--bg-1);
+  border-top:1px solid var(--line);
   flex-shrink:0;
   position:sticky; bottom:0; z-index:10;
 }

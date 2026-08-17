@@ -6,6 +6,13 @@ import { api, ApiError } from './api';
 // comment on SOSEvent.audio_segment_paths). Matches the ~20s/60s
 // intervals the backend's evidence_max_* caps are sized around.
 const SEGMENT_MS = { audio: 20000, video: 20000 };
+// The very first segment is intentionally much shorter than the rest —
+// waiting a full 20s for the first audio/video to even finish recording
+// (on top of the 5s SOS cancel window) meant nothing reached a trusted
+// contact for 25+ seconds after the button was pressed. A short first
+// clip gets *something* uploaded fast; subsequent segments go back to the
+// longer, more storage/overhead-efficient length.
+const FIRST_SEGMENT_MS = { audio: 6000, video: 6000 };
 const PHOTO_INTERVAL_MS = 60000;
 
 // fetch has no built-in timeout. A video segment's PUT is much larger than
@@ -27,6 +34,19 @@ const UPLOAD_TIMEOUT_MS = 30000;
 const MAX_BACKOFF_MULTIPLIER = 6;
 function backoffDelay(baseMs, consecutiveFailures) {
   return baseMs * Math.min(2 ** consecutiveFailures, MAX_BACKOFF_MULTIPLIER);
+}
+
+// Only the very first segment for a given media type uses FIRST_SEGMENT_MS
+// — every call after that falls back to the normal, longer SEGMENT_MS.
+// Backoff still applies on top of whichever base is current, same as
+// before; a short first segment doesn't skip the retry/backoff story.
+function firstSegmentAwareDelay(mediaType, failureCounts) {
+  let first = true;
+  return () => {
+    const base = first ? FIRST_SEGMENT_MS[mediaType] : SEGMENT_MS[mediaType];
+    first = false;
+    return backoffDelay(base, failureCounts[mediaType]);
+  };
 }
 
 const MIME_CANDIDATES = {
@@ -232,7 +252,7 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
             picked.mime,
             pump('audio', picked.ext),
             () => reportError('audio'),
-            () => backoffDelay(SEGMENT_MS.audio, failureCounts.audio)
+            firstSegmentAwareDelay('audio', failureCounts)
           )
         );
       } else {
@@ -257,7 +277,7 @@ export async function startEvidenceCapture(eventId, enabled, onStatus) {
               pickedVideo.mime,
               pump('video', pickedVideo.ext),
               () => reportError('video'),
-              () => backoffDelay(SEGMENT_MS.video, failureCounts.video)
+              firstSegmentAwareDelay('video', failureCounts)
             )
           );
         } else {
