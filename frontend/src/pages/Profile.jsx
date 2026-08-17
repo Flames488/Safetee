@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit3, HeartPulse, CreditCard, HelpCircle, ChevronRight, LogOut, Users, Navigation, ShieldCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
-import { Card, Pill, Button, KpiCard, KpiCardSkeleton, ConfirmDialog } from '../components/ui';
+import { Avatar, Card, Pill, Button, KpiCard, KpiCardSkeleton, ConfirmDialog } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import './profile.css';
@@ -63,13 +63,6 @@ export default function Profile() {
     navigate('/');
   };
 
-  const initials = user?.full_name
-    ?.split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
   const STAT_ITEMS = stats && [
     { icon: Users, label: 'Trusted contacts', value: stats.contacts, tint: 'brand' },
     { icon: Navigation, label: 'Journeys tracked', value: stats.journeys, tint: 'info' },
@@ -82,7 +75,7 @@ export default function Profile() {
       <div className="pf-body">
         <div className="pf-col-identity">
           <div className="pf-head">
-            <div className="pf-avatar mono">{initials || '—'}</div>
+            <div className="pf-avatar mono avatar-slot"><Avatar src={user?.avatar_url} name={user?.full_name} /></div>
             <h1 className="pf-name">{user?.full_name || 'Loading…'}</h1>
             <span className="pf-phone">{user?.phone || ''}</span>
             <Pill tone={planPill.tone}>{planPill.label}</Pill>

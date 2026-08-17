@@ -2,11 +2,16 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import AdminRole
 from app.schemas.journey import JourneyOut
 from app.schemas.sos import SOSEventOut
+
+# Never trust a client-supplied extension unchecked — same reasoning as
+# ALLOWED_EXTENSIONS in app.schemas.sos, it ends up in a storage path
+# passed straight to Supabase.
+AVATAR_ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 
 class UserOut(BaseModel):
@@ -25,6 +30,7 @@ class UserOut(BaseModel):
     evidence_photo_enabled: bool
     admin_role: AdminRole
     medical_info: str | None = None
+    avatar_url: str | None = None
 
 
 class ProfileUpdate(BaseModel):
@@ -91,6 +97,31 @@ class ContactOut(BaseModel):
 
 class AccountDeleteRequest(BaseModel):
     password: str
+
+
+class AvatarUploadRequest(BaseModel):
+    file_extension: str
+
+    @field_validator("file_extension")
+    @classmethod
+    def _normalize_extension(cls, v: str) -> str:
+        return v.lower().lstrip(".")
+
+    @model_validator(mode="after")
+    def _extension_allowed(self) -> "AvatarUploadRequest":
+        if self.file_extension not in AVATAR_ALLOWED_EXTENSIONS:
+            allowed = ", ".join(sorted(AVATAR_ALLOWED_EXTENSIONS))
+            raise ValueError(f"'{self.file_extension}' is not an allowed extension for a profile picture (allowed: {allowed})")
+        return self
+
+
+class AvatarUploadResponse(BaseModel):
+    upload_url: str
+    path: str
+
+
+class AvatarConfirmRequest(BaseModel):
+    path: str
 
 
 class DataExportOut(BaseModel):

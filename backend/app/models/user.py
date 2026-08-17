@@ -3,9 +3,11 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.config import settings
 from app.db.mixins import TimestampMixin, UUIDMixin
 from app.db.session import Base
 from app.models.enums import AdminRole
+from app.services.storage.supabase_storage import supabase_storage
 
 
 class User(Base, UUIDMixin, TimestampMixin):
@@ -49,6 +51,12 @@ class User(Base, UUIDMixin, TimestampMixin):
     # aloud/showing to someone in person during an emergency.
     medical_info: Mapped[str | None] = mapped_column(String(2000), nullable=True)
 
+    # Storage path within the public `avatars` bucket, not a URL — see
+    # avatar_url below. A profile picture isn't sensitive the way SOS
+    # evidence is, so unlike evidence it's a public-read bucket: no signed
+    # URL to mint (and re-mint on every expiry) just to render an avatar.
+    avatar_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # 'none' for every normal user. Never set directly from a request body —
     # only ever changed via POST /admin/users/{id}/role, which itself
     # requires an existing super_admin plus the separate master password.
@@ -69,3 +77,13 @@ class User(Base, UUIDMixin, TimestampMixin):
         """UserOut reads this instead of fake_pin_hash — the hash itself is
         never serialized into an API response."""
         return self.fake_pin_hash is not None
+
+    @property
+    def avatar_url(self) -> str | None:
+        """Public bucket, so this is a plain string build — no network call,
+        unlike evidence's signed URLs which have to be re-minted per
+        request. None until a picture's actually been uploaded and
+        confirmed (see POST /users/me/avatar/confirm)."""
+        if self.avatar_path is None:
+            return None
+        return supabase_storage.public_url(settings.supabase_avatar_bucket, self.avatar_path)

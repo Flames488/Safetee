@@ -1,3 +1,12 @@
+.pfm-avatar-section{
+  display:flex; flex-direction:column; align-items:center; gap:12px; padding:8px 20px 20px;
+}
+.pfm-avatar{
+  width:76px; height:76px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;
+}
+.pfm-avatar-actions{ display:flex; gap:8px; }
+
 .pfm-body{ flex:1; padding:0 20px 28px; display:flex; flex-direction:column; gap:16px; overflow-y:auto; }
 .pfm-field{ display:flex; flex-direction:column; gap:8px; }
 .pfm-field span{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); }

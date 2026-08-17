@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
-import { Button, Field } from '../components/ui';
+import { Avatar, Button, Field } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { uploadAvatar } from '../lib/avatarUpload';
 import './profile-forms.css';
 
 export default function EditProfile() {
@@ -14,6 +15,10 @@ export default function EditProfile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const fileInputRef = useRef(null);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -31,9 +36,60 @@ export default function EditProfile() {
     }
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // lets the same file be re-picked later (e.g. after a failed upload)
+    if (!file) return;
+    setAvatarError('');
+    setAvatarBusy(true);
+    try {
+      setUser(await uploadAvatar(file));
+    } catch (err) {
+      setAvatarError(err.message || 'Could not upload your photo. Please try again.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setAvatarError('');
+    setAvatarBusy(true);
+    try {
+      setUser(await api.deleteAvatar());
+    } catch (err) {
+      setAvatarError(err.message || 'Could not remove your photo. Please try again.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
   return (
     <>
-      <TopBar title="Edit profile" subtitle="Your name and email address" />
+      <TopBar title="Edit profile" subtitle="Your name, photo, and email address" />
+      <div className="pfm-avatar-section">
+        <div className="pfm-avatar avatar-slot chip-gradient mono">
+          <Avatar src={user?.avatar_url} name={user?.full_name} />
+        </div>
+        <div className="pfm-avatar-actions">
+          <Button type="button" size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={avatarBusy}>
+            {avatarBusy ? 'Uploading…' : 'Change photo'}
+          </Button>
+          {user?.avatar_url && (
+            <Button type="button" size="sm" variant="ghost" onClick={handleRemovePhoto} disabled={avatarBusy}>
+              Remove
+            </Button>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        {avatarError && <p className="pfm-error" role="alert">{avatarError}</p>}
+      </div>
+
       <form className="pfm-body" onSubmit={handleSave}>
         <Field
           className="pfm-field" label="Full name"

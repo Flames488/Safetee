@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LocateFixed, BatteryMedium, Users, Navigation, MessageSquare, Mic,
-  ChevronRight, User, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
+  ChevronRight, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
-import { Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow } from '../components/ui';
+import { Avatar, Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow } from '../components/ui';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import { useReliability } from '../lib/useReliability';
@@ -125,12 +125,6 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { gps, mic, battery, contacts, journeyActive, smsReady, activity, requestGps, requestMic } = useReliability();
   const firstName = user?.full_name?.split(' ')[0];
-  const initials = user?.full_name
-    ?.split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   const [sub, setSub] = useState(null);
   const [incomingAlerts, setIncomingAlerts] = useState([]);
@@ -216,8 +210,8 @@ export default function Dashboard() {
               <p className="dash-eyebrow mono"><Sparkles size={12} strokeWidth={2.4} /> {greeting()}</p>
               <h1 className="dash-name">{firstName || 'there'}</h1>
             </div>
-            <button className="dash-avatar chip-gradient mono" onClick={() => navigate('/app/profile')} aria-label="Open profile">
-              {initials || <User size={18} strokeWidth={2} />}
+            <button className="dash-avatar chip-gradient mono avatar-slot" onClick={() => navigate('/app/profile')} aria-label="Open profile">
+              <Avatar src={user?.avatar_url} name={user?.full_name} />
             </button>
           </div>
 

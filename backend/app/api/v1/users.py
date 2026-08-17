@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.db.session import get_db
 from app.models.contact import TrustedContact
@@ -14,12 +16,16 @@ from app.models.sos_event import SOSEvent
 from app.models.user import User
 from app.schemas.user import (
     AccountDeleteRequest,
+    AvatarConfirmRequest,
+    AvatarUploadRequest,
+    AvatarUploadResponse,
     DataExportOut,
     PreferencesUpdate,
     ProfileUpdate,
     TriggerUpdate,
     UserOut,
 )
+from app.services.storage.supabase_storage import SupabaseStorageError, supabase_storage
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -49,6 +55,55 @@ async def update_profile(
     if payload.medical_info is not None:
         user.medical_info = payload.medical_info or None
 
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.post("/me/avatar/upload-url", response_model=AvatarUploadResponse)
+async def create_avatar_upload_url(
+    payload: AvatarUploadRequest,
+    user: User = Depends(get_current_user),
+):
+    # {user_id}/avatar-{uuid} namespacing is what confirm_avatar checks a
+    # client-supplied path against below — never trust a path the client
+    # sends back without verifying it actually falls under this user.
+    path = f"{user.id}/avatar-{uuid.uuid4()}.{payload.file_extension}"
+    try:
+        result = await supabase_storage.create_signed_upload_url(settings.supabase_avatar_bucket, path)
+    except SupabaseStorageError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+    return AvatarUploadResponse(upload_url=result["upload_url"], path=result["path"])
+
+
+@router.post("/me/avatar/confirm", response_model=UserOut)
+async def confirm_avatar(
+    payload: AvatarConfirmRequest,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    expected_prefix = f"{user.id}/"
+    if not payload.path.startswith(expected_prefix):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Path does not belong to this account")
+
+    user.avatar_path = payload.path
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.delete("/me/avatar", response_model=UserOut)
+async def delete_avatar(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Reverts to the initials avatar. Doesn't bother deleting the old
+    object from storage — same tradeoff already made everywhere else in
+    this app that mints storage paths (see account deletion), and the old
+    path is never linked from anywhere once avatar_path is cleared."""
+    user.avatar_path = None
     db.add(user)
     await db.commit()
     await db.refresh(user)

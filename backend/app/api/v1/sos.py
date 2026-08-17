@@ -205,7 +205,7 @@ async def create_evidence_upload_url(
     # claims to belong to.
     path = f"{user.id}/{event.id}/{payload.media_type}-{uuid.uuid4()}.{payload.file_extension}"
     try:
-        result = await supabase_storage.create_signed_upload_url(path)
+        result = await supabase_storage.create_signed_upload_url(settings.supabase_evidence_bucket, path)
     except SupabaseStorageError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
 

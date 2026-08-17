@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Navigation, Users, Clock, CreditCard, Settings2, LogOut, Search, Bell, ShieldAlert, Shield, ChevronRight } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
+import { Avatar } from './ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { startShakeDetection } from '../lib/shakeDetector';
@@ -88,13 +89,6 @@ export default function AppShell({ children }) {
     navigate('/');
   };
 
-  const initials = user?.full_name
-    ?.split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
   const results = query.trim()
     ? contacts.filter((c) => `${c.name} ${c.phone}`.toLowerCase().includes(query.trim().toLowerCase()))
     : [];
@@ -156,8 +150,8 @@ export default function AppShell({ children }) {
           </div>
 
           <div className="app-topbar-item" ref={profileRef}>
-            <button className="app-avatar-btn chip-gradient mono" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu">
-              {initials || '—'}
+            <button className="app-avatar-btn chip-gradient mono avatar-slot" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu">
+              <Avatar src={user?.avatar_url} name={user?.full_name} />
             </button>
             {profileOpen && (
               <div className="app-dropdown app-profile-dropdown">
@@ -194,7 +188,7 @@ export default function AppShell({ children }) {
           </nav>
 
           <button className="app-sidebar-user" onClick={() => navigate('/app/profile')}>
-            <span className="app-sidebar-avatar chip-gradient mono">{initials || '—'}</span>
+            <span className="app-sidebar-avatar chip-gradient mono avatar-slot"><Avatar src={user?.avatar_url} name={user?.full_name} /></span>
             <span className="app-sidebar-user-text">
               <strong>{user?.full_name || 'Your account'}</strong>
               <span>{user?.phone}</span>

@@ -15,6 +15,25 @@ export function Card({ children, className = '', interactive, ...rest }) {
   return <div className={`card ${interactive ? 'card-interactive' : ''} ${className}`} {...rest}>{children}</div>;
 }
 
+export function initialsOf(name) {
+  return name?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+}
+
+// Drop-in content for any of the app's avatar-shaped slots (the header
+// button, sidebar chip, Dashboard button, Profile header — all already
+// sized/shaped by their own className, this just supplies what goes inside
+// it). Renders the real photo when there is one; falls back to initials
+// on load failure just as readily as when there's no photo at all, so a
+// broken/misconfigured avatar_url degrades to the old look instead of a
+// broken-image icon.
+export function Avatar({ src, name }) {
+  const [broken, setBroken] = useState(false);
+  if (src && !broken) {
+    return <img src={src} alt="" onError={() => setBroken(true)} />;
+  }
+  return initialsOf(name) || '—';
+}
+
 // Animates from 0 (or its previous value) to `value` whenever `value`
 // changes — used for hero/KPI figures so real data updates read as
 // alive rather than just replacing text instantly.

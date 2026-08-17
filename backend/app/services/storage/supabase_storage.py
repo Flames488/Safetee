@@ -41,14 +41,14 @@ class SupabaseStorageClient:
             raise SupabaseStorageError(body.get("message", f"Supabase Storage request failed (HTTP {response.status_code})"))
         return body
 
-    async def create_signed_upload_url(self, path: str) -> dict:
+    async def create_signed_upload_url(self, bucket: str, path: str) -> dict:
         """Returns {"upload_url": <absolute PUT target, token embedded>,
         "path": path}. The client PUTs raw file bytes there directly — the
         file never passes through our backend."""
         base = self._base_url()
         async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
-                f"{base}/object/upload/sign/{settings.supabase_evidence_bucket}/{path}",
+                f"{base}/object/upload/sign/{bucket}/{path}",
                 headers=self._headers(),
                 json={},
             )
@@ -60,7 +60,8 @@ class SupabaseStorageClient:
 
     async def create_signed_download_url(self, path: str) -> str:
         """Returns a short-lived, absolute signed GET URL. Never cache or
-        persist this — mint a fresh one on every read."""
+        persist this — mint a fresh one on every read. Evidence-only (the
+        one bucket that isn't public) — see public_url for avatars."""
         base = self._base_url()
         async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
@@ -73,6 +74,13 @@ class SupabaseStorageClient:
         if not relative_url:
             raise SupabaseStorageError("Supabase Storage did not return a signed download url")
         return f"{base}{relative_url}"
+
+    def public_url(self, bucket: str, path: str) -> str:
+        """No signing, no network call — only correct for a bucket actually
+        configured as public in the Supabase dashboard (see
+        supabase_avatar_bucket). Never use this for the evidence bucket,
+        which must stay private."""
+        return f"{settings.supabase_url.rstrip('/')}{STORAGE_API_PATH}/object/public/{bucket}/{path}"
 
 
 supabase_storage = SupabaseStorageClient()

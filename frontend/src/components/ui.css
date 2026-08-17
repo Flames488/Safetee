@@ -40,6 +40,13 @@
 
 .btn:disabled{ opacity:.4; pointer-events:none; }
 
+/* Any avatar-shaped slot (header button, sidebar chip, Dashboard button,
+   Profile header) opts into this so a real photo fills it exactly like
+   the initials it replaces — the slot's own class still controls size,
+   shape, and the gradient fallback background. */
+.avatar-slot{ overflow:hidden; }
+.avatar-slot img{ width:100%; height:100%; object-fit:cover; border-radius:inherit; display:block; }
+
 .card{
   background:var(--card);
   border:1px solid var(--line);

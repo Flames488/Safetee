@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_role_key: str = ""
     supabase_evidence_bucket: str = "sos-evidence"
+    # Unlike the evidence bucket, this one must be created as *public* in
+    # the Supabase dashboard — see User.avatar_url. Uploads still go
+    # through a signed URL either way (see create_signed_upload_url).
+    supabase_avatar_bucket: str = "avatars"
     evidence_signed_url_ttl_seconds: int = 3600
     # Hard per-event caps so an active SOS can't silently run up storage/
     # bandwidth past what the free-tier backing store actually has —

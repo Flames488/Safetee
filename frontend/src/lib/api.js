@@ -119,6 +119,11 @@ export const api = {
   exportMyData: () => request('/users/me/export'),
   deleteAccount: (password) => request('/users/me', { method: 'DELETE', body: { password } }),
 
+  createAvatarUploadUrl: (fileExtension) =>
+    request('/users/me/avatar/upload-url', { method: 'POST', body: { file_extension: fileExtension } }),
+  confirmAvatar: (path) => request('/users/me/avatar/confirm', { method: 'POST', body: { path } }),
+  deleteAvatar: () => request('/users/me/avatar', { method: 'DELETE' }),
+
   registerDevice: (payload) => request('/devices', { method: 'POST', body: payload }),
   unregisterDevice: (endpoint) => request(`/devices?endpoint=${encodeURIComponent(endpoint)}`, { method: 'DELETE' }),
 
