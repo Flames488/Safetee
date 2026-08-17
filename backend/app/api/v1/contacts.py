@@ -63,9 +63,17 @@ async def create_contact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    contact = TrustedContact(user_id=user.id, **payload.model_dump())
+    # Stored normalized — see normalize_phone's docstring. Without this,
+    # a contact added as "+234 803 123 4567" would never match that same
+    # person's own account (stored as, say, "+2348031234567"), which
+    # silently broke every feature that depends on recognizing "this
+    # contact is also a Safetee account": the Alerts/Network page,
+    # evidence access, location requests.
+    data = payload.model_dump()
+    data["phone"] = normalize_phone(data["phone"])
+    contact = TrustedContact(user_id=user.id, **data)
     matched = (
-        await db.execute(select(User.id).where(User.phone == normalize_phone(contact.phone)))
+        await db.execute(select(User.id).where(User.phone == contact.phone))
     ).scalar_one_or_none()
     if matched is not None:
         contact.is_app_user = True

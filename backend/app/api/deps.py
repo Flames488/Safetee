@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.phone import normalize_phone
 from app.core.security import decode_token
 from app.db.session import get_db
 from app.models.enums import AdminRole
@@ -42,7 +43,11 @@ async def get_current_user(
     # the next time you log in (or any request that resolves the current
     # user) it's applied. Blank by default — nobody is auto-promoted unless
     # you explicitly configure this.
-    if settings.super_admin_phone and user.phone == settings.super_admin_phone and user.admin_role != AdminRole.super_admin:
+    if (
+        settings.super_admin_phone
+        and user.phone == normalize_phone(settings.super_admin_phone)
+        and user.admin_role != AdminRole.super_admin
+    ):
         user.admin_role = AdminRole.super_admin
         db.add(user)
         await db.commit()

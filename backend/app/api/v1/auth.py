@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.phone import normalize_phone
 from app.core.rate_limit import enforce_rate_limit
 from app.core.scheduler import run_soon
 from app.core.security import (
@@ -41,13 +42,19 @@ _OTP_TTL_MINUTES = 10
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
-    existing = await db.execute(select(User).where(User.phone == payload.phone))
+    # Stored normalized so every later comparison — login, contact
+    # matching for the Alerts page/evidence/location sharing — can rely on
+    # an exact match against this column without each caller separately
+    # re-normalizing it. See normalize_phone's docstring for why this
+    # matters and why it's still a safe, lossless transform.
+    phone = normalize_phone(payload.phone)
+    existing = await db.execute(select(User).where(User.phone == phone))
     if existing.scalar_one_or_none():
         raise HTTPException(status.HTTP_409_CONFLICT, "An account with this phone number already exists")
 
     user = User(
         full_name=payload.full_name,
-        phone=payload.phone,
+        phone=phone,
         email=payload.email,
         password_hash=hash_password(payload.password),
     )
@@ -75,7 +82,10 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     # phone number's password with no limit on attempts.
     enforce_rate_limit(f"login:{payload.phone}", max_attempts=10, window_seconds=900)
 
-    result = await db.execute(select(User).where(User.phone == payload.phone))
+    # Login has to keep working regardless of which format the person
+    # happens to type this time — the stored value is normalized (see
+    # signup), so the lookup has to normalize the input the same way.
+    result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
     user = result.scalar_one_or_none()
 
     if user is not None and verify_password(payload.password, user.password_hash):
@@ -151,7 +161,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
     # bill) by repeatedly requesting codes for the same number.
     enforce_rate_limit(f"otp-request:{payload.phone}", max_attempts=3, window_seconds=900)
 
-    result = await db.execute(select(User).where(User.phone == payload.phone))
+    result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
     user = result.scalar_one_or_none()
     if user is None:
         return
@@ -177,7 +187,7 @@ async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depen
     # individual guess is right or wrong.
     enforce_rate_limit(f"otp-verify:{payload.phone}", max_attempts=5, window_seconds=_OTP_TTL_MINUTES * 60)
 
-    result = await db.execute(select(User).where(User.phone == payload.phone))
+    result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
     user = result.scalar_one_or_none()
 
     invalid = HTTPException(status.HTTP_400_BAD_REQUEST, "That code is invalid or has expired.")
