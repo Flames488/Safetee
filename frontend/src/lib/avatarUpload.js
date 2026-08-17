@@ -21,12 +21,28 @@ export async function uploadAvatar(file) {
   let res;
   try {
     res = await fetch(uploadUrl, { method: 'PUT', body: file, signal: controller.signal });
-  } catch {
-    throw new AvatarUploadError('Upload failed — check your connection and try again.');
+  } catch (err) {
+    // A genuine network failure (offline, DNS, CORS block, timed-out abort)
+    // never reaches a response at all — this is the one case where "check
+    // your connection" is actually the right message.
+    throw new AvatarUploadError(
+      err?.name === 'AbortError'
+        ? 'Upload timed out — check your connection and try again.'
+        : 'Upload failed — check your connection and try again.'
+    );
   } finally {
     clearTimeout(timeout);
   }
-  if (!res.ok) throw new AvatarUploadError('Upload failed — check your connection and try again.');
+  if (!res.ok) {
+    // Supabase Storage returns a JSON body describing exactly what it
+    // rejected (bucket MIME-type restriction, size limit, expired signed
+    // URL, ...) — surface that instead of a generic message that hides
+    // the actual reason and makes this impossible to diagnose remotely.
+    const detail = await res.json().catch(() => null);
+    throw new AvatarUploadError(
+      detail?.message ? `Upload rejected: ${detail.message}` : `Upload failed (HTTP ${res.status}). Please try again.`
+    );
+  }
 
   return api.confirmAvatar(path);
 }
