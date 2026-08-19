@@ -304,6 +304,36 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, body, confirmLa
   );
 }
 
+// ConfirmDialog's sibling for actions that need an admin to actually write
+// down why (suspend/ban/soft-delete a user) rather than rubber-stamp a
+// confirm button — see AdminDashboard.jsx. reasonRequired defaults on;
+// pass false for actions where a reason is good practice but optional
+// (reinstate, force-logout).
+export function ReasonConfirmDialog({
+  open, onClose, onConfirm, title, body, confirmLabel = 'Confirm', tone = 'danger', busy,
+  reason, onReasonChange, reasonRequired = true, reasonPlaceholder = 'Reason for this action…',
+}) {
+  const canConfirm = !reasonRequired || reason.trim().length >= 3;
+  return (
+    <Modal open={open} onClose={onClose} title={title} width={420}>
+      {body && <p className="confirm-body">{body}</p>}
+      <textarea
+        className="field-input reason-textarea"
+        value={reason}
+        onChange={(e) => onReasonChange(e.target.value)}
+        placeholder={reasonPlaceholder}
+        rows={3}
+      />
+      <div className="confirm-actions">
+        <Button variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
+        <Button variant={tone === 'danger' ? 'danger' : 'primary'} onClick={onConfirm} disabled={busy || !canConfirm}>
+          {busy ? 'Working…' : confirmLabel}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
 // Slide-in panel from the right — for secondary detail views (e.g. a user's
 // full record from an admin table) that don't warrant leaving the page.
 export function Drawer({ open, onClose, title, children }) {

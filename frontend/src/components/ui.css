@@ -198,6 +198,7 @@
 
 .confirm-body{ font-size:14px; color:var(--ink-1); line-height:1.55; }
 .confirm-actions{ display:flex; justify-content:flex-end; gap:10px; }
+.reason-textarea{ width:100%; resize:vertical; min-height:64px; font-family:inherit; margin-bottom:14px; }
 
 .drawer{
   position:fixed; top:0; right:0; bottom:0; width:100%; max-width:420px;

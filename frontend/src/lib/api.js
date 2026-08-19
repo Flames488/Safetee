@@ -208,9 +208,28 @@ export const api = {
   // limit=200 (the backend's own max) rather than its 50-user default — the
   // dashboard derives a signups trend and status breakdown from this list
   // client-side, so it needs as full a picture as the endpoint allows.
-  adminUsers: () => request('/admin/users?limit=200'),
+  adminUsers: ({ statusFilter, trialExpiringWithinDays } = {}) => {
+    const params = new URLSearchParams({ limit: '200' });
+    if (statusFilter) params.set('status_filter', statusFilter);
+    if (trialExpiringWithinDays != null) params.set('trial_expiring_within_days', String(trialExpiringWithinDays));
+    return request(`/admin/users?${params.toString()}`);
+  },
+  adminUserDetail: (userId) => request(`/admin/users/${userId}`),
   adminUpdateRole: (userId, role, masterPassword) =>
     request(`/admin/users/${userId}/role`, { method: 'POST', body: { role, master_password: masterPassword } }),
-  adminToggleSuspend: (userId, masterPassword) =>
-    request(`/admin/users/${userId}/suspend`, { method: 'POST', body: { master_password: masterPassword } }),
+  adminSuspend: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/suspend`, { method: 'POST', body: { master_password: masterPassword, reason } }),
+  adminBan: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/ban`, { method: 'POST', body: { master_password: masterPassword, reason } }),
+  adminReinstate: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/reinstate`, { method: 'POST', body: { master_password: masterPassword, reason: reason || null } }),
+  adminForceLogout: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/force-logout`, { method: 'POST', body: { master_password: masterPassword, reason: reason || null } }),
+  adminGrantTrial: (userId, masterPassword, days) =>
+    request(`/admin/users/${userId}/trial`, { method: 'POST', body: { master_password: masterPassword, days } }),
+  adminDeleteUser: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/delete`, { method: 'POST', body: { master_password: masterPassword, reason } }),
+  adminRestoreUser: (userId, masterPassword, reason) =>
+    request(`/admin/users/${userId}/restore`, { method: 'POST', body: { master_password: masterPassword, reason: reason || null } }),
+  adminAuditLog: () => request('/admin/audit-log?limit=200'),
 };
