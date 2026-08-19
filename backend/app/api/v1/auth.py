@@ -1,9 +1,10 @@
 import logging
 import secrets
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +20,8 @@ from app.core.security import (
     verify_password,
 )
 from app.db.session import get_db
-from app.models.enums import SOSStatus, SOSTrigger, SubscriptionStatus
+from app.models.enums import AccountStatus, SOSStatus, SOSTrigger, SubscriptionStatus
+from app.models.login_event import LoginEvent
 from app.models.sos_event import SOSEvent
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -38,6 +40,19 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger("safetee.auth")
 
 _OTP_TTL_MINUTES = 10
+
+
+def _client_ip(request: Request) -> str | None:
+    """Render (like most PaaS platforms) terminates TLS at its own edge and
+    proxies plain HTTP to this container — request.client.host alone would
+    just be Render's internal proxy address, not the real caller. Trusts
+    the first hop of X-Forwarded-For since nothing between Render's edge
+    and this container is attacker-controlled; falls back to
+    request.client.host for local/direct-connection dev."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -88,7 +103,7 @@ async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
     # Capped independently of whether any individual guess is right or
     # wrong — otherwise this endpoint is a free way to brute-force a known
     # phone number's password with no limit on attempts.
@@ -101,12 +116,25 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
 
     if user is not None and verify_password(payload.password, user.password_hash):
-        # Without this, a suspended account still got a "successful" login
-        # response and a real token pair — get_current_user's own is_active
-        # check would then 401 every single request made with it, so the
-        # account just looked broken instead of clearly suspended.
-        if not user.is_active:
+        # Without this, a suspended/banned/deleted account still got a
+        # "successful" login response and a real token pair —
+        # get_current_user's own checks would then 401 every single
+        # request made with it, so the account just looked broken instead
+        # of clearly blocked.
+        if user.deleted_at is not None:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "This account no longer exists")
+        if user.account_status == AccountStatus.suspended:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This account has been suspended")
+        if user.account_status == AccountStatus.banned:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "This account has been banned")
+
+        now = datetime.now(UTC)
+        user.last_login_at = now
+        user.last_active_at = now
+        db.add(user)
+        db.add(LoginEvent(user_id=user.id, ip_address=_client_ip(request), user_agent=request.headers.get("user-agent")))
+        await db.commit()
+
         return TokenResponse(
             access_token=create_access_token(str(user.id)),
             refresh_token=create_refresh_token(str(user.id)),
@@ -146,15 +174,33 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(payload: RefreshRequest):
+async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
     try:
         decoded = decode_token(payload.refresh_token)
         if decoded.get("type") != "refresh":
             raise ValueError
-    except (jwt.PyJWTError, ValueError):
+        subject = decoded["sub"]
+        issued_at = decoded.get("iat")
+    except (jwt.PyJWTError, ValueError, KeyError):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token") from None
 
-    subject = decoded["sub"]
+    # Previously this never looked the user up at all — a still-valid
+    # refresh token from a suspended/banned/deleted account, or one
+    # force-logged-out via sessions_invalidated_at, could mint itself a
+    # brand new access token forever. The new access token would still
+    # get rejected on its next actual use (get_current_user re-checks all
+    # of this), but there's no reason to hand one out at all.
+    invalid = HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
+    try:
+        user = await db.get(User, uuid.UUID(subject))
+    except ValueError:
+        raise invalid from None
+    if user is None or user.account_status != AccountStatus.active or user.deleted_at is not None:
+        raise invalid
+    if user.sessions_invalidated_at is not None:
+        if issued_at is None or datetime.fromtimestamp(issued_at, tz=UTC) < user.sessions_invalidated_at:
+            raise invalid
+
     return TokenResponse(
         access_token=create_access_token(subject),
         refresh_token=create_refresh_token(subject),

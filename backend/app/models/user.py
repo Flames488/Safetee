@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.config import settings
 from app.db.mixins import TimestampMixin, UUIDMixin
 from app.db.session import Base
-from app.models.enums import AdminRole
+from app.models.enums import AccountStatus, AdminRole
 from app.services.storage.supabase_storage import supabase_storage
 
 
@@ -62,8 +62,36 @@ class User(Base, UUIDMixin, TimestampMixin):
     # requires an existing super_admin plus the separate master password.
     admin_role: Mapped[AdminRole] = mapped_column(Enum(AdminRole, name="admin_role"), default=AdminRole.none)
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Replaces the old plain is_active boolean — see AccountStatus. Kept as
+    # a single column (not is_active + is_banned) so there's exactly one
+    # source of truth for "can this account currently authenticate."
+    # get_current_user, login, and /auth/refresh all gate on this.
+    account_status: Mapped[AccountStatus] = mapped_column(
+        Enum(AccountStatus, name="account_status"), default=AccountStatus.active, index=True
+    )
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Admin-initiated soft delete (distinct from the user's own DELETE
+    # /users/me, which is an immediate hard delete they explicitly
+    # confirmed with their password). A blocked-login state like
+    # suspended/banned, but additionally purged for good by
+    # purge_soft_deleted_accounts after the grace period — see
+    # app/workers/tasks/admin_tasks.py.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Every login/refresh issues a token stamped with the moment it was
+    # created (see create_access_token/create_refresh_token's `iat`).
+    # Setting this to "now" instantly invalidates every token already
+    # issued — including ones a client still holds and could otherwise
+    # keep refreshing forever — without needing a revocation-list table.
+    sessions_invalidated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Broader than last_login_at — touched on any authenticated request,
+    # not just login (see get_current_user). Throttled to roughly once per
+    # 15 minutes there rather than on every single request, which would
+    # otherwise add a DB write to every authenticated call in the app.
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     contacts = relationship("TrustedContact", back_populates="user", cascade="all, delete-orphan")
     journeys = relationship("Journey", back_populates="user", cascade="all, delete-orphan")
@@ -71,6 +99,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     devices = relationship("Device", back_populates="user", cascade="all, delete-orphan")
     subscription = relationship("Subscription", back_populates="user", uselist=False, cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
+    login_events = relationship("LoginEvent", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def has_fake_pin(self) -> bool:

@@ -1,5 +1,6 @@
 import hmac
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -11,8 +12,14 @@ from app.core.config import settings
 from app.core.phone import normalize_phone
 from app.core.security import decode_token
 from app.db.session import get_db
-from app.models.enums import AdminRole
+from app.models.enums import AccountStatus, AdminRole
 from app.models.user import User
+
+# How often last_active_at actually writes to the DB — see the field's
+# docstring on the model. Touched on every authenticated request but only
+# persisted this often, so "last seen" stays real without adding a write
+# to every single API call in the app.
+_LAST_ACTIVE_THROTTLE = timedelta(minutes=15)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -30,13 +37,23 @@ async def get_current_user(
         if payload.get("type") != "access":
             raise credentials_error
         user_id = uuid.UUID(payload["sub"])
+        issued_at = payload.get("iat")
     except (jwt.PyJWTError, KeyError, ValueError):
         raise credentials_error from None
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    if user is None or not user.is_active:
+    if user is None or user.account_status != AccountStatus.active or user.deleted_at is not None:
         raise credentials_error
+
+    # Admin-initiated force-logout: any token issued before this moment is
+    # rejected even though it's still cryptographically valid and unexpired
+    # — see sessions_invalidated_at's docstring on the model for why this
+    # is what makes "log this device out" possible without a separate
+    # revocation-list table.
+    if user.sessions_invalidated_at is not None:
+        if issued_at is None or datetime.fromtimestamp(issued_at, tz=UTC) < user.sessions_invalidated_at:
+            raise credentials_error
 
     # Bootstraps your own account into super_admin with zero manual DB
     # writes: set SUPER_ADMIN_PHONE in .env to your own phone number, and
@@ -52,6 +69,12 @@ async def get_current_user(
         db.add(user)
         await db.commit()
         await db.refresh(user)
+
+    now = datetime.now(UTC)
+    if user.last_active_at is None or now - user.last_active_at > _LAST_ACTIVE_THROTTLE:
+        user.last_active_at = now
+        db.add(user)
+        await db.commit()
 
     return user
 

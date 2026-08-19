@@ -74,3 +74,26 @@ class AdminRole(str, enum.Enum):
     none = "none"
     viewer = "viewer"            # read-only: stats and user list, no mutations
     super_admin = "super_admin"  # everything viewer can do, plus role/suspend actions — each gated separately by the master password, not by this role alone
+
+
+class AccountStatus(str, enum.Enum):
+    """Replaces the old plain is_active boolean. suspended and banned have
+    the identical practical effect (blocks login/get_current_user) — the
+    distinction is audit trail and admin intent, not different enforcement.
+    Both can be cleared back to active via reinstate."""
+    active = "active"
+    suspended = "suspended"
+    banned = "banned"
+
+
+class AdminAction(str, enum.Enum):
+    """What AdminAuditLog.action records — one row per mutating admin
+    action taken against a user, see app/api/v1/admin.py."""
+    role_change = "role_change"
+    suspend = "suspend"
+    ban = "ban"
+    reinstate = "reinstate"
+    grant_trial = "grant_trial"
+    soft_delete = "soft_delete"
+    restore = "restore"
+    force_logout = "force_logout"

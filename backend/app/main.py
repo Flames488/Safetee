@@ -23,6 +23,7 @@ from app.core.config import settings
 from app.core.scheduler import start_periodic
 from app.websockets.location_sharing import router as location_ws_router
 from app.websockets.tracking import router as ws_router
+from app.workers.tasks.admin_tasks import purge_soft_deleted_accounts
 from app.workers.tasks.billing_tasks import sweep_expired_subscriptions
 from app.workers.tasks.journey_tasks import sweep_overdue_journeys
 from app.workers.tasks.sos_tasks import retry_failed_alerts
@@ -42,6 +43,9 @@ async def lifespan(app: FastAPI):
         start_periodic(sweep_overdue_journeys, 30),
         start_periodic(retry_failed_alerts, 120),
         start_periodic(sweep_expired_subscriptions, 3600),
+        # Once a day is plenty for a purge with a multi-week grace window —
+        # see purge_soft_deleted_accounts.
+        start_periodic(purge_soft_deleted_accounts, 86400),
     ]
     yield
     for task in background:

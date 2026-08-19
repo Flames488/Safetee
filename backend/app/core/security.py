@@ -37,16 +37,21 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
-    expire = datetime.now(UTC) + (
-        expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
-    )
-    payload = {"sub": subject, "exp": expire, "type": "access"}
+    now = datetime.now(UTC)
+    expire = now + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
+    # iat is what makes admin-initiated force-logout possible: get_current_user
+    # (and /auth/refresh) reject any token issued before
+    # User.sessions_invalidated_at, so a token that's otherwise still
+    # cryptographically valid stops working the moment an admin sets that
+    # field — without minting a whole separate revocation-list system.
+    payload = {"sub": subject, "iat": now, "exp": expire, "type": "access"}
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
 def create_refresh_token(subject: str) -> str:
-    expire = datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days)
-    payload = {"sub": subject, "exp": expire, "type": "refresh"}
+    now = datetime.now(UTC)
+    expire = now + timedelta(days=settings.refresh_token_expire_days)
+    payload = {"sub": subject, "iat": now, "exp": expire, "type": "refresh"}
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 

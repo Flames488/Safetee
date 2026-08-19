@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     paystack_secret_key: str = ""
     paystack_public_key: str = ""
     trial_period_days: int = 30
+    # Grace period between an admin-initiated soft delete
+    # (POST /admin/users/{id}/delete) and purge_soft_deleted_accounts
+    # hard-deleting the row for real. The user's own self-service
+    # DELETE /users/me is unaffected — that's still an immediate hard delete.
+    account_deletion_grace_days: int = 30
     frontend_url: str = "http://localhost:5173"
 
     # Evidence upload (Supabase Storage) — bucket must be private; every

@@ -1,6 +1,7 @@
 from sqlalchemy import select
 
 from app.db.session import AsyncSessionLocal
+from app.models.enums import AccountStatus
 from app.models.user import User
 
 
@@ -94,7 +95,7 @@ async def test_login_with_unregistered_phone_is_rejected(client):
 async def test_login_with_correct_password_but_suspended_account_is_rejected(client):
     """A suspended account must fail clearly at login rather than getting a
     token pair that then 401s on every subsequent request via
-    get_current_user's own is_active check."""
+    get_current_user's own account_status check."""
     await client.post(
         "/api/v1/auth/signup",
         json={"full_name": "Chidi", "phone": "+2348100005521", "password": "supersecret123"},
@@ -102,7 +103,7 @@ async def test_login_with_correct_password_but_suspended_account_is_rejected(cli
 
     async with AsyncSessionLocal() as db:
         user = (await db.execute(select(User).where(User.phone == "+2348100005521"))).scalar_one()
-        user.is_active = False
+        user.account_status = AccountStatus.suspended
         await db.commit()
 
     r = await client.post(
