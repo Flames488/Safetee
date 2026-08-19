@@ -6,10 +6,16 @@
 .ad-hero{
   padding:24px 26px; position:relative; overflow:hidden;
   background:linear-gradient(160deg, var(--card-hi) 0%, var(--card) 65%);
+  display:flex; flex-direction:column; justify-content:space-between; gap:10px;
 }
-.ad-hero-icon{ color:var(--brand-bright); margin-bottom:10px; }
+/* Oversized faint icon anchored in the corner — keeps the card from
+   reading as an empty box once it's stretched to match the KPI row's
+   height (which varies with viewport width). */
+.ad-hero-watermark{ position:absolute; right:-22px; bottom:-22px; color:var(--brand-bright); opacity:.07; pointer-events:none; }
+.ad-hero-top{ display:flex; align-items:center; gap:8px; }
+.ad-hero-icon{ color:var(--brand-bright); }
 .ad-hero-label{ font-size:12px; color:var(--ink-2); letter-spacing:.02em; display:block; }
-.ad-hero-value{ font-size:42px; line-height:1.1; margin:6px 0 4px; display:flex; align-items:baseline; gap:4px; }
+.ad-hero-value{ font-size:42px; line-height:1.1; display:flex; align-items:baseline; gap:4px; }
 /* The ₦ glyph isn't in Sora — rendered in the body font with normal
    tracking so it never collides with the tightly-tracked Sora digits
    next to it (see .stat-figure). */

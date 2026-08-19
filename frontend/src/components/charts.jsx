@@ -62,31 +62,37 @@ export function TrendChart({ data, height = 180, formatValue = (v) => v, emptyLa
   );
 }
 
-// Horizontal stacked-segment breakdown with a legend — used for the
-// subscription-status mix. `segments` is `[{ label, value, tone }]`; tone
-// maps to the existing pill/kpi tint tokens (good/info/warn/danger/neutral).
+// Breakdown — one row per segment, each with its own proportional bar.
+// Used for the subscription-status mix. `segments` is `[{ label, value,
+// tone }]`; tone maps to the existing pill/kpi tint tokens
+// (good/info/warn/danger/neutral). A per-row layout (rather than one
+// combined bar plus a separate legend) scales its own height with the
+// number of segments, so it holds its own next to a tall chart instead
+// of leaving a block of empty card below a single thin bar.
 export function BreakdownBar({ segments, format = (n) => n.toLocaleString() }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
   return (
     <div className="breakdown">
-      <div className="breakdown-bar">
-        {segments.filter((s) => s.value > 0).map((s) => (
-          <span
-            key={s.label}
-            className={`breakdown-seg breakdown-seg-${s.tone || 'neutral'}`}
-            style={{ width: `${(s.value / total) * 100}%` }}
-            title={`${s.label}: ${format(s.value)}`}
-          />
-        ))}
-      </div>
-      <ul className="breakdown-legend">
-        {segments.map((s) => (
-          <li key={s.label}>
-            <span className={`breakdown-dot breakdown-dot-${s.tone || 'neutral'}`} />
-            {s.label} <strong>{format(s.value)}</strong>
-          </li>
-        ))}
-      </ul>
+      {segments.map((s) => {
+        const pct = (s.value / total) * 100;
+        return (
+          <div className="breakdown-row" key={s.label}>
+            <div className="breakdown-row-head">
+              <span className="breakdown-row-label">
+                <span className={`breakdown-dot breakdown-dot-${s.tone || 'neutral'}`} />
+                {s.label}
+              </span>
+              <span className="breakdown-row-value">
+                <strong>{format(s.value)}</strong>
+                <span className="breakdown-row-pct">{Math.round(pct)}%</span>
+              </span>
+            </div>
+            <div className="breakdown-track">
+              <span className={`breakdown-fill breakdown-fill-${s.tone || 'neutral'}`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

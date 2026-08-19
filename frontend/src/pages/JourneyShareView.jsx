@@ -48,7 +48,7 @@ export default function JourneyShareView() {
 
   return (
     <div className="tk-wrap">
-      <TopBar title="Live journey" back={false} subtitle="Shared with you as a trusted contact" />
+      <TopBar title="Live journey" subtitle="Shared with you as a trusted contact" />
       <div className="hs-list">
         {wsStatus === 'ended' && (
           <Card className="hs-card net-empty">

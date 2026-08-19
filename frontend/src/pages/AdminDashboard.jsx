@@ -238,7 +238,6 @@ export default function AdminDashboard() {
     <>
       <TopBar
         title="Admin"
-        back={false}
         subtitle={isSuperAdmin ? 'Super admin — full access' : 'Viewer — read-only access'}
         action={
           <Button size="sm" variant={view === 'audit-log' ? 'secondary' : 'ghost'} onClick={() => setView(view === 'audit-log' ? 'users' : 'audit-log')}>
@@ -273,8 +272,11 @@ export default function AdminDashboard() {
         ) : (
           <div className="ad-hero-row">
             <Card className="ad-hero">
-              <Wallet size={18} strokeWidth={2} className="ad-hero-icon" />
-              <span className="ad-hero-label">Revenue this month</span>
+              <Wallet size={148} strokeWidth={1.2} className="ad-hero-watermark" aria-hidden="true" />
+              <div className="ad-hero-top">
+                <Wallet size={18} strokeWidth={2} className="ad-hero-icon" />
+                <span className="ad-hero-label">Revenue this month</span>
+              </div>
               <div className="ad-hero-value">
                 {stats ? (
                   <>
