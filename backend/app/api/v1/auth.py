@@ -42,6 +42,18 @@ _OTP_TTL_MINUTES = 10
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
+    # Honeypot — see SignupRequest.website's docstring. A filled value
+    # means whatever submitted this isn't the real form; fail exactly like
+    # a validation error rather than revealing the mechanism.
+    if payload.website:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid request")
+
+    # Same reasoning as login's rate limit — otherwise repeatedly hitting
+    # this endpoint for the same number is free (previously the only limit
+    # here at all was the 409 dedup check, which does nothing to slow down
+    # an automated flood of *attempts*).
+    enforce_rate_limit(f"signup:{payload.phone}", max_attempts=5, window_seconds=3600)
+
     # Stored normalized so every later comparison — login, contact
     # matching for the Alerts page/evidence/location sharing — can rely on
     # an exact match against this column without each caller separately

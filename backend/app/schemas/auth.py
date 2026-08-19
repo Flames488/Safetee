@@ -6,6 +6,15 @@ class SignupRequest(BaseModel):
     phone: str = Field(min_length=8, max_length=20)
     email: EmailStr | None = None
     password: str = Field(min_length=8, max_length=512)
+    # Honeypot: a field the real signup form never shows or fills (see
+    # Onboarding.jsx), which simple signup bots fill anyway because they
+    # parse the DOM structurally rather than rendering it. A human always
+    # leaves this empty; anything else here is treated as bot traffic and
+    # rejected in the signup handler. Not a full bot-protection story on
+    # its own — pairs with the per-phone rate limit below — but real
+    # third-party protection (e.g. Cloudflare Turnstile) needs a service
+    # account this app doesn't have set up.
+    website: str = ""
 
 
 class LoginRequest(BaseModel):

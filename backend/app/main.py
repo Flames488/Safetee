@@ -58,6 +58,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """This API never renders HTML itself (the actual pages are served by
+    the separate Vercel-hosted frontend, which sets its own headers via
+    vercel.json) — these are defense-in-depth on the JSON/WebSocket
+    responses this service does send, cheap and safe to apply unconditionally.
+    Deliberately no HTTPSRedirectMiddleware here: Render terminates TLS at
+    its edge and forwards plain HTTP internally, which is also what the
+    Docker healthcheck hits directly (see Dockerfile) — a redirect at this
+    layer would break that, not just this app.
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+    return response
+
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(users.router, prefix=settings.api_v1_prefix)
 app.include_router(billing.router, prefix=settings.api_v1_prefix)

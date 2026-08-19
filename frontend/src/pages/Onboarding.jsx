@@ -76,7 +76,11 @@ const TOTAL_STEPS = 7;
 export default function Onboarding() {
   const [step, setStep] = useState(STEP.WELCOME);
   const [permState, setPermState] = useState({}); // id -> 'granted' | 'denied' | 'unsupported'
-  const [account, setAccount] = useState({ full_name: '', phone: '', password: '' });
+  // `website` is a honeypot — a real person never sees or fills it (see
+  // its input below and SignupRequest.website's docstring on the
+  // backend); a bot filling forms by DOM structure rather than rendering
+  // usually does. Sent through as-is; the backend does the actual check.
+  const [account, setAccount] = useState({ full_name: '', phone: '', password: '', website: '' });
   const [accountError, setAccountError] = useState('');
   const [accountBusy, setAccountBusy] = useState(false);
   const [contact, setContact] = useState({ name: '', phone: '' });
@@ -116,6 +120,7 @@ export default function Onboarding() {
         full_name: account.full_name,
         phone: account.phone,
         password: account.password,
+        website: account.website,
       });
       setStep(STEP.PERMISSIONS);
     } catch (err) {
@@ -251,6 +256,21 @@ export default function Onboarding() {
                 minLength={8}
               />
             </label>
+            {/* Honeypot — invisible and unreachable to a real person (off-screen,
+                not display:none, since some bots skip display:none fields;
+                tabIndex/aria-hidden keep it out of keyboard and screen-reader
+                flow too), so only something filling every input by DOM
+                structure would ever populate it. See SignupRequest.website. */}
+            <input
+              type="text"
+              name="website"
+              value={account.website}
+              onChange={(e) => setAccount({ ...account, website: e.target.value })}
+              style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
           </div>
           {accountError && <p className="ob-error" role="alert">{accountError}</p>}
           <div className="ob-spacer" />

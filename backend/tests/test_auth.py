@@ -20,6 +20,35 @@ async def test_signup_returns_tokens(client):
     assert body["token_type"] == "bearer"
 
 
+async def test_signup_rejects_filled_honeypot(client):
+    r = await client.post(
+        "/api/v1/auth/signup",
+        json={
+            "full_name": "Bot",
+            "phone": "+2348100005521",
+            "password": "supersecret123",
+            "website": "http://spam.example",
+        },
+    )
+    assert r.status_code == 400
+
+    # must not have actually created the account
+    r = await client.post(
+        "/api/v1/auth/login", json={"phone": "+2348100005521", "password": "supersecret123"}
+    )
+    assert r.status_code == 401
+
+
+async def test_signup_is_rate_limited_per_phone(client):
+    payload = {"full_name": "Chidi", "phone": "+2348100005521", "password": "supersecret123"}
+    for _ in range(5):
+        r = await client.post("/api/v1/auth/signup", json=payload)
+        assert r.status_code in (201, 409)  # first succeeds, rest 409 on the dedup check — neither is a 429 yet
+
+    r = await client.post("/api/v1/auth/signup", json=payload)
+    assert r.status_code == 429
+
+
 async def test_signup_rejects_duplicate_phone(client):
     payload = {"full_name": "Chidi", "phone": "+2348100005521", "password": "supersecret123"}
     r1 = await client.post("/api/v1/auth/signup", json=payload)
