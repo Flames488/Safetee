@@ -63,7 +63,7 @@ export default function SOSEvidence() {
     <div className="ev-wrap">
       <TopBar
         title="SOS evidence"
-        back={!shareToken}
+        back
         subtitle={shareToken ? 'Shared with you as a trusted contact' : 'Audio, photo and video captured during this alert'}
       />
       <div className="st-body">
