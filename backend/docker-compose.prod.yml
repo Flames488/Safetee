@@ -1,10 +1,10 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
-# Production assumes DATABASE_URL in .env points at a managed Postgres
-# (e.g. Supabase's transaction pooler on port 6543) rather than the local
-# `postgres` service — so that service is disabled here, not just ignored.
-# Keep DATABASE_POOL_SIZE small (5 or less) against a pooled connection,
-# same lesson learned running Vitar against Supabase's pooler.
+# Postgres is self-hosted right here, same as the sibling Vitar project —
+# deliberately not pointed at Supabase or any other pause-prone free-tier
+# managed DB. Supabase is still used elsewhere (evidence file storage),
+# but nothing on the request path from login to SOS trigger depends on it
+# being up.
 #
 # api/worker/beat pull a pre-built image from GHCR (built by CI) rather than
 # building locally — the production VPS is low-spec, and a `pip install`
@@ -13,7 +13,26 @@
 
 services:
   postgres:
-    profiles: ["disabled"]
+    restart: unless-stopped
+    # Bound to localhost only — the backup cron job (infra/scripts/
+    # backup_db.sh) needs to reach it from the host, but nothing external
+    # ever should.
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: safetee
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a real POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: safetee
+    command: >
+      postgres
+        -c max_connections=100
+        -c shared_buffers=128MB
+        -c effective_cache_size=384MB
+        -c work_mem=4MB
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   api:
     image: ${SAFETEE_IMAGE:-ghcr.io/flames488/safetee/safetee-api:latest}
