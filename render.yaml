@@ -51,9 +51,9 @@ services:
                             # safetee-worker's and safetee-beat's SECRET_KEY too —
                             # all three must share one value to verify the same JWTs
       - key: ALLOWED_ORIGINS
-        value: https://safetee.vercel.app
+        value: https://safetee.vercel.app,https://getsafetee.com,https://www.getsafetee.com
       - key: FRONTEND_URL
-        value: https://safetee.vercel.app
+        value: https://getsafetee.com
       - key: SUPER_ADMIN_PHONE
         sync: false
       - key: ADMIN_MASTER_PASSWORD

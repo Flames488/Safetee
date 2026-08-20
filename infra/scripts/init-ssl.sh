@@ -28,12 +28,16 @@ docker run --rm -p 80:80 -v "$LETSENCRYPT_DIR":/etc/letsencrypt \
   --email "$EMAIL" -d "$DOMAIN"
 
 echo "==> Copying certificate into place for nginx"
-cp "$LETSENCRYPT_DIR/live/$DOMAIN/fullchain.pem" "$CERT_DIR/fullchain.pem"
-cp "$LETSENCRYPT_DIR/live/$DOMAIN/privkey.pem" "$CERT_DIR/privkey.pem"
+# certbot's container runs as root, so the private key it wrote is
+# root-owned (correctly — it's a private key) and unreadable by a
+# regular user without sudo.
+sudo cp "$LETSENCRYPT_DIR/live/$DOMAIN/fullchain.pem" "$CERT_DIR/fullchain.pem"
+sudo cp "$LETSENCRYPT_DIR/live/$DOMAIN/privkey.pem" "$CERT_DIR/privkey.pem"
+sudo chown "$(id -u):$(id -g)" "$CERT_DIR/fullchain.pem" "$CERT_DIR/privkey.pem"
 
 echo "==> Done. Start the stack with infra/scripts/deploy.sh (or docker compose up -d)."
 echo
 echo "Certificates renew automatically every 90 days. Add this to cron"
 echo "(crontab -e) so renewal actually happens and nginx picks it up:"
 echo
-echo "0 3 * * * cd $(cd "$BACKEND_DIR" && pwd) && docker compose -f docker-compose.yml -f docker-compose.prod.yml stop nginx && docker run --rm -p 80:80 -v $LETSENCRYPT_DIR:/etc/letsencrypt certbot/certbot renew --quiet && cp $LETSENCRYPT_DIR/live/$DOMAIN/fullchain.pem $CERT_DIR/fullchain.pem && cp $LETSENCRYPT_DIR/live/$DOMAIN/privkey.pem $CERT_DIR/privkey.pem && docker compose -f docker-compose.yml -f docker-compose.prod.yml start nginx"
+echo "0 3 * * * cd $(cd "$BACKEND_DIR" && pwd) && docker compose -f docker-compose.yml -f docker-compose.prod.yml stop nginx && docker run --rm -p 80:80 -v $LETSENCRYPT_DIR:/etc/letsencrypt certbot/certbot renew --quiet && sudo cp $LETSENCRYPT_DIR/live/$DOMAIN/fullchain.pem $CERT_DIR/fullchain.pem && sudo cp $LETSENCRYPT_DIR/live/$DOMAIN/privkey.pem $CERT_DIR/privkey.pem && sudo chown \$(id -u):\$(id -g) $CERT_DIR/fullchain.pem $CERT_DIR/privkey.pem && docker compose -f docker-compose.yml -f docker-compose.prod.yml start nginx"
