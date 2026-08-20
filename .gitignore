@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+infra/nginx/certs/
+infra/nginx/letsencrypt/
 *.local
 .DS_Store
 .venv/

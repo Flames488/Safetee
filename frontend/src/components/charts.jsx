@@ -69,14 +69,21 @@ export function TrendChart({ data, height = 180, formatValue = (v) => v, emptyLa
 // combined bar plus a separate legend) scales its own height with the
 // number of segments, so it holds its own next to a tall chart instead
 // of leaving a block of empty card below a single thin bar.
-export function BreakdownBar({ segments, format = (n) => n.toLocaleString() }) {
+export function BreakdownBar({ segments, format = (n) => n.toLocaleString(), onSegmentClick }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
   return (
     <div className="breakdown">
       {segments.map((s) => {
         const pct = (s.value / total) * 100;
+        const clickable = Boolean(onSegmentClick);
         return (
-          <div className="breakdown-row" key={s.label}>
+          <div
+            className={`breakdown-row ${clickable ? 'breakdown-row-clickable' : ''}`}
+            key={s.label}
+            onClick={clickable ? () => onSegmentClick(s) : undefined}
+            role={clickable ? 'button' : undefined}
+            tabIndex={clickable ? 0 : undefined}
+          >
             <div className="breakdown-row-head">
               <span className="breakdown-row-label">
                 <span className={`breakdown-dot breakdown-dot-${s.tone || 'neutral'}`} />

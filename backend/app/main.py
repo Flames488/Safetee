@@ -38,15 +38,19 @@ if settings.sentry_dsn:
 async def lifespan(app: FastAPI):
     # In-process replacement for Celery beat — see app/core/scheduler.py for
     # why (no free Background Worker instance type on Render). Intervals
-    # mirror the old celery_app.conf.beat_schedule.
-    background = [
-        start_periodic(sweep_overdue_journeys, 30),
-        start_periodic(retry_failed_alerts, 120),
-        start_periodic(sweep_expired_subscriptions, 3600),
-        # Once a day is plenty for a purge with a multi-week grace window —
-        # see purge_soft_deleted_accounts.
-        start_periodic(purge_soft_deleted_accounts, 86400),
-    ]
+    # mirror celery_app.conf.beat_schedule, which a real `beat` container
+    # (docker-compose.prod.yml) runs these from instead — this flag is off
+    # there specifically so the same sweep never fires from both places.
+    background = []
+    if settings.run_periodic_tasks_in_process:
+        background = [
+            start_periodic(sweep_overdue_journeys, 30),
+            start_periodic(retry_failed_alerts, 120),
+            start_periodic(sweep_expired_subscriptions, 3600),
+            # Once a day is plenty for a purge with a multi-week grace window —
+            # see purge_soft_deleted_accounts.
+            start_periodic(purge_soft_deleted_accounts, 86400),
+        ]
     yield
     for task in background:
         task.cancel()

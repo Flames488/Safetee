@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   Users, UserPlus, Clock, ShieldCheck, XCircle, Lock, Search, Wallet, History, ArrowLeft,
@@ -33,6 +33,7 @@ const STATUS_LABEL = { active: 'Active', trialing: 'Trialing', past_due: 'Past d
 const ROLE_LABEL = { none: 'No admin access', viewer: 'Viewer', super_admin: 'Super admin' };
 const ACCOUNT_TONE = { active: 'good', suspended: 'warn', banned: 'bad' };
 const ACCOUNT_LABEL = { active: 'Active', suspended: 'Suspended', banned: 'Banned' };
+const QUICK_FILTER_LABEL = { 'recent-signups': 'Signed up in the last 7 days', cancelling: 'Cancelling at period end' };
 const ACTION_LABEL = {
   role_change: 'Role changed', suspend: 'Suspended', ban: 'Banned', reinstate: 'Reinstated',
   grant_trial: 'Trial granted', soft_delete: 'Deleted', restore: 'Restored', force_logout: 'Forced logout',
@@ -69,7 +70,7 @@ function buildStatusBreakdown(users) {
   }
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
-    .map(([key, value]) => ({ label: STATUS_LABEL[key] || key, value, tone: SUB_TONE[key] || 'neutral' }));
+    .map(([key, value]) => ({ key, label: STATUS_LABEL[key] || key, value, tone: SUB_TONE[key] || 'neutral' }));
 }
 
 export default function AdminDashboard() {
@@ -89,6 +90,11 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [accountFilter, setAccountFilter] = useState('all');
   const [expiringSoonOnly, setExpiringSoonOnly] = useState(false);
+  // 'recent-signups' and 'cancelling' aren't dropdown-backed filters —
+  // they only exist so a stat card/breakdown row can jump straight to
+  // "here are exactly those users" without a dedicated drill-down view.
+  const [quickFilter, setQuickFilter] = useState('none');
+  const tableRef = useRef(null);
 
   const [detailId, setDetailId] = useState(null); // user id the drawer is open for
   const [detail, setDetail] = useState(null); // null = loading, false = error
@@ -127,13 +133,29 @@ export default function AdminDashboard() {
   const filteredUsers = useMemo(() => {
     if (!Array.isArray(users)) return users;
     const q = query.trim().toLowerCase();
+    const weekAgo = Date.now() - 7 * 86_400_000;
     return users.filter((u) => {
       if (roleFilter !== 'all' && u.admin_role !== roleFilter) return false;
       if (statusFilter !== 'all' && (u.subscription_status || 'none') !== statusFilter) return false;
+      if (quickFilter === 'recent-signups' && new Date(u.created_at).getTime() < weekAgo) return false;
+      if (quickFilter === 'cancelling' && !u.cancel_at_period_end) return false;
       if (!q) return true;
       return `${u.full_name} ${u.phone} ${u.email || ''}`.toLowerCase().includes(q);
     });
-  }, [users, query, roleFilter, statusFilter]);
+  }, [users, query, roleFilter, statusFilter, quickFilter]);
+
+  // Wired to every stat card / breakdown row — jumps to the user table
+  // already filtered to just that slice, clearing whatever filters were
+  // set before so the result always matches what was clicked.
+  const focusStat = ({ statusFilter: sf = 'all', quickFilter: qf = 'none' } = {}) => {
+    setQuery('');
+    setRoleFilter('all');
+    setAccountFilter('all');
+    setExpiringSoonOnly(false);
+    setStatusFilter(sf);
+    setQuickFilter(qf);
+    tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // This page is only reachable at all with viewer/super_admin — but a
   // direct URL visit before `user` has loaded shouldn't flash the panel
@@ -227,11 +249,11 @@ export default function AdminDashboard() {
   };
 
   const KPIS = stats && [
-    { icon: Users, label: 'Total users', value: stats.total_users, tint: 'brand' },
-    { icon: UserPlus, label: 'Signups (7d)', value: stats.signups_last_7_days, tint: 'info' },
-    { icon: Clock, label: 'Active trials', value: stats.active_trials, tint: 'warn' },
-    { icon: ShieldCheck, label: 'Active subscriptions', value: stats.active_subscriptions, tint: 'good' },
-    { icon: XCircle, label: 'Cancelling', value: stats.cancelled_subscriptions, tint: 'danger' },
+    { icon: Users, label: 'Total users', value: stats.total_users, tint: 'brand', onClick: () => focusStat() },
+    { icon: UserPlus, label: 'Signups (7d)', value: stats.signups_last_7_days, tint: 'info', onClick: () => focusStat({ quickFilter: 'recent-signups' }) },
+    { icon: Clock, label: 'Active trials', value: stats.active_trials, tint: 'warn', onClick: () => focusStat({ statusFilter: 'trialing' }) },
+    { icon: ShieldCheck, label: 'Active subscriptions', value: stats.active_subscriptions, tint: 'good', onClick: () => focusStat({ statusFilter: 'active' }) },
+    { icon: XCircle, label: 'Cancelling', value: stats.cancelled_subscriptions, tint: 'danger', onClick: () => focusStat({ statusFilter: 'active', quickFilter: 'cancelling' }) },
   ];
 
   return (
@@ -290,8 +312,15 @@ export default function AdminDashboard() {
               <p className="ad-hero-sub">Successful payments, current calendar month</p>
             </Card>
             <div className="ad-kpi-grid">
-              {KPIS ? KPIS.map((k) => <KpiCard key={k.label} icon={k.icon} label={k.label} value={k.value} tint={k.tint} />)
-                : Array.from({ length: 5 }).map((_, i) => <KpiCardSkeleton key={i} />)}
+              {KPIS ? KPIS.map((k) => (
+                <div
+                  key={k.label} className="ad-kpi-clickable"
+                  onClick={k.onClick} role="button" tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); k.onClick(); } }}
+                >
+                  <KpiCard icon={k.icon} label={k.label} value={k.value} tint={k.tint} />
+                </div>
+              )) : Array.from({ length: 5 }).map((_, i) => <KpiCardSkeleton key={i} />)}
             </div>
           </div>
         )}
@@ -307,12 +336,20 @@ export default function AdminDashboard() {
             <SectionLabel>Subscription mix</SectionLabel>
             {users === false && <ErrorState message="Couldn't load subscription data." onRetry={load} />}
             {users === null && <div className="skel ad-chart-skel" />}
-            {Array.isArray(users) && <BreakdownBar segments={statusBreakdown} />}
+            {Array.isArray(users) && (
+              <BreakdownBar segments={statusBreakdown} onSegmentClick={(s) => focusStat({ statusFilter: s.key })} />
+            )}
           </Card>
         </div>
 
-        <div className="ad-table-head">
+        <div className="ad-table-head" ref={tableRef}>
           <SectionLabel>All users</SectionLabel>
+          {quickFilter !== 'none' && (
+            <Pill tone="info">
+              {QUICK_FILTER_LABEL[quickFilter]}
+              <button type="button" className="ad-quick-filter-clear" onClick={() => setQuickFilter('none')} aria-label="Clear this filter">×</button>
+            </Pill>
+          )}
           <div className="ad-table-controls">
             <div className="ad-search">
               <Search size={14} strokeWidth={2.2} />

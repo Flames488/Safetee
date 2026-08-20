@@ -24,6 +24,9 @@
 .ad-hero-sub{ font-size:12.5px; color:var(--ink-2); }
 
 .ad-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+.ad-kpi-clickable{ cursor:pointer; border-radius:var(--r-lg); }
+.ad-kpi-clickable .kpi{ transition:transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+.ad-kpi-clickable:hover .kpi{ transform:translateY(-2px); border-color:var(--brand-line); }
 
 /* ── Charts ── */
 .ad-charts{ display:grid; grid-template-columns:1fr; gap:12px; }
@@ -31,7 +34,8 @@
 .ad-chart-skel{ height:180px; border-radius:var(--r-md); }
 
 /* ── Table controls ── */
-.ad-table-head{ display:flex; flex-direction:column; gap:10px; }
+.ad-table-head{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+.ad-quick-filter-clear{ margin-left:2px; color:inherit; font-size:13px; line-height:1; }
 .ad-table-controls{ display:flex; flex-wrap:wrap; gap:8px; }
 .ad-search{
   flex:1; min-width:200px; display:flex; align-items:center; gap:8px;

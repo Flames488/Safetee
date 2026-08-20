@@ -16,28 +16,57 @@ services:
     profiles: ["disabled"]
 
   api:
-    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    image: ${SAFETEE_IMAGE:-ghcr.io/flames488/safetee/safetee-api:latest}
     command: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8000 --timeout 60
     restart: unless-stopped
     volumes: []
+    environment:
+      # A real worker/beat pair (below) now owns the periodic sweeps — see
+      # app/main.py's lifespan and app/workers/celery_app.py's beat_schedule.
+      RUN_PERIODIC_TASKS_IN_PROCESS: "false"
     deploy:
       resources:
         limits:
           memory: 512M
 
   worker:
-    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    image: ${SAFETEE_IMAGE:-ghcr.io/flames488/safetee/safetee-api:latest}
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=500
+    env_file: .env
+    environment:
+      ENVIRONMENT: production
     restart: unless-stopped
     volumes: []
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping --timeout 15 2>&1 | grep -q pong || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
     deploy:
       resources:
         limits:
           memory: 512M
 
   beat:
-    image: ${SAFETEE_IMAGE:-ghcr.io/OWNER/safetee/safetee-api:latest}
+    image: ${SAFETEE_IMAGE:-ghcr.io/flames488/safetee/safetee-api:latest}
+    # --schedule points at the volume below so beat's "last run" bookkeeping
+    # survives a container restart — without it, a restart just after a
+    # long-interval task (e.g. the daily purge) fires that task again
+    # immediately instead of waiting out the rest of its interval.
+    command: celery -A app.workers.celery_app beat --loglevel=info --schedule=/var/celery/celerybeat-schedule
+    env_file: .env
+    environment:
+      ENVIRONMENT: production
     restart: unless-stopped
-    volumes: []
+    volumes:
+      - celerybeat_data:/var/celery
+    depends_on:
+      redis:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -135,5 +164,6 @@ services:
       - api
 
 volumes:
+  celerybeat_data:
   prometheus_data:
   grafana_data:

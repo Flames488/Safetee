@@ -30,6 +30,7 @@ class AdminUserOut(BaseModel):
     deleted_at: datetime | None = None
     subscription_status: SubscriptionStatus | None = None
     trial_ends_at: datetime | None = None
+    cancel_at_period_end: bool = False
 
 
 class LoginEventOut(BaseModel):

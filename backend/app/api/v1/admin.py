@@ -36,6 +36,7 @@ async def _to_admin_user_out(db: AsyncSession, user: User) -> AdminUserOut:
     row = AdminUserOut.model_validate(user)
     row.subscription_status = sub.status if sub else None
     row.trial_ends_at = sub.trial_ends_at if sub else None
+    row.cancel_at_period_end = bool(sub and sub.cancel_at_period_end)
     return row
 
 
@@ -110,7 +111,7 @@ async def list_users(
 ):
     limit = max(1, min(limit, 200))
     query = (
-        select(User, Subscription.status, Subscription.trial_ends_at)
+        select(User, Subscription.status, Subscription.trial_ends_at, Subscription.cancel_at_period_end)
         .outerjoin(Subscription, Subscription.user_id == User.id)
         .order_by(User.created_at.desc())
     )
@@ -127,10 +128,11 @@ async def list_users(
 
     result = await db.execute(query)
     out = []
-    for user, sub_status, trial_ends_at in result.all():
+    for user, sub_status, trial_ends_at, cancel_at_period_end in result.all():
         row = AdminUserOut.model_validate(user)
         row.subscription_status = sub_status
         row.trial_ends_at = trial_ends_at
+        row.cancel_at_period_end = bool(cancel_at_period_end)
         out.append(row)
     return out
 

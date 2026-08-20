@@ -18,7 +18,9 @@
 .trend-tooltip span{ color:var(--ink-2); font-size:11px; }
 
 .breakdown{ display:flex; flex-direction:column; gap:16px; justify-content:center; flex:1; }
-.breakdown-row{ display:flex; flex-direction:column; gap:6px; }
+.breakdown-row{ display:flex; flex-direction:column; gap:6px; border-radius:var(--r-sm); }
+.breakdown-row-clickable{ cursor:pointer; margin:-6px -8px; padding:6px 8px; transition:background var(--dur-fast) var(--ease-out); }
+.breakdown-row-clickable:hover{ background:var(--bg-2); }
 .breakdown-row-head{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; }
 .breakdown-row-label{ display:flex; align-items:center; gap:7px; color:var(--ink-1); }
 .breakdown-row-value{ display:flex; align-items:baseline; gap:6px; color:var(--ink); font-family:var(--font-display); }
