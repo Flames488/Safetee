@@ -22,8 +22,12 @@ services:
 
   redis:
     image: redis:7-alpine
+    # Localhost-only — an unauthenticated Redis (no requirepass configured)
+    # exposed on 0.0.0.0 is a well-known, actively-scanned-for attack
+    # target. See postgres's port comment above for why this lives on the
+    # base service rather than a prod-only override.
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -40,8 +44,10 @@ services:
     build: .
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file: .env
+    # Localhost-only in prod (nginx is the public entry point there); fine
+    # for local dev too since you're hitting it from the same machine.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - .:/app
     depends_on:
