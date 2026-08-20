@@ -10,7 +10,7 @@
 set -euo pipefail
 
 DOMAIN="${API_DOMAIN:-api.getsafetee.com}"
-EMAIL="${CERTBOT_EMAIL:?Set CERTBOT_EMAIL to your address for Let's Encrypt expiry notices}"
+EMAIL="${CERTBOT_EMAIL:?Set CERTBOT_EMAIL to your address for certificate expiry notices}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/../../backend"
