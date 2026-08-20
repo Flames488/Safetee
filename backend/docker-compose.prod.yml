@@ -71,17 +71,18 @@ services:
 
   beat:
     image: ${SAFETEE_IMAGE:-ghcr.io/flames488/safetee/safetee-api:latest}
-    # --schedule points at the volume below so beat's "last run" bookkeeping
-    # survives a container restart — without it, a restart just after a
-    # long-interval task (e.g. the daily purge) fires that task again
-    # immediately instead of waiting out the rest of its interval.
-    command: celery -A app.workers.celery_app beat --loglevel=info --schedule=/var/celery/celerybeat-schedule
+    # Schedule file lives inside /app (already owned by the image's
+    # non-root user — see Dockerfile) rather than a mounted volume, which
+    # would need its own ownership fix to be writable. Not persisted
+    # across restarts, but every scheduled task here is safely idempotent
+    # (e.g. the daily purge just re-checks for already-expired rows), so
+    # the worst case of losing "last run" bookkeeping is one task firing
+    # a bit early once — not worth the extra moving part to prevent.
+    command: celery -A app.workers.celery_app beat --loglevel=info --schedule=/app/celerybeat-schedule
     env_file: .env
     environment:
       ENVIRONMENT: production
     restart: unless-stopped
-    volumes:
-      - celerybeat_data:/var/celery
     depends_on:
       redis:
         condition: service_healthy
@@ -182,6 +183,5 @@ services:
       - api
 
 volumes:
-  celerybeat_data:
   prometheus_data:
   grafana_data:
