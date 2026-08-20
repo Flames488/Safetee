@@ -5,8 +5,13 @@ services:
       POSTGRES_USER: safetee
       POSTGRES_PASSWORD: safetee
       POSTGRES_DB: safetee
+    # Localhost-only, in every environment including local dev — compose
+    # concatenates `ports:` lists across -f files rather than replacing
+    # them, so a wide-open base entry here would sit alongside prod's
+    # 127.0.0.1-scoped one as two conflicting publishes on the same host
+    # port instead of one correct one.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

@@ -14,11 +14,10 @@
 services:
   postgres:
     restart: unless-stopped
-    # Bound to localhost only — the backup cron job (infra/scripts/
-    # backup_db.sh) needs to reach it from the host, but nothing external
-    # ever should.
-    ports:
-      - "127.0.0.1:5432:5432"
+    # Port publishing (localhost-only) lives on the base service in
+    # docker-compose.yml — compose concatenates rather than replaces
+    # `ports:` lists across -f files, so duplicating it here would
+    # conflict with, not override, that entry.
     environment:
       POSTGRES_USER: safetee
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a real POSTGRES_PASSWORD in .env}
