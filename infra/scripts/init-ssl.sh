@@ -6,10 +6,10 @@
 # root on the VPS. DNS (an A record for API_DOMAIN pointing at this
 # server) must already be live, or the challenge will fail.
 #
-# Usage: API_DOMAIN=api.safetee.app CERTBOT_EMAIL=you@example.com bash infra/scripts/init-ssl.sh
+# Usage: API_DOMAIN=api.getsafetee.com CERTBOT_EMAIL=you@example.com bash infra/scripts/init-ssl.sh
 set -euo pipefail
 
-DOMAIN="${API_DOMAIN:-api.safetee.app}"
+DOMAIN="${API_DOMAIN:-api.getsafetee.com}"
 EMAIL="${CERTBOT_EMAIL:?Set CERTBOT_EMAIL to your address for Let's Encrypt expiry notices}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
