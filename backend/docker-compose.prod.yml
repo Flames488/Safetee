@@ -83,6 +83,12 @@ services:
     environment:
       ENVIRONMENT: production
     restart: unless-stopped
+    # The image's baked-in HEALTHCHECK (an HTTP ping — see Dockerfile) is
+    # meant for the api service; beat doesn't run a web server at all, so
+    # it can never pass that check and shows a permanently misleading
+    # "unhealthy" despite working correctly. Disable it here specifically.
+    healthcheck:
+      disable: true
     depends_on:
       redis:
         condition: service_healthy
