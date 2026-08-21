@@ -129,7 +129,7 @@
    and leave a lopsided dead zone on wide monitors. */
 @media (min-width: 900px){
   .app-topbar{ display:flex; }
-  .app-content{ padding:40px 48px 64px; }
+  .app-content{ padding:40px 48px 64px; max-width:none; }
 }
 @media (max-width: 899px){
   .app-sidebar{ display:none; }

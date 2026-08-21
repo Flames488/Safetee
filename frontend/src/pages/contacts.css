@@ -47,13 +47,16 @@
 .ct-empty{ padding:24px 20px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
 .ct-empty p{ font-size:13px; color:var(--ink-1); line-height:1.6; max-width:320px; }
 
+/* Left-aligned, not centered — see history.css's .hs-list for the same
+   fix and why: a centered block under a full-width title left a dead
+   gutter unrelated to actual screen size. */
 @media (min-width:900px){
-  .ct-list{ max-width:900px; margin:0 auto; padding:0; gap:12px; }
+  .ct-list{ max-width:1080px; padding:0; gap:12px; }
   .ct-form{ padding:20px; }
   .ct-form .field-input{ font-size:14px; padding:13px 15px; }
 
   /* Cards become a browsable grid rather than a single mobile column */
-  .ct-list{ display:grid; grid-template-columns:repeat(2, 1fr); align-content:start; }
+  .ct-list{ display:grid; grid-template-columns:repeat(3, 1fr); align-content:start; }
   .ct-form, .ct-note, .ct-empty{ grid-column:1 / -1; }
   .ct-card{ padding:18px; align-items:flex-start; }
   .ct-avatar{ width:44px; height:44px; font-size:13.5px; }

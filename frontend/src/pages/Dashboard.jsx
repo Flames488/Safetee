@@ -5,7 +5,7 @@ import {
   ChevronRight, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
-import { Avatar, Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow } from '../components/ui';
+import { Avatar, Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow, ProgressDots } from '../components/ui';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import { useReliability } from '../lib/useReliability';
@@ -200,6 +200,13 @@ export default function Dashboard() {
   const hasContacts = contacts !== null && contacts.length > 0;
   const protectedState = hasContacts;
 
+  const [tipIndex, setTipIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTipIndex((i) => (i + 1) % TIPS.length), 7000);
+    return () => clearInterval(interval);
+  }, []);
+  const tip = TIPS[tipIndex];
+
   return (
     <>
       <div className="dash">
@@ -383,13 +390,11 @@ export default function Dashboard() {
         <div className="dash-section-head">
           <span className="section-label">Safety tips</span>
         </div>
-        <div className="dash-tips">
-          {TIPS.map((tip) => (
-            <Card key={tip.text} className="dash-tip">
-              <IconTile icon={tip.icon} tone="warn" size={36} />
-              <p>{tip.text}</p>
-            </Card>
-          ))}
+        <div className="dash-tip-promo" onClick={() => setTipIndex((i) => (i + 1) % TIPS.length)} role="button" tabIndex={0}>
+          <div className="dash-tip-promo-glow" aria-hidden="true" />
+          <IconTile icon={tip.icon} tone="brand" size={40} />
+          <p key={tipIndex} className="dash-tip-promo-text">{tip.text}</p>
+          <ProgressDots total={TIPS.length} active={tipIndex} />
         </div>
       </div>
       <BottomNav />

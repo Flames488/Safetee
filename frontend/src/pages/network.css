@@ -14,3 +14,13 @@
    under (unlike .net-respond, used inline within an IncomingAlerts card
    that already has one) — plain card padding instead of the 57px indent. */
 .net-duration-card{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+
+/* Four independent topics (requests, shares, alerts, watchers) read as
+   one long, mostly-empty scroll on a wide screen if just stacked — group
+   them into two columns instead, same idea as Dashboard's SOS/activity
+   split. Mobile stays a single stacked column (no media query needed —
+   .net-col is just a plain block there). */
+@media (min-width:900px){
+  .net-columns{ display:grid; grid-template-columns:1fr 1fr; gap:0 28px; align-items:start; }
+  .net-col{ display:flex; flex-direction:column; gap:12px; }
+}

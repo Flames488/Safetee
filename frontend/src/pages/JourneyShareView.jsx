@@ -68,7 +68,7 @@ export default function JourneyShareView() {
                 </Button>
               </>
             ) : wsStatus === 'reconnecting' ? (
-              <p>Reconnecting… the server may be waking up after being idle, this can take up to a minute.</p>
+              <p>Reconnecting…</p>
             ) : (
               <p>Connecting…</p>
             )}

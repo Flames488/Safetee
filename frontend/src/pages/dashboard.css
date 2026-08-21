@@ -11,7 +11,9 @@
 }
 .dash-hero-glow{
   position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(480px 220px at 85% -20%, var(--brand-soft), transparent 70%);
+  background:
+    radial-gradient(520px 260px at 88% -25%, var(--brand-soft), transparent 70%),
+    radial-gradient(360px 180px at -10% 120%, var(--good-soft), transparent 70%);
 }
 .dash-hero-top{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .dash-eyebrow{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--brand-bright); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
@@ -56,7 +58,7 @@
 }
 
 .dash-reliability{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
-.dash-kpi-wrap .kpi{ padding:14px 12px; gap:10px; border-radius:var(--r-md); }
+.dash-kpi-wrap .kpi{ padding:14px 12px; gap:10px; border-radius:var(--r-lg); box-shadow:var(--shadow-xs); }
 .dash-kpi-wrap .kpi-icon{ width:30px; height:30px; border-radius:9px; }
 .dash-kpi-wrap .kpi-value{ font-size:16px; }
 .dash-kpi-wrap .kpi-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
@@ -106,9 +108,34 @@
 .dash-contact-text span{ font-size:11.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .dash-contact-row .pill{ flex-shrink:0; }
 
-.dash-tips{ display:flex; flex-direction:column; gap:10px; }
-.dash-tip{ padding:16px 20px; display:flex; align-items:center; gap:14px; border-radius:var(--r-xl); }
-.dash-tip p{ font-size:13px; color:var(--ink-1); line-height:1.6; }
+/* Single rotating card instead of a static stacked list — matches the
+   reference's one prominent gradient insight card rather than a plain
+   bullet list, and reuses --brand-gradient (already the primary-button
+   color) so it reads as part of this app, not a borrowed style. */
+.dash-tip-promo{
+  position:relative; overflow:hidden; cursor:pointer;
+  padding:22px 24px; border-radius:var(--r-xl);
+  display:flex; flex-direction:column; align-items:flex-start; gap:14px;
+  background:var(--brand-gradient); color:var(--brand-ink);
+  box-shadow:0 16px 40px -20px rgba(110,91,255,.55);
+  transition:transform var(--dur-base) var(--ease-out);
+}
+.dash-tip-promo:hover{ transform:translateY(-2px); }
+.dash-tip-promo:active{ transform:translateY(0) scale(.995); }
+.dash-tip-promo-glow{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(320px 160px at 90% -10%, rgba(255,255,255,.22), transparent 70%);
+}
+.dash-tip-promo .icon-tile{ background:rgba(255,255,255,.16); color:var(--brand-ink); position:relative; }
+.dash-tip-promo-text{
+  position:relative; font-size:14px; line-height:1.6; color:var(--brand-ink); max-width:480px;
+  animation:tip-fade var(--dur-slow) var(--ease-out);
+}
+@keyframes tip-fade{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:translateY(0); } }
+.dash-tip-promo .progress-dots{ position:relative; }
+.dash-tip-promo .dot{ background:rgba(255,255,255,.3); }
+.dash-tip-promo .dot-active{ background:var(--brand-ink); }
+.dash-tip-promo .dot-done{ background:rgba(255,255,255,.5); }
 
 @media (max-width: 380px){
   .dash-reliability{ grid-template-columns:repeat(2, 1fr); }
@@ -126,7 +153,10 @@
   .dash-name{ font-size:34px; }
   .dash-eyebrow{ font-size:12.5px; }
 
-  .dash-reliability{ grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; }
+  /* Fixed column counts, not auto-fit — there are always exactly 6 of
+     these, and auto-fit's width-driven wrapping was leaving a lone 6th
+     card stranded alone on its own row instead of an evenly filled grid. */
+  .dash-reliability{ grid-template-columns:repeat(3, 1fr); gap:14px; }
   .dash-kpi-wrap .kpi{ padding:18px 16px; }
   .dash-kpi-wrap .kpi-icon{ width:36px; height:36px; border-radius:11px; }
   .dash-kpi-wrap .kpi-value{ font-size:19px; }
@@ -149,8 +179,8 @@
   .dash-activity-text span{ font-size:12.5px; }
   .dash-contact-text strong{ font-size:14px; }
 
-  .dash-tip{ padding:20px 26px; gap:16px; }
-  .dash-tip p{ font-size:14px; }
+  .dash-tip-promo{ padding:26px 30px; }
+  .dash-tip-promo-text{ font-size:14.5px; }
 }
 
 /* Only split into side-by-side columns once there's genuinely room for
@@ -158,6 +188,7 @@
    otherwise get squeezed narrow enough that names/badges start colliding.
    Single stacked column below 1040px reads better than two cramped ones. */
 @media (min-width: 1040px){
+  .dash-reliability{ grid-template-columns:repeat(6, 1fr); }
   .dash-body{ flex-direction:row; align-items:flex-start; }
   .dash-col-main{ flex:0 1 340px; min-width:280px; }
   .dash-col-side{ flex:1; min-width:320px; }

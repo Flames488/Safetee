@@ -96,7 +96,7 @@ export default function LocationShareView() {
                 </Button>
               </>
             ) : wsStatus === 'reconnecting' ? (
-              <p>Reconnecting… the server may be waking up after being idle, this can take up to a minute.</p>
+              <p>Reconnecting…</p>
             ) : wsStatus === 'connecting' ? (
               <p>Connecting…</p>
             ) : (

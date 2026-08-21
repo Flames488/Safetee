@@ -109,6 +109,8 @@ export default function IncomingAlerts() {
     <>
       <TopBar title="Network" back={false} subtitle="Alerts, location requests, and people who trust you" />
       <div className="hs-list">
+      <div className="net-columns">
+      <div className="net-col">
         <SectionLabel>Location requests</SectionLabel>
         {requests === null && !requestsError && <Card className="hs-card"><SkeletonRow columns={2} /></Card>}
         {requestsError && <ErrorState message="Couldn't load location requests." onRetry={reloadRequests} />}
@@ -162,7 +164,9 @@ export default function IncomingAlerts() {
             </Link>
           </Card>
         ))}
+      </div>
 
+      <div className="net-col">
         <SectionLabel>Emergency alerts</SectionLabel>
         {alerts === null && !alertsError && (
           <>
@@ -228,6 +232,8 @@ export default function IncomingAlerts() {
             </Card>
           );
         })}
+      </div>
+      </div>
       </div>
       <BottomNav />
     </>

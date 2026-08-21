@@ -46,10 +46,11 @@ export default function Login() {
     if (!phone || !password) return;
     setSubmitting(true);
     setError('');
-    // The free-tier API host spins down when idle and can take up to a
-    // minute to wake on the first request — past this threshold, assume
-    // that's what's happening rather than leaving a plain spinner up.
-    const wakeTimer = setTimeout(() => setWaking(true), 2500);
+    // Past this threshold, say something rather than leaving a plain
+    // spinner up — the backend is an always-on VPS now, so this is just
+    // "this is taking a while" (slow network, momentary load), not a
+    // cold-start explanation.
+    const slowTimer = setTimeout(() => setWaking(true), 4000);
     try {
       const { lat, lng } = await silentLocation();
       await login(phone, password, lat, lng);
@@ -57,7 +58,7 @@ export default function Login() {
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
-      clearTimeout(wakeTimer);
+      clearTimeout(slowTimer);
       setSubmitting(false);
       setWaking(false);
     }
@@ -99,10 +100,10 @@ export default function Login() {
       </div>
       {error && <p className="lg-error" role="alert">{error}</p>}
       {waking && (
-        <p className="lg-hint" role="status">Waking up the server — this can take up to a minute on the first try.</p>
+        <p className="lg-hint" role="status">Still working on it — this is taking longer than usual.</p>
       )}
       <Button full size="lg" type="submit" disabled={submitting}>
-        {submitting ? (waking ? 'Waking up server…' : 'Signing in…') : 'Log in'}
+        {submitting ? (waking ? 'Still signing in…' : 'Signing in…') : 'Log in'}
       </Button>
       <button type="button" className="lg-link mono" onClick={() => navigate('/onboarding')}>
         Create a new account

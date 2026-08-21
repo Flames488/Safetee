@@ -32,11 +32,14 @@
 .hs-check-spacer{ width:18px; }
 
 @media (min-width:900px){
-  .hs-select-bar{ max-width:880px; margin:0 auto; padding:0 0 12px; }
+  .hs-select-bar{ max-width:920px; padding:0 0 12px; }
 }
 
+/* Left-aligned, not centered — a centered block below a full-width,
+   left-aligned page title (TopBar) left a large dead gutter on the left
+   that had nothing to do with the available screen size. */
 @media (min-width:900px){
-  .hs-list{ max-width:880px; margin:0 auto; padding:0; gap:12px; }
+  .hs-list{ max-width:920px; padding:0; gap:12px; }
   .hs-row{ padding:16px; gap:14px; }
   .hs-text strong{ font-size:14.5px; }
   .hs-text span{ font-size:12.5px; }
