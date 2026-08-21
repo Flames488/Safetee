@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Users, Clock, Bell, Settings2 } from 'lucide-react';
+import { useIncomingAlertsCount } from '../lib/useIncomingAlertsCount';
 import './bottom-nav.css';
 
 const tabs = [
@@ -11,11 +12,15 @@ const tabs = [
 ];
 
 export default function BottomNav() {
+  const alertCount = useIncomingAlertsCount();
   return (
     <nav className="bottom-nav">
       {tabs.map(({ to, label, icon: Icon, end }) => (
         <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-tab ${isActive ? 'nav-tab-active' : ''}`}>
-          <Icon size={20} strokeWidth={2.2} />
+          <span className="nav-tab-icon">
+            <Icon size={20} strokeWidth={2.2} />
+            {to === '/app/alerts' && alertCount > 0 && <span className="nav-tab-dot" />}
+          </span>
           <span>{label}</span>
         </NavLink>
       ))}

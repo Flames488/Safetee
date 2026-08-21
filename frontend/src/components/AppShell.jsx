@@ -7,6 +7,7 @@ import { Avatar } from './ui';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { startShakeDetection } from '../lib/shakeDetector';
+import { useIncomingAlertsCount } from '../lib/useIncomingAlertsCount';
 import './app-shell.css';
 
 // Grouped nav (label + items) rather than one flat list — the single
@@ -49,6 +50,7 @@ function useCloseOnOutsideClick(ref, onClose) {
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const alertCount = useIncomingAlertsCount();
   const isAdmin = user && user.admin_role !== 'none';
   const navGroups = isAdmin
     ? [...NAV_GROUPS, { label: 'Platform', items: [{ to: '/app/admin', label: 'Admin', icon: Shield }] }]
@@ -178,7 +180,10 @@ export default function AppShell({ children }) {
                     end={end}
                     className={({ isActive }) => `app-nav-link ${isActive ? 'app-nav-link-active' : ''}`}
                   >
-                    <Icon size={17} strokeWidth={2.1} />
+                    <span className="app-nav-icon">
+                      <Icon size={17} strokeWidth={2.1} />
+                      {to === '/app/alerts' && alertCount > 0 && <span className="app-nav-dot" />}
+                    </span>
                     <span>{label}</span>
                     <ChevronRight size={13} className="app-nav-chevron" />
                   </NavLink>

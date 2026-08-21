@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Mic, MessageSquare, Bell, KeyRound, Fingerprint, User, Lock, CreditCard, ChevronRight, LogOut, X } from 'lucide-react';
+import { MapPin, Mic, MessageSquare, Bell, KeyRound, Fingerprint, User, Lock, CreditCard, Shield, ChevronRight, LogOut, X } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, Toggle, SectionLabel, Button, PasswordInput } from '../components/ui';
@@ -236,6 +236,17 @@ export default function Settings() {
             <span className="st-row-text"><strong>Privacy &amp; data controls</strong></span>
             <ChevronRight size={16} color="var(--ink-2)" />
           </button>
+          {/* Desktop reaches this via the sidebar's "Platform" group
+              (AppShell.jsx) — mobile has no sidebar, and Admin isn't one
+              of BottomNav's 5 fixed tabs, so without this link admins on
+              mobile had no way to reach the panel at all. */}
+          {user && user.admin_role !== 'none' && (
+            <button className="st-link" onClick={() => navigate('/app/admin')}>
+              <span className="st-icon"><Shield size={16} strokeWidth={2.1} /></span>
+              <span className="st-row-text"><strong>Admin panel</strong></span>
+              <ChevronRight size={16} color="var(--ink-2)" />
+            </button>
+          )}
         </Card>
 
         <Button variant="outline-danger" full icon={<LogOut size={16} />} onClick={handleLogout}>

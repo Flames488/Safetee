@@ -92,6 +92,11 @@
   color:var(--ink-1); font-size:13.5px; font-weight:500; position:relative;
   transition:background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
 }
+.app-nav-icon{ position:relative; display:flex; }
+.app-nav-dot{
+  position:absolute; top:-2px; right:-3px; width:7px; height:7px; border-radius:50%;
+  background:var(--danger); border:1.5px solid var(--bg-1);
+}
 .app-nav-chevron{ margin-left:auto; opacity:0; transition:opacity var(--dur-fast) var(--ease-out); }
 .app-nav-link:hover{ background:var(--card); color:var(--ink); }
 .app-nav-link-active{

@@ -131,11 +131,12 @@
 
   --ink:#12111A;
   --ink-1:#54566B;
-  /* Darkened from the original #8B8DA0 (~2.8:1 on white, fails WCAG AA
-     even at large text) — this color carries most secondary/meta text
-     (timestamps, hints, labels) across the app, so low contrast here
-     read as "text I can't read" throughout light mode, not a one-off. */
-  --ink-2:#6B6E85;
+  /* Darkened from the original #8B8DA0 (~2.8:1 on white, failed WCAG AA
+     entirely), then again from #6B6E85 (~4.6:1 — legal but still felt
+     thin at the 11-12px this carries most secondary/meta text at:
+     timestamps, hints, labels, section headers). #4E5166 clears ~7.2:1
+     against --bg — comfortable, not just technically passing. */
+  --ink-2:#4E5166;
 
   --overlay-raise:rgba(20,18,40,0.07);
 
