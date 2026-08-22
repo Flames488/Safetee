@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 from fastapi import HTTPException, status
 
 from app.core.config import settings
@@ -6,10 +6,15 @@ from app.core.config import settings
 _redis = redis.from_url(settings.redis_url, decode_responses=True)
 
 
-def enforce_rate_limit(key: str, max_attempts: int, window_seconds: int) -> None:
+async def enforce_rate_limit(key: str, max_attempts: int, window_seconds: int) -> None:
     """Fixed-window rate limit keyed by whatever the caller passes (usually
     a phone number plus an action name, e.g. "otp-request:+234...").
     Raises 429 once `max_attempts` is exceeded inside `window_seconds`.
+
+    Async client — this is called directly from async route handlers, and
+    the sync redis-py client's blocking socket I/O would otherwise stall
+    the whole event loop (every other in-flight request on that worker)
+    for the duration of each Redis round-trip, not just the one caller.
 
     Deliberately fails open (lets the request through) if Redis itself is
     unreachable — a rate limiter that takes down the whole auth flow
@@ -17,9 +22,9 @@ def enforce_rate_limit(key: str, max_attempts: int, window_seconds: int) -> None
     enforcement. This trade-off is intentional, not an oversight.
     """
     try:
-        count = _redis.incr(key)
+        count = await _redis.incr(key)
         if count == 1:
-            _redis.expire(key, window_seconds)
+            await _redis.expire(key, window_seconds)
     except redis.RedisError:
         return
 

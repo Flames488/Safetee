@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.plans import interval_days, plan_public_list, price_for
+from app.core.rate_limit import enforce_rate_limit
 from app.db.session import get_db
 from app.models.enums import PaymentStatus, PlanTier, SubscriptionStatus
 from app.models.payment import Payment
@@ -47,6 +48,11 @@ async def get_subscription(db: AsyncSession = Depends(get_db), user: User = Depe
 
 @router.post("/checkout", response_model=CheckoutResponse)
 async def checkout(payload: CheckoutRequest, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    # Nothing app-level was stopping a buggy client (or someone deliberately
+    # abusive) from hammering this — each call creates a pending Payment
+    # row and a real request to Paystack's API, unlike a plain read.
+    await enforce_rate_limit(f"checkout:{user.id}", max_attempts=10, window_seconds=600)
+
     if not user.email:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,

@@ -67,7 +67,7 @@ async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
     # this endpoint for the same number is free (previously the only limit
     # here at all was the 409 dedup check, which does nothing to slow down
     # an automated flood of *attempts*).
-    enforce_rate_limit(f"signup:{payload.phone}", max_attempts=5, window_seconds=3600)
+    await enforce_rate_limit(f"signup:{payload.phone}", max_attempts=5, window_seconds=3600)
 
     # Stored normalized so every later comparison — login, contact
     # matching for the Alerts page/evidence/location sharing — can rely on
@@ -107,7 +107,7 @@ async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depe
     # Capped independently of whether any individual guess is right or
     # wrong — otherwise this endpoint is a free way to brute-force a known
     # phone number's password with no limit on attempts.
-    enforce_rate_limit(f"login:{payload.phone}", max_attempts=10, window_seconds=900)
+    await enforce_rate_limit(f"login:{payload.phone}", max_attempts=10, window_seconds=900)
 
     # Login has to keep working regardless of which format the person
     # happens to type this time — the stored value is normalized (see
@@ -217,7 +217,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
     # Rate-limited by phone before touching the DB — otherwise this endpoint
     # is a free way to spam someone's phone with SMS (or run up your Twilio
     # bill) by repeatedly requesting codes for the same number.
-    enforce_rate_limit(f"otp-request:{payload.phone}", max_attempts=3, window_seconds=900)
+    await enforce_rate_limit(f"otp-request:{payload.phone}", max_attempts=3, window_seconds=900)
 
     result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
     user = result.scalar_one_or_none()
@@ -243,7 +243,7 @@ async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depen
     # guesses, it's brute-forceable well within its 10-minute lifetime.
     # This caps guesses per phone number independently of whether any
     # individual guess is right or wrong.
-    enforce_rate_limit(f"otp-verify:{payload.phone}", max_attempts=5, window_seconds=_OTP_TTL_MINUTES * 60)
+    await enforce_rate_limit(f"otp-verify:{payload.phone}", max_attempts=5, window_seconds=_OTP_TTL_MINUTES * 60)
 
     result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
     user = result.scalar_one_or_none()
