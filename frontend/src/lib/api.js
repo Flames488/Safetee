@@ -203,6 +203,11 @@ export const api = {
     request('/billing/checkout', { method: 'POST', body: { tier, billing_interval: billingInterval, extra_seats: extraSeats } }),
   cancelSubscription: () => request('/billing/cancel', { method: 'POST' }),
   paymentHistory: () => request('/billing/history'),
+  // Called right after Paystack redirects back — verifies + activates
+  // synchronously instead of waiting on the webhook, which can lag the
+  // browser redirect by a few seconds. Safe to call even if the webhook
+  // already landed first: the backend no-ops on an already-succeeded payment.
+  verifyPayment: (reference) => request(`/billing/verify/${reference}`, { method: 'POST' }),
 
   adminStats: () => request('/admin/stats'),
   // limit=200 (the backend's own max) rather than its 50-user default — the

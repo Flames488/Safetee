@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CreditCard, Calendar, Receipt, ShieldCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import { Card, Pill, Button, SectionLabel, IconTile, ConfirmDialog, EmptyState, ErrorState, useToast } from '../components/ui';
@@ -37,6 +37,7 @@ function fmtNaira(kobo) {
 
 export default function Billing() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user && user.admin_role !== 'none';
@@ -44,12 +45,34 @@ export default function Billing() {
   const [history, setHistory] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
 
   const load = () => {
     api.getSubscription().then(setSub).catch(() => setSub(false));
     api.paymentHistory().then(setHistory).catch(() => setHistory([]));
   };
-  useEffect(load, []);
+
+  // Paystack redirects back here with ?reference=... (also sent as
+  // ?trxref=... for older integrations) the instant payment finishes —
+  // its webhook to our backend is a separate, asynchronous call that can
+  // land a few seconds after this redirect, or in rare cases be delayed
+  // further. Verifying the same reference here closes that gap instead
+  // of showing the user their pre-payment status right after they paid.
+  useEffect(() => {
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!reference) { load(); return; }
+
+    setConfirmingPayment(true);
+    api.verifyPayment(reference)
+      .then(setSub)
+      .catch(() => {}) // webhook will still land and correct this if verify itself failed
+      .finally(() => {
+        setConfirmingPayment(false);
+        setSearchParams({}, { replace: true }); // don't re-verify on refresh
+        api.paymentHistory().then(setHistory).catch(() => setHistory([]));
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -69,6 +92,12 @@ export default function Billing() {
     <>
       <TopBar title="Billing" subtitle="Your plan, renewal date, and payment history" />
       <div className="bl-body">
+        {confirmingPayment && (
+          <Card className="bl-current bl-confirming">
+            <div className="skel skel-line" style={{ width: 22, height: 22, borderRadius: '50%' }} />
+            <span>Confirming your payment…</span>
+          </Card>
+        )}
         {isAdmin ? (
           <Card className="bl-current">
             <div className="bl-current-head">

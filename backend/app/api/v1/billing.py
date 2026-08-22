@@ -89,6 +89,38 @@ async def checkout(payload: CheckoutRequest, db: AsyncSession = Depends(get_db),
     return CheckoutResponse(authorization_url=data["authorization_url"], reference=reference)
 
 
+async def _activate_from_verified_payment(db: AsyncSession, payment: Payment, verified: dict) -> None:
+    """Shared by the webhook and the frontend's own post-redirect check —
+    both need to turn a Paystack-confirmed `verify_transaction` result into
+    an active subscription the exact same way, so there's only one place
+    that logic can drift or be fixed."""
+    payment.status = PaymentStatus.success
+    payment.paystack_transaction_id = str(verified.get("id", ""))
+    payment.paid_at = datetime.now(UTC)
+
+    sub_result = await db.execute(select(Subscription).where(Subscription.user_id == payment.user_id))
+    sub = sub_result.scalar_one_or_none()
+    if sub is None:
+        sub = Subscription(user_id=payment.user_id)
+        db.add(sub)
+
+    sub.tier = payment.tier
+    sub.billing_interval = payment.billing_interval
+    sub.extra_seats = payment.extra_seats
+    sub.status = SubscriptionStatus.active
+    sub.cancel_at_period_end = False
+    sub.current_period_end = datetime.now(UTC) + timedelta(days=interval_days(payment.billing_interval))
+
+    customer = verified.get("customer", {})
+    if customer.get("customer_code"):
+        sub.paystack_customer_code = customer["customer_code"]
+    authorization = verified.get("authorization", {})
+    if authorization.get("authorization_code"):
+        sub.paystack_authorization_code = authorization["authorization_code"]
+
+    await db.commit()
+
+
 @router.post("/webhook", status_code=status.HTTP_200_OK)
 async def paystack_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Paystack calls this directly — never the frontend. Signature is
@@ -127,32 +159,46 @@ async def paystack_webhook(request: Request, db: AsyncSession = Depends(get_db))
         await db.commit()
         return {"received": True}
 
-    payment.status = PaymentStatus.success
-    payment.paystack_transaction_id = str(verified.get("id", ""))
-    payment.paid_at = datetime.now(UTC)
+    await _activate_from_verified_payment(db, payment, verified)
+    return {"received": True}
 
-    sub_result = await db.execute(select(Subscription).where(Subscription.user_id == payment.user_id))
+
+@router.post("/verify/{reference}", response_model=SubscriptionOut)
+async def verify_payment(reference: str, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    """Called by the frontend the instant Paystack redirects back to
+    /app/settings/billing, so activation doesn't depend on the webhook's
+    timing — the webhook is a reliable backup, not the only path.
+    Server-to-server verification against Paystack is the same either
+    way, so there's no security difference; this just closes the gap
+    where the browser lands back before the webhook does.
+
+    Scoped to the caller's own payment — this only lets someone confirm
+    a transaction that's actually theirs, not probe arbitrary references.
+    """
+    result = await db.execute(
+        select(Payment).where(Payment.paystack_reference == reference, Payment.user_id == user.id)
+    )
+    payment = result.scalar_one_or_none()
+    if payment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No payment found for that reference")
+
+    if payment.status != PaymentStatus.success:
+        try:
+            verified = await paystack.verify_transaction(reference)
+        except PaystackError as err:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Could not verify payment: {err}") from err
+
+        if verified.get("status") == "success":
+            await _activate_from_verified_payment(db, payment, verified)
+        else:
+            payment.status = PaymentStatus.failed
+            await db.commit()
+
+    sub_result = await db.execute(select(Subscription).where(Subscription.user_id == user.id))
     sub = sub_result.scalar_one_or_none()
     if sub is None:
-        sub = Subscription(user_id=payment.user_id)
-        db.add(sub)
-
-    sub.tier = payment.tier
-    sub.billing_interval = payment.billing_interval
-    sub.extra_seats = payment.extra_seats
-    sub.status = SubscriptionStatus.active
-    sub.cancel_at_period_end = False
-    sub.current_period_end = datetime.now(UTC) + timedelta(days=interval_days(payment.billing_interval))
-
-    customer = verified.get("customer", {})
-    if customer.get("customer_code"):
-        sub.paystack_customer_code = customer["customer_code"]
-    authorization = verified.get("authorization", {})
-    if authorization.get("authorization_code"):
-        sub.paystack_authorization_code = authorization["authorization_code"]
-
-    await db.commit()
-    return {"received": True}
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No subscription found")
+    return sub
 
 
 @router.post("/cancel", response_model=SubscriptionOut)

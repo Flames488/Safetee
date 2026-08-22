@@ -108,3 +108,77 @@ async def test_webhook_activates_subscription_on_valid_signature(client, monkeyp
     sub = (await client.get("/api/v1/billing/subscription")).json()
     assert sub["status"] == "active"
     assert sub["tier"] == "individual"
+
+
+async def test_verify_endpoint_activates_subscription_without_waiting_on_webhook(auth_client):
+    """The frontend calls this the instant Paystack redirects back — it
+    must be able to activate a subscription on its own, since the webhook
+    (a separate, asynchronous call from Paystack) isn't guaranteed to have
+    landed yet."""
+    await auth_client.patch("/api/v1/users/me", json={"email": "verify1@example.com"})
+
+    with patch("app.api.v1.billing.paystack.initialize_transaction", new_callable=AsyncMock) as mock_init:
+        mock_init.return_value = {"authorization_url": "https://paystack.test/pay/ref2", "access_code": "x"}
+        checkout_r = await auth_client.post(
+            "/api/v1/billing/checkout", json={"tier": "family", "billing_interval": "annual"}
+        )
+    reference = checkout_r.json()["reference"]
+
+    with patch("app.api.v1.billing.paystack.verify_transaction", new_callable=AsyncMock) as mock_verify:
+        mock_verify.return_value = {"status": "success", "id": 999, "customer": {}, "authorization": {}}
+        r = await auth_client.post(f"/api/v1/billing/verify/{reference}")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "active"
+    assert body["tier"] == "family"
+    assert body["billing_interval"] == "annual"
+
+
+async def test_verify_endpoint_is_idempotent_alongside_the_webhook(auth_client):
+    """Whichever of the webhook or this endpoint lands first activates the
+    subscription; the other must no-op rather than re-verifying with
+    Paystack a second time or double-processing the payment."""
+    await auth_client.patch("/api/v1/users/me", json={"email": "verify2@example.com"})
+
+    with patch("app.api.v1.billing.paystack.initialize_transaction", new_callable=AsyncMock) as mock_init:
+        mock_init.return_value = {"authorization_url": "https://paystack.test/pay/ref3", "access_code": "x"}
+        checkout_r = await auth_client.post(
+            "/api/v1/billing/checkout", json={"tier": "individual", "billing_interval": "monthly"}
+        )
+    reference = checkout_r.json()["reference"]
+
+    with patch("app.api.v1.billing.paystack.verify_transaction", new_callable=AsyncMock) as mock_verify:
+        mock_verify.return_value = {"status": "success", "id": 1000, "customer": {}, "authorization": {}}
+        first = await auth_client.post(f"/api/v1/billing/verify/{reference}")
+        assert first.status_code == 200
+        assert mock_verify.await_count == 1
+
+        second = await auth_client.post(f"/api/v1/billing/verify/{reference}")
+        assert second.status_code == 200
+        # Already succeeded — must not call Paystack again.
+        assert mock_verify.await_count == 1
+
+
+async def test_verify_endpoint_rejects_a_reference_belonging_to_another_user(client):
+    r1 = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Owner", "phone": "+2348100000097", "password": "supersecret123"},
+    )
+    owner_token = r1.json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {owner_token}"
+    await client.patch("/api/v1/users/me", json={"email": "owner@example.com"})
+    with patch("app.api.v1.billing.paystack.initialize_transaction", new_callable=AsyncMock) as mock_init:
+        mock_init.return_value = {"authorization_url": "https://paystack.test/pay/ref4", "access_code": "x"}
+        checkout_r = await client.post(
+            "/api/v1/billing/checkout", json={"tier": "individual", "billing_interval": "monthly"}
+        )
+    reference = checkout_r.json()["reference"]
+
+    r2 = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Snooper", "phone": "+2348100000096", "password": "supersecret123"},
+    )
+    client.headers["Authorization"] = f"Bearer {r2.json()['access_token']}"
+
+    r = await client.post(f"/api/v1/billing/verify/{reference}")
+    assert r.status_code == 404
