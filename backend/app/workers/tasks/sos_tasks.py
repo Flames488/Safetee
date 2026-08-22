@@ -170,7 +170,7 @@ def notify_contacts_of_evidence(sos_event_id: str):
 
         for contact in contacts:
             token = create_share_token(scope="sos_evidence", resource_id=str(event.id), contact_id=str(contact.id))
-            link = f"{settings.frontend_url}/#/track/{event.id}/evidence?token={token}"
+            link = f"{settings.frontend_url}/track/{event.id}/evidence?token={token}"
             body = f"SAFETEE: Audio/video evidence is now available for {user.full_name}'s emergency alert. {link}"
             try:
                 send_with_fallback(contact.phone, body)

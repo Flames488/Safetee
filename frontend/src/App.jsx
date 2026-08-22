@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ShieldCheck, LocateFixed, Users, Radio } from 'lucide-react';
 import AppShell from './components/AppShell';
 import InstallPrompt from './components/InstallPrompt';
@@ -92,7 +92,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
         <InstallPrompt />
-        <HashRouter>
+        <BrowserRouter>
           <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -130,7 +130,7 @@ export default function App() {
           <Route path="/app/profile/edit" element={<AppScreen><EditProfile /></AppScreen>} />
           <Route path="/app/profile/medical" element={<AppScreen><MedicalInfo /></AppScreen>} />
         </Routes>
-        </HashRouter>
+        </BrowserRouter>
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -54,7 +54,7 @@ async def start_journey(
         ).scalars().all()
         for contact in contacts:
             token = create_share_token(scope="journey", resource_id=str(journey.id), contact_id=str(contact.id))
-            link = f"{settings.frontend_url}/#/track/journey/{journey.id}?token={token}"
+            link = f"{settings.frontend_url}/track/journey/{journey.id}?token={token}"
             body = f"SAFETEE: {user.full_name} started a Safe Journey and is sharing their live location with you. {link}"
             try:
                 await run_in_threadpool(send_with_fallback, contact.phone, body)

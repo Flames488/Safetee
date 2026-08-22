@@ -68,11 +68,8 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  // HashRouter — the app's real routes live after a `#`, so a plain path
-  // in the push payload (e.g. "/track/{id}/evidence") needs that prefixed
-  // back on before it means anything to the SPA.
   const targetPath = event.notification.data?.url || '/';
-  const targetUrl = new URL(`/#${targetPath}`, self.location.origin).href;
+  const targetUrl = new URL(targetPath, self.location.origin).href;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
