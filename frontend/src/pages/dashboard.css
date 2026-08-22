@@ -1,9 +1,33 @@
-.dash{ flex:1; padding:8px 20px 28px; display:flex; flex-direction:column; gap:18px; }
+/* Dashboard-only palette: black + dark blue, kept local to `.dash` so
+   the rest of the app (buttons, the marketing site's indigo/violet
+   brand) is untouched. Functional status colors (good/warn/danger —
+   verified/blocked/critical) are deliberately NOT redefined here:
+   those carry real meaning (a blocked permission has to still read as
+   alarming, not just "off-theme"), so only the decorative/neutral
+   "brand" accent is swapped for navy. */
+.dash{
+  --dash-blue:#3B6FEF;
+  --dash-blue-bright:#7FA3FF;
+  --dash-blue-deep:#152452;
+  --dash-blue-soft:rgba(59,111,239,.16);
+  --dash-blue-line:rgba(59,111,239,.4);
+  --dash-gradient:linear-gradient(135deg, #2A4BC4 0%, #16265E 55%, #05070F 100%);
 
-/* ── Hero: greeting + protection status, with a soft brand-tinted glow
-   behind it rather than a flat card — the first thing a "billion
-   dollar" product does differently from a template is give its hero
-   section real depth instead of a plain header row. ── */
+  position:relative;
+  flex:1; padding:8px 20px 28px; display:flex; flex-direction:column; gap:18px;
+  background:
+    radial-gradient(900px 480px at 12% -12%, rgba(59,111,239,.22), transparent 62%),
+    radial-gradient(640px 420px at 100% 0%, rgba(20,32,80,.4), transparent 60%);
+}
+.dash .kpi-tint-brand{ --tint:var(--dash-blue-soft); --tint-fg:var(--dash-blue-bright); }
+.dash .icon-tile-brand{ background:var(--dash-blue-soft); color:var(--dash-blue-bright); }
+.dash .btn-primary{ background:var(--dash-gradient); box-shadow:0 10px 28px -12px rgba(59,111,239,.6); }
+.dash .btn-primary:hover{ box-shadow:0 14px 34px -12px rgba(59,111,239,.7); }
+
+/* ── Hero: greeting + protection status, with a soft navy glow behind
+   it rather than a flat card — the first thing a "billion dollar"
+   product does differently from a template is give its hero section
+   real depth instead of a plain header row. ── */
 .dash-hero{
   position:relative; border-radius:var(--r-xl); padding:22px 22px 18px;
   background:var(--card); border:1px solid var(--line); overflow:hidden;
@@ -12,16 +36,17 @@
 .dash-hero-glow{
   position:absolute; inset:0; pointer-events:none;
   background:
-    radial-gradient(520px 260px at 88% -25%, var(--brand-soft), transparent 70%),
+    radial-gradient(520px 260px at 88% -25%, var(--dash-blue-soft), transparent 70%),
     radial-gradient(360px 180px at -10% 120%, var(--good-soft), transparent 70%);
 }
 .dash-hero-top{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.dash-eyebrow{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--brand-bright); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
+.dash-eyebrow{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dash-blue-bright); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
 .dash-name{ font-size:26px; margin-top:6px; }
-.dash-avatar{
+.dash-avatar.chip-gradient{
   width:42px; height:42px; border-radius:14px;
   display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
   transition:transform var(--dur-fast) var(--ease-out);
+  background:var(--dash-gradient); box-shadow:0 0 24px -8px rgba(59,111,239,.6);
 }
 .dash-avatar:hover{ transform:scale(1.05); }
 
@@ -90,7 +115,7 @@
 
 .dash-section-head{ margin-top:10px; display:flex; align-items:center; justify-content:space-between; }
 .dash-section-link{ display:flex; align-items:center; gap:2px; font-size:11.5px; color:var(--ink-2); transition:color var(--dur-fast) var(--ease-out); }
-.dash-section-link:hover{ color:var(--brand-bright); }
+.dash-section-link:hover{ color:var(--dash-blue-bright); }
 
 .dash-activity{ padding:14px; display:flex; align-items:flex-start; gap:12px; }
 .dash-activity .icon-tile{ margin-top:1px; }
@@ -99,9 +124,10 @@
 .dash-activity-text span{ color:var(--ink-2); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .dash-contact-row{ padding:12px 14px; display:flex; align-items:center; gap:12px; }
-.dash-contact-avatar{
+.dash-contact-avatar.chip-gradient{
   width:38px; height:38px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;
+  background:var(--dash-gradient);
 }
 .dash-contact-text{ flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
 .dash-contact-text strong{ font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -116,8 +142,8 @@
   position:relative; overflow:hidden; cursor:pointer;
   padding:22px 24px; border-radius:var(--r-xl);
   display:flex; flex-direction:column; align-items:flex-start; gap:14px;
-  background:var(--brand-gradient); color:var(--brand-ink);
-  box-shadow:0 16px 40px -20px rgba(110,91,255,.55);
+  background:var(--dash-gradient); color:var(--brand-ink);
+  box-shadow:0 16px 40px -20px rgba(59,111,239,.55);
   transition:transform var(--dur-base) var(--ease-out);
 }
 .dash-tip-promo:hover{ transform:translateY(-2px); }
