@@ -12,7 +12,7 @@ export default function About() {
       <MarketingNav />
       <div className="sp-hero">
         <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>
-        <h1 className="sp-h1">Built for the seconds<br />that matter most.</h1>
+        <h1 className="sp-h1">Built for the seconds<br /><span className="text-gradient">that matter most.</span></h1>
         <p className="sp-lede">Safetee exists so that when something goes wrong, the people who can help are already on their way, before you've had to explain, dial, or wait.</p>
       </div>
       <div className="sp-body">

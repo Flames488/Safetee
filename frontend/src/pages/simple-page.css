@@ -1,7 +1,8 @@
 .sp{
   min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
   background:
-    radial-gradient(820px 520px at 50% -8%, var(--brand-soft), transparent 62%),
+    radial-gradient(900px 560px at 50% -10%, rgba(110,91,255,.32), transparent 65%),
+    radial-gradient(700px 480px at 100% 0%, rgba(58,160,255,.16), transparent 60%),
     var(--bg);
 }
 .sp-hero{ max-width:720px; margin:0 auto; padding:56px 24px 8px; text-align:center; }

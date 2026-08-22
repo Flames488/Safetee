@@ -200,7 +200,7 @@ export default function Onboarding() {
           <VitalRing size={172} color="green">
             <div className="ob-mark"><Logo size={50} /></div>
           </VitalRing>
-          <h1 className="ob-h1">Help reaches you<br />faster.</h1>
+          <h1 className="ob-h1">Help reaches you<br /><span className="text-gradient">faster.</span></h1>
           <p className="ob-p">Safetee turns one tap into location, audio and a call for help, sent to the people you trust, in seconds.</p>
           <div className="ob-spacer" />
           <Button full size="lg" onClick={() => setStep(STEP.SCENARIO)}>Get started</Button>

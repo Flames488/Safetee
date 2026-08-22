@@ -41,7 +41,7 @@ export default function Home() {
       <section className="hm-hero">
         <div className="hm-hero-inner">
           <Pill tone="bad">If something happens, seconds matter</Pill>
-          <h1 className="hm-h1">When every second matters,<br />Safetee acts instantly.</h1>
+          <h1 className="hm-h1">When every second matters,<br /><span className="text-gradient">Safetee acts instantly.</span></h1>
           <p className="hm-lede">One tap can notify your trusted contacts, share your live location, and begin recording, so you're never facing an emergency alone.</p>
           <div className="hm-hero-actions">
             <Button size="lg" onClick={() => navigate('/onboarding')} icon={<ArrowRight size={17} />}>Set up Safetee</Button>
