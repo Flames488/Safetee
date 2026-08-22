@@ -31,27 +31,31 @@
 }
 .sos-timer{ font-size:13px; color:var(--ink-1); }
 
-.sos-steps{ margin-top:24px; display:flex; flex-direction:column; gap:8px; }
+/* Generous row height and internal padding, not just a tight icon+label+
+   status crammed into a thin pill — this is the screen someone reads
+   during an actual emergency, so each line needs to read at a glance,
+   not feel like a cramped receipt. */
+.sos-steps{ margin-top:28px; display:flex; flex-direction:column; gap:12px; }
 .sos-step{
-  display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line);
-  border-radius:var(--r-md); padding:13px 14px; font-size:13.5px;
+  display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:16px 18px; font-size:14.5px; box-shadow:var(--shadow-xs);
 }
 .sos-step-icon{
-  width:30px; height:30px; border-radius:9px; background:var(--bg-2); display:flex; align-items:center;
+  width:36px; height:36px; border-radius:11px; background:var(--bg-2); display:flex; align-items:center;
   justify-content:center; color:var(--ink-1); flex-shrink:0;
 }
 .sos-step-done .sos-step-icon{ background:var(--green-soft); color:var(--green); }
-.sos-step-state{ margin-left:auto; font-size:11px; color:var(--ink-2); }
+.sos-step-state{ margin-left:auto; font-size:12px; font-weight:600; color:var(--ink-2); flex-shrink:0; padding-left:10px; }
 .sos-step-state.done{ color:var(--green); }
 .sos-step-state.failed{ color:var(--amber); }
 
-.sos-spacer{ flex:1; min-height:20px; }
+.sos-spacer{ flex:1; min-height:28px; }
 
 .sos-call{
   display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
-  background:var(--ink); color:var(--bg); padding:16px; border-radius:99px; font-size:15px; font-weight:700;
+  background:var(--ink); color:var(--bg); padding:17px; border-radius:99px; font-size:15px; font-weight:700;
 }
-.sos-cancel-btn-active{ width:100%; justify-content:center; margin-top:12px; }
+.sos-cancel-btn-active{ width:100%; justify-content:center; margin-top:14px; }
 
 .sos-error{
   font-size:12.5px; color:var(--red); background:var(--red-soft); border:1px solid var(--red-line);
@@ -66,4 +70,6 @@
   .sos-screen{ padding:calc(40px + env(safe-area-inset-top)) 30px calc(34px + env(safe-area-inset-bottom)); }
   .sos-countdown{ font-size:60px; }
   .sos-h1{ font-size:27px; }
+  .sos-steps{ gap:14px; }
+  .sos-step{ padding:18px 20px; font-size:15px; }
 }

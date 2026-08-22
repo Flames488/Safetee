@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker } from '../components/ui';
 import { api } from '../lib/api';
+import { markSeen } from '../lib/seenAlerts';
 import { timeLeft } from '../lib/time';
 import './history.css';
 import './network.css';
@@ -67,6 +68,11 @@ function useGuardedPoll(fetcher, intervalMs) {
 export default function IncomingAlerts() {
   const navigate = useNavigate();
   const { data: alerts, error: alertsError, reload: reloadAlerts } = useGuardedPoll(api.getIncomingAlerts, REFRESH_MS);
+  // Visiting this page is what clears the nav badge — same distinction as
+  // a phone's own inbox between "seen" and "replied to" (the backend's
+  // separate, deliberate "Acknowledge" action below, for actually
+  // confirming you're aware and responding).
+  useEffect(() => { if (alerts) markSeen(alerts.map((a) => a.id)); }, [alerts]);
   const { data: requests, error: requestsError, reload: reloadRequests } = useGuardedPoll(api.getIncomingLocationRequests, LOCATION_REFRESH_MS);
   const { data: viewing, error: viewingError, reload: reloadViewing } = useGuardedPoll(api.getViewingShares, LOCATION_REFRESH_MS);
 
