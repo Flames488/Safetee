@@ -45,7 +45,7 @@ const PERMISSIONS = [
       }
     },
   },
-  { id: 'sms', icon: MessageSquare, name: 'SMS', why: 'Sends your location by text if you lose data or signal — included automatically, nothing to grant.' },
+  { id: 'sms', icon: MessageSquare, name: 'SMS', why: 'Sends your location by text if you lose data or signal. Included automatically, nothing to grant.' },
   {
     id: 'notifications', icon: Bell, name: 'Notifications', why: 'Confirms your alert was delivered and contacts responded.',
     request: async () => {
@@ -167,8 +167,8 @@ export default function Onboarding() {
       if (!granted) {
         setTriggerError(
           motionPermissionNeeded()
-            ? 'Motion access was denied — you can enable it later in Settings.'
-            : "This device doesn't support motion detection — pick a fake PIN instead, or set this up later."
+            ? 'Motion access was denied. You can enable it later in Settings.'
+            : "This device doesn't support motion detection. Pick a fake PIN instead, or set this up later."
         );
         return;
       }
@@ -201,7 +201,7 @@ export default function Onboarding() {
             <div className="ob-mark"><Logo size={50} /></div>
           </VitalRing>
           <h1 className="ob-h1">Help reaches you<br />faster.</h1>
-          <p className="ob-p">Safetee turns one tap into location, audio and a call for help — sent to the people you trust, in seconds.</p>
+          <p className="ob-p">Safetee turns one tap into location, audio and a call for help, sent to the people you trust, in seconds.</p>
           <div className="ob-spacer" />
           <Button full size="lg" onClick={() => setStep(STEP.SCENARIO)}>Get started</Button>
           <button className="ob-link mono" onClick={() => navigate('/login')}>I already have an account</button>
@@ -226,7 +226,7 @@ export default function Onboarding() {
         <div className="ob-step">
           <div className="ob-icon-badge"><User size={22} strokeWidth={2} color="var(--green)" /></div>
           <h1 className="ob-h1 ob-h1-tight">Create your<br />account.</h1>
-          <p className="ob-p">This is what keeps your safety network — and your alert history — tied to you.</p>
+          <p className="ob-p">This is what keeps your safety network, and your alert history, tied to you.</p>
           <div className="ob-form">
             <label className="ob-field">
               <span className="mono">Full name</span>
@@ -344,7 +344,7 @@ export default function Onboarding() {
       {step === STEP.TRIGGER && (
         <div className="ob-step">
           <h1 className="ob-h1 ob-h1-tight">Pick a silent way<br />to call for help.</h1>
-          <p className="ob-p">Use this when opening the app or speaking out loud isn't safe. Choose your default — you can set up the rest in Settings.</p>
+          <p className="ob-p">Use this when opening the app or speaking out loud isn't safe. Choose your default; you can set up the rest in Settings.</p>
           <div className="ob-list">
             {TRIGGERS.map((t) => (
               <button

@@ -128,7 +128,7 @@ export default function Contacts() {
 
         {contacts !== null && !loadError && contacts.length === 0 && !showAdd && (
           <Card className="ct-empty">
-            <p>You haven't added anyone yet. Trusted contacts are the people notified — in order — the moment you trigger an alert.</p>
+            <p>You haven't added anyone yet. Trusted contacts are the people notified, in order, the moment you trigger an alert.</p>
             <Button onClick={() => setShowAdd(true)} icon={<Plus size={16} />}>Add your first contact</Button>
           </Card>
         )}
@@ -181,7 +181,7 @@ export default function Contacts() {
         ))}
 
         {contacts !== null && contacts.length > 0 && (
-          <p className="ct-note">Contacts are notified in priority order — the first person reached confirms your alert.</p>
+          <p className="ct-note">Contacts are notified in priority order. The first person reached confirms your alert.</p>
         )}
       </div>
       <BottomNav />

@@ -1,4 +1,10 @@
-.hm{ background:var(--bg); min-height:100vh; min-height:100dvh; }
+.hm{
+  min-height:100vh; min-height:100dvh;
+  background:
+    radial-gradient(1100px 620px at 12% -8%, var(--brand-soft), transparent 60%),
+    radial-gradient(900px 560px at 100% 18%, var(--info-soft), transparent 55%),
+    var(--bg);
+}
 
 .hm-hero{
   max-width:1120px; margin:0 auto; padding:64px 24px 40px;

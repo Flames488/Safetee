@@ -100,7 +100,7 @@ export default function Login() {
       </div>
       {error && <p className="lg-error" role="alert">{error}</p>}
       {waking && (
-        <p className="lg-hint" role="status">Still working on it — this is taking longer than usual.</p>
+        <p className="lg-hint" role="status">Still working on it. This is taking longer than usual.</p>
       )}
       <Button full size="lg" type="submit" disabled={submitting}>
         {submitting ? (waking ? 'Still signing in…' : 'Signing in…') : 'Log in'}

@@ -13,11 +13,11 @@ export default function Terms() {
       <div className="sp-body">
         <div className="sp-section">
           <h2>Not a replacement for emergency services</h2>
-          <p>Safetee notifies your trusted contacts — it does not dispatch police, medical, or fire services. In immediate danger, always contact your local emergency number first. Safetee is a supplement to that, not a substitute.</p>
+          <p>Safetee notifies your trusted contacts. It does not dispatch police, medical, or fire services. In immediate danger, always contact your local emergency number first. Safetee is a supplement to that, not a substitute.</p>
         </div>
         <div className="sp-section">
           <h2>Your account</h2>
-          <p>You're responsible for keeping your password and hidden-trigger PIN confidential, and for the accuracy of the trusted contacts you add — they'll only be reachable during an alert if their phone number is correct.</p>
+          <p>You're responsible for keeping your password and hidden-trigger PIN confidential, and for the accuracy of the trusted contacts you add. They'll only be reachable during an alert if their phone number is correct.</p>
         </div>
         <div className="sp-section">
           <h2>Fair use</h2>

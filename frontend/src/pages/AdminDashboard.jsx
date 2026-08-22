@@ -213,7 +213,7 @@ export default function AdminDashboard() {
     },
     ban: {
       title: 'Ban this account?', confirmLabel: 'Ban', tone: 'danger', reasonRequired: true,
-      body: target && `${target.full_name} will immediately lose access. This is meant for cause — use Suspend for anything temporary.`,
+      body: target && `${target.full_name} will immediately lose access. This is meant for cause; use Suspend for anything temporary.`,
       run: (reason) => runAction(() => api.adminBan(target.id, masterPassword, reason), `${target.full_name} banned`),
     },
     reinstate: {
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
     <>
       <TopBar
         title="Admin"
-        subtitle={isSuperAdmin ? 'Super admin — full access' : 'Viewer — read-only access'}
+        subtitle={isSuperAdmin ? 'Super admin, full access' : 'Viewer, read-only access'}
         action={
           <Button size="sm" variant={view === 'audit-log' ? 'secondary' : 'ghost'} onClick={() => setView(view === 'audit-log' ? 'users' : 'audit-log')}>
             {view === 'audit-log' ? <><ArrowLeft size={13} /> Back to users</> : <><History size={13} /> Audit log</>}
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
 
         <div className="ad-charts">
           <Card className="ad-chart-card">
-            <SectionLabel>Signups — last 30 days</SectionLabel>
+            <SectionLabel>Signups: last 30 days</SectionLabel>
             {users === false && <ErrorState message="Couldn't load signup history." onRetry={load} />}
             {users === null && <div className="skel ad-chart-skel" />}
             {Array.isArray(users) && <TrendChart data={signupsTrend} />}
@@ -384,7 +384,7 @@ export default function AdminDashboard() {
             <PasswordInput
               value={masterPassword}
               onChange={(e) => { setMasterPassword(e.target.value); setActionError(''); }}
-              placeholder="Master password — required to change anything below"
+              placeholder="Master password, required to change anything below"
             />
           </Card>
         )}

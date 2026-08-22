@@ -8,12 +8,12 @@ export default function Privacy() {
       <MarketingNav />
       <div className="sp-hero">
         <h1 className="sp-h1">Privacy policy.</h1>
-        <p className="sp-lede">Last updated August 2026. This is a plain-language summary of how Safetee handles your data — not a substitute for reading it if something here matters to you.</p>
+        <p className="sp-lede">Last updated August 2026. This is a plain-language summary of how Safetee handles your data, not a substitute for reading it if something here matters to you.</p>
       </div>
       <div className="sp-body">
         <div className="sp-section">
           <h2>What we collect</h2>
-          <p>Your name, phone number, and password (stored hashed, never in plain text). The trusted contacts you add. Location data, but only when you start a Safe Journey or trigger an SOS alert — never tracked in the background otherwise. Audio, photo, and video recorded during an active SOS alert, used solely as evidence for that alert.</p>
+          <p>Your name, phone number, and password (stored hashed, never in plain text). The trusted contacts you add. Location data, but only when you start a Safe Journey or trigger an SOS alert, never tracked in the background otherwise. Audio, photo, and video recorded during an active SOS alert, used solely as evidence for that alert.</p>
         </div>
         <div className="sp-section">
           <h2>How we use it</h2>

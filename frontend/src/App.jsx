@@ -73,7 +73,7 @@ function FocusScreen({ children, guarded, variant = 'auth' }) {
         </div>
         <div className="focus-brand-mid">
           <h2>Help reaches you before panic does.</h2>
-          <p>One tap notifies your trusted contacts, shares your live location, and starts recording — instantly.</p>
+          <p>One tap notifies your trusted contacts, shares your live location, and starts recording instantly.</p>
         </div>
         <ul className="focus-brand-points">
           <li><LocateFixed size={15} strokeWidth={2.1} /> Live location shared the moment an alert goes out</li>

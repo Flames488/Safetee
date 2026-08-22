@@ -120,7 +120,7 @@ export default function Settings() {
       if (!granted) {
         setGestureError(
           motionPermissionNeeded()
-            ? 'Motion access was denied — enable it for this site in your phone settings, then try again.'
+            ? 'Motion access was denied. Enable it for this site in your phone settings, then try again.'
             : "This device doesn't support motion detection, so the shake trigger can't work here."
         );
         return;
@@ -171,7 +171,7 @@ export default function Settings() {
               <strong>Fake PIN</strong>
               <span className="st-desc">
                 {user?.has_fake_pin
-                  ? "Entering it at login silently alerts your contacts — you'll be signed in normally, with no visible sign anything happened"
+                  ? "Entering it at login silently alerts your contacts. You'll be signed in normally, with no visible sign anything happened"
                   : 'Enter it instead of your password at login to silently alert your contacts, with no visible sign anything happened'}
               </span>
             </span>
@@ -193,7 +193,7 @@ export default function Settings() {
               />
               <p className="st-pin-hint">
                 Use it in the password field on the login screen instead of your real password.
-                It won't look any different from a normal sign-in — but it silently alerts your trusted contacts.
+                It won't look any different from a normal sign-in, but it silently alerts your trusted contacts.
               </p>
               {pinError && <p className="st-pin-error">{pinError}</p>}
               <Button size="sm" onClick={submitPin} disabled={triggerBusy}>Save PIN</Button>
@@ -207,7 +207,7 @@ export default function Settings() {
               <span className="st-desc">
                 {user?.gesture_trigger_enabled
                   ? 'Shake your phone firmly 3 times while Safetee is open to silently alert your contacts'
-                  : "Shake your phone firmly 3 times while Safetee is open — works only while the app is open, not from a locked screen"}
+                  : "Shake your phone firmly 3 times while Safetee is open. Works only while the app is open, not from a locked screen"}
               </span>
             </span>
             <Toggle

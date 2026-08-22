@@ -185,7 +185,7 @@ export default function IncomingAlerts() {
           <EmptyState
             icon={ShieldAlert}
             title="Nothing here"
-            message="If someone who has you listed as a trusted contact triggers an SOS, it'll show up here — as well as by text message."
+            message="If someone who has you listed as a trusted contact triggers an SOS, it'll show up here, as well as by text message."
           />
         )}
         {alerts?.map((a) => {

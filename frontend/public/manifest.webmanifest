@@ -1,7 +1,7 @@
 {
-  "name": "Safetee — Personal Safety",
+  "name": "Safetee: Personal Safety",
   "short_name": "Safetee",
-  "description": "One-touch SOS, live location sharing, journey monitoring and trusted contacts — ready in seconds.",
+  "description": "One-touch SOS, live location sharing, journey monitoring and trusted contacts, ready in seconds.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#060A0F",

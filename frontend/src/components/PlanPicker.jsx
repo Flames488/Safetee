@@ -95,7 +95,7 @@ export default function PlanPicker() {
       {plans === null && <p className="pr-loading">Loading pricing…</p>}
       {plansError && (
         <p className="pr-loading pr-fetch-error">
-          Couldn't load pricing right now — the billing service may not be reachable. Please try again shortly.
+          Couldn't load pricing right now, since the billing service may not be reachable. Please try again shortly.
         </p>
       )}
 
@@ -147,7 +147,7 @@ export default function PlanPicker() {
 
                 {needsEmail && actionTier === plan.id && (
                   <div className="pr-email-prompt">
-                    <div className="pr-email-prompt-head"><Mail size={14} strokeWidth={2.2} /> Add your email to continue — Paystack sends your receipt there.</div>
+                    <div className="pr-email-prompt-head"><Mail size={14} strokeWidth={2.2} /> Add your email to continue: Paystack sends your receipt there.</div>
                     <Field type="email" placeholder="you@example.com" value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} />
                     <Button size="sm" full disabled={!emailDraft || savingEmail} onClick={() => saveEmailAndRetry(plan.id)}>
                       {savingEmail ? 'Saving…' : 'Save and continue'}

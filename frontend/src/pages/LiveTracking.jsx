@@ -177,7 +177,7 @@ export default function LiveTracking() {
           <span>
             {lastCheckin === null && 'Sending first check-in…'}
             {lastCheckin === 'ok' && `Last check-in ${checkinAgo}s ago`}
-            {lastCheckin === 'error' && 'Check-in delayed — retrying'}
+            {lastCheckin === 'error' && 'Check-in delayed, retrying'}
           </span>
         </div>
 
@@ -187,10 +187,10 @@ export default function LiveTracking() {
             {notifyContacts?.length > 0 &&
               `${joinNames(notifyContacts.map((c) => c.name))} ${notifyContacts.length === 1 ? 'is' : 'are'} receiving live updates on your location every 30 seconds.`}
             {notifyContacts?.length === 0 &&
-              "No one is being notified on this journey — add a trusted contact next time to share live updates."}
+              "No one is being notified on this journey. Add a trusted contact next time to share live updates."}
           </p>
           {notifyContacts?.length > 0 && wsStatus === 'reconnecting' && (
-            <p className="tk-note-warn">Reconnecting live updates — contacts may see a brief gap.</p>
+            <p className="tk-note-warn">Reconnecting live updates. Contacts may see a brief gap.</p>
           )}
         </Card>
 
@@ -200,7 +200,7 @@ export default function LiveTracking() {
         <button className="tk-cancel" onClick={() => setShowCancelConfirm(true)} disabled={cancelling}>
           <XCircle size={15} strokeWidth={2.2} /> {cancelling ? 'Cancelling…' : 'Cancel journey'}
         </button>
-        <button className="tk-sos" onClick={() => navigate('/app/sos')}>Something's wrong — send SOS</button>
+        <button className="tk-sos" onClick={() => navigate('/app/sos')}>Something's wrong, send SOS</button>
       </div>
 
       <ConfirmDialog

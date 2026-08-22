@@ -104,7 +104,7 @@ export default function Billing() {
               <IconTile icon={ShieldCheck} tone="good" size={44} />
               <div className="bl-current-head-text">
                 <strong>Admin access</strong>
-                <Pill tone="good">Free — no subscription required</Pill>
+                <Pill tone="good">Free, no subscription required</Pill>
               </div>
             </div>
             <p className="bl-admin-note">
@@ -125,7 +125,7 @@ export default function Billing() {
               <div className="bl-current-head-text">
                 <strong>
                   {sub.tier
-                    ? `${sub.tier[0].toUpperCase()}${sub.tier.slice(1)} — ${sub.billing_interval === 'annual' ? 'Annual' : 'Monthly'}${sub.extra_seats ? ` + ${sub.extra_seats} extra seat${sub.extra_seats === 1 ? '' : 's'}` : ''}`
+                    ? `${sub.tier[0].toUpperCase()}${sub.tier.slice(1)} · ${sub.billing_interval === 'annual' ? 'Annual' : 'Monthly'}${sub.extra_seats ? ` + ${sub.extra_seats} extra seat${sub.extra_seats === 1 ? '' : 's'}` : ''}`
                     : 'No plan selected yet'}
                 </strong>
                 <Pill tone={STATUS_TONE[sub.status]}>{STATUS_LABEL[sub.status]}</Pill>
@@ -172,7 +172,7 @@ export default function Billing() {
             <IconTile icon={Receipt} tone={PAYMENT_STATUS_TONE[p.status]} size={32} />
             <div className="bl-payment-text">
               <strong>
-                {p.tier[0].toUpperCase()}{p.tier.slice(1)} ({p.billing_interval}{p.extra_seats ? ` +${p.extra_seats} seats` : ''}) — {fmtNaira(p.amount_kobo)}
+                {p.tier[0].toUpperCase()}{p.tier.slice(1)} ({p.billing_interval}{p.extra_seats ? ` +${p.extra_seats} seats` : ''}) · {fmtNaira(p.amount_kobo)}
               </strong>
               <span>{fmtDate(p.paid_at || p.created_at)}</span>
             </div>
@@ -188,7 +188,7 @@ export default function Billing() {
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
         title="Cancel your subscription?"
-        body="You'll keep full access until the end of your current billing period — after that your plan won't renew."
+        body="You'll keep full access until the end of your current billing period. After that your plan won't renew."
         confirmLabel="Cancel subscription"
         tone="danger"
         busy={cancelling}

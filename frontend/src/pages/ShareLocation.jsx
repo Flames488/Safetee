@@ -113,7 +113,7 @@ export default function ShareLocation() {
             {geoError && (
               <Card className="hs-card net-duration-card">
                 <p className="net-error" role="alert">
-                  Can't read your location — check that location access is allowed for this site, then reopen this page.
+                  Can't read your location. Check that location access is allowed for this site, then reopen this page.
                 </p>
               </Card>
             )}

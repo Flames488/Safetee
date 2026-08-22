@@ -33,7 +33,7 @@ function subscriptionBanner(sub, adminRole) {
     const days = daysUntil(sub.trial_ends_at);
     return {
       tone: days <= 3 ? 'warn' : 'info',
-      text: days === 0 ? 'Free trial — ends today' : `Free trial — ${days} day${days === 1 ? '' : 's'} remaining`,
+      text: days === 0 ? 'Free trial, ends today' : `Free trial, ${days} day${days === 1 ? '' : 's'} remaining`,
       detail: 'Full access to every feature during your trial. Choose a plan any time to keep your safety network active without interruption.',
       action: 'Choose a plan', to: '/app/settings/billing/choose-plan',
     };
@@ -41,7 +41,7 @@ function subscriptionBanner(sub, adminRole) {
   if (sub.status === 'past_due') {
     return {
       tone: 'bad', text: 'Payment failed',
-      detail: "Your last payment didn't go through — update your billing details to avoid losing access.",
+      detail: "Your last payment didn't go through. Update your billing details to avoid losing access.",
       action: 'Update billing', to: '/app/settings/billing',
     };
   }
@@ -103,7 +103,7 @@ const ACTIVITY_META = {
   journey: {
     active: { title: 'Journey in progress', tone: 'info' },
     arrived: { title: 'Journey completed safely', tone: 'good' },
-    escalated: { title: 'Journey escalated — missed check-in', tone: 'bad' },
+    escalated: { title: 'Journey escalated: missed check-in', tone: 'bad' },
     cancelled: { title: 'Journey cancelled', tone: 'neutral' },
   },
   sos: {
@@ -116,8 +116,8 @@ const ACTIVITY_META = {
 
 const TIPS = [
   { icon: Lightbulb, text: 'Test your hidden trigger (fake PIN, or shake to alert) somewhere safe so it becomes muscle memory.' },
-  { icon: UserCheck, text: 'Keep at least one trusted contact verified — confirming their number first makes delivery more reliable.' },
-  { icon: Navigation, text: 'Start a Safe Journey before walking somewhere unfamiliar, even a short distance — it costs nothing and checks in automatically.' },
+  { icon: UserCheck, text: 'Keep at least one trusted contact verified: confirming their number first makes delivery more reliable.' },
+  { icon: Navigation, text: 'Start a Safe Journey before walking somewhere unfamiliar, even a short distance. It costs nothing and checks in automatically.' },
 ];
 
 export default function Dashboard() {
@@ -227,7 +227,7 @@ export default function Dashboard() {
               {protectedState ? <ShieldCheck size={17} strokeWidth={2.2} /> : <ShieldAlert size={17} strokeWidth={2.2} />}
             </span>
             <span className="dash-status-text">
-              {protectedState ? "You're protected — monitoring active" : 'Add a trusted contact to get protected'}
+              {protectedState ? "You're protected, monitoring active" : 'Add a trusted contact to get protected'}
             </span>
             {!protectedState && (
               <button className="dash-status-cta" onClick={() => navigate('/app/contacts')}>

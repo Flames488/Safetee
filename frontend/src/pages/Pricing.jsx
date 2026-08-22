@@ -6,10 +6,10 @@ import './pricing.css';
 
 const FAQ = [
   { q: 'What happens when my trial ends?', a: "You'll be asked to pick a plan to keep your account active. Nothing is charged automatically without you choosing a plan first." },
-  { q: 'Can I switch plans or billing periods?', a: 'Yes — from Settings, at any time. Switching applies from your next billing date.' },
+  { q: 'Can I switch plans or billing periods?', a: 'Yes, from Settings, at any time. Switching applies from your next billing date.' },
   { q: 'How do I cancel?', a: "From Settings → Billing, any time, no phone call or email required. You'll keep access until the end of your current billing period." },
-  { q: 'Why is Organization priced per seat instead of per member?', a: "Because your congregation, student body, or team isn't who needs a safety trigger in their pocket — the people who actually drive or travel on the organization's behalf are. A seat is one protected person; you only pay for as many as you actually need covered, and can add more any time." },
-  { q: 'What payment methods are supported?', a: 'Card, bank transfer, and USSD, all through Paystack — the same processor used by most Nigerian banks and fintechs.' },
+  { q: 'Why is Organization priced per seat instead of per member?', a: "Because your congregation, student body, or team isn't who needs a safety trigger in their pocket. It's the people who actually drive or travel on the organization's behalf. A seat is one protected person; you only pay for as many as you actually need covered, and can add more any time." },
+  { q: 'What payment methods are supported?', a: 'Card, bank transfer, and USSD, all through Paystack, the same processor used by most Nigerian banks and fintechs.' },
 ];
 
 export default function Pricing() {

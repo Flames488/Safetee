@@ -14,14 +14,14 @@ export default function Contact() {
   // goes nowhere without a backend behind it.
   const mailtoHref = `mailto:support@safetee.app?subject=${encodeURIComponent(
     `Message from ${form.name || 'the Safetee site'}`
-  )}&body=${encodeURIComponent(`${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ''}`)}`;
+  )}&body=${encodeURIComponent(`${form.message}\n\nFrom ${form.name}${form.email ? ` (${form.email})` : ''}`)}`;
 
   return (
     <div className="sp">
       <MarketingNav />
       <div className="sp-hero">
         <h1 className="sp-h1">Get in touch.</h1>
-        <p className="sp-lede">Questions, feedback, or something not working right — here's how to reach us directly.</p>
+        <p className="sp-lede">Questions, feedback, or something not working right: here's how to reach us directly.</p>
       </div>
       <div className="sp-body">
         <div className="sp-contact-list">
@@ -29,7 +29,7 @@ export default function Contact() {
             <span className="sp-contact-icon"><Mail size={17} strokeWidth={2} /></span>
             <span className="sp-contact-text">
               <strong>support@safetee.app</strong>
-              <span>General questions and account support — we reply within a day.</span>
+              <span>General questions and account support. We reply within a day.</span>
             </span>
           </a>
           <a className="sp-contact-card" href="mailto:trust@safetee.app">
@@ -76,7 +76,7 @@ export default function Contact() {
 
         <div className="sp-section">
           <h2>In an active emergency</h2>
-          <p>Safetee is not a replacement for local emergency services. If you're in immediate danger, contact your local emergency number first — Safetee's SOS trigger notifies your trusted contacts in parallel, not instead of that call.</p>
+          <p>Safetee is not a replacement for local emergency services. If you're in immediate danger, contact your local emergency number first. Safetee's SOS trigger notifies your trusted contacts in parallel, not instead of that call.</p>
         </div>
 
         <div className="sp-section">

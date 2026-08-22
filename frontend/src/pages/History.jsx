@@ -21,7 +21,7 @@ const META = {
   journey: {
     active: { title: 'Journey in progress', tone: 'info' },
     arrived: { title: 'Journey completed safely', tone: 'good' },
-    escalated: { title: 'Journey escalated — missed check-in', tone: 'bad' },
+    escalated: { title: 'Journey escalated: missed check-in', tone: 'bad' },
     cancelled: { title: 'Journey cancelled', tone: 'neutral' },
   },
   sos: {

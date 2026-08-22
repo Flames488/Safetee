@@ -224,7 +224,8 @@ h1,h2,h3,h4{
 .focus-page{
   min-height:100vh; min-height:100dvh; width:100%;
   background:
-    radial-gradient(900px 520px at 50% -10%, var(--brand-soft), transparent),
+    radial-gradient(760px 520px at 50% 0%, var(--brand-soft), transparent 65%),
+    radial-gradient(620px 460px at 100% 100%, var(--info-soft), transparent 60%),
     var(--bg);
 }
 .focus-stage{

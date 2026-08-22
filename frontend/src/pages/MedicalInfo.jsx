@@ -35,7 +35,7 @@ export default function MedicalInfo() {
       <TopBar title="Emergency medical info" subtitle="Visible to you at a glance during an emergency" />
       <form className="pfm-body" onSubmit={handleSave}>
         <p className="pfm-hint">
-          Allergies, conditions, medications, blood type — anything worth someone knowing quickly.
+          Allergies, conditions, medications, blood type: anything worth someone knowing quickly.
           This is stored on your account for your own reference; it is not automatically included
           in SOS alerts sent to your trusted contacts.
         </p>

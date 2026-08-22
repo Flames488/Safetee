@@ -52,7 +52,7 @@ export default function JourneyShareView() {
       <div className="hs-list">
         {wsStatus === 'ended' && (
           <Card className="hs-card net-empty">
-            This journey is no longer being tracked — it may have ended, or this link has expired.
+            This journey is no longer being tracked. It may have ended, or this link has expired.
           </Card>
         )}
         {wsStatus !== 'ended' && (

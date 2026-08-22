@@ -36,7 +36,7 @@ export default function SOSEvidence() {
         .catch((err) => {
           if (cancelled) return;
           if (err instanceof ApiError && err.status === 403) {
-            setError("You don't have access to this evidence — the link may have expired.");
+            setError("You don't have access to this evidence. The link may have expired.");
           } else if (err instanceof ApiError && err.status === 404) {
             setError('This SOS event no longer exists.');
           } else {
@@ -79,7 +79,7 @@ export default function SOSEvidence() {
           <EmptyState
             icon={ShieldCheck}
             title="No evidence yet"
-            message="Nothing has been captured for this alert yet — this page updates automatically as new audio, photo, or video comes in."
+            message="Nothing has been captured for this alert yet. This page updates automatically as new audio, photo, or video comes in."
           />
         )}
 
