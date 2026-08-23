@@ -60,7 +60,7 @@ async def test_fanout_marks_delivery_failed_when_sms_fails(auth_client):
 
 async def test_fanout_prunes_device_on_expired_push_subscription(client, auth_client):
     """A contact who's also a registered Safetee user gets an in-app push
-    in addition to SMS (see _matching_user_devices). If their subscription
+    in addition to SMS (see _matching_user_devices_by_phone). If their subscription
     is permanently gone (send_push returning "expired"), the stale Device
     row must be deleted — not retried forever on every future alert."""
     contact_signup = await client.post(
@@ -93,6 +93,55 @@ async def test_fanout_prunes_device_on_expired_push_subscription(client, auth_cl
     remaining = db.query(Device).filter_by(user_id=contact_user.id).all()
     assert remaining == []
     db.close()
+
+
+async def test_fanout_matches_each_contacts_device_to_the_right_account(client, auth_client):
+    """The device lookup is batched across all contacts in one pass (see
+    _matching_user_devices_by_phone) rather than queried per contact — this
+    guards against that batching cross-wiring devices between accounts,
+    e.g. pushing contact A's alert to contact B's device."""
+    contact_a = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Contact A", "phone": "+2340000000001", "password": "supersecret123"},
+    )
+    contact_b = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Contact B", "phone": "+2340000000002", "password": "supersecret123"},
+    )
+    await client.post(
+        "/api/v1/devices",
+        headers={"Authorization": f"Bearer {contact_a.json()['access_token']}"},
+        json={"endpoint": "https://fcm.googleapis.com/fcm/send/a", "keys": {"p256dh": "x", "auth": "y"}},
+    )
+    await client.post(
+        "/api/v1/devices",
+        headers={"Authorization": f"Bearer {contact_b.json()['access_token']}"},
+        json={"endpoint": "https://fcm.googleapis.com/fcm/send/b", "keys": {"p256dh": "x", "auth": "y"}},
+    )
+
+    await auth_client.post("/api/v1/contacts", json={"name": "A", "phone": "+2340000000001", "priority": 1})
+    await auth_client.post("/api/v1/contacts", json={"name": "B", "phone": "+2340000000002", "priority": 2})
+    # A third contact with no Safetee account at all — must not blow up the
+    # batched lookup and must not receive a push.
+    await auth_client.post("/api/v1/contacts", json={"name": "C", "phone": "+2340000000003", "priority": 3})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    with (
+        patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send,
+        patch("app.workers.tasks.sos_tasks.send_push") as mock_push,
+    ):
+        mock_send.return_value = ("sms_twilio", "SM-fake-ref")
+        mock_push.return_value = "sent"
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        fanout_sos_alerts.apply(args=[sos_id])
+
+    assert mock_push.call_count == 2
+    pushed_tokens = {call.args[0] for call in mock_push.call_args_list}
+    assert pushed_tokens == {
+        "https://fcm.googleapis.com/fcm/send/a",
+        "https://fcm.googleapis.com/fcm/send/b",
+    }
 
 
 async def test_retry_failed_alerts_recovers_a_failed_delivery(auth_client):

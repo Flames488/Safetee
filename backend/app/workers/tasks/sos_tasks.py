@@ -25,24 +25,36 @@ def _alert_body(user: User, event: SOSEvent) -> str:
     return f"SAFETEE ALERT: {user.full_name} has triggered an emergency alert and may need help.{maps_link}"
 
 
-def _matching_user_devices(db, phone: str) -> list[Device]:
+def _matching_user_devices_by_phone(db, phones: list[str]) -> dict[str, list[Device]]:
     """A trusted contact has no Safetee account by default — SMS above is
-    the unconditional, reliable path regardless of this. But if this
-    contact's phone happens to belong to a registered user (they're a
-    contact who also uses the app), also push to their registered devices
-    for a faster, richer in-app notification. No match found is the
-    common case and returns an empty list, not an error. Exact match on
-    the indexed User.phone column — see normalize_phone's docstring for
-    why this isn't a fuzzy match (was previously an unindexed full-table
-    scan comparing last-10-digits, which was both slow and, more
-    importantly, could match the wrong real person's account)."""
-    target = normalize_phone(phone)
-    if not target:
-        return []
-    matched_user = db.query(User.id).filter(User.phone == target).first()
-    if matched_user is None:
-        return []
-    return db.query(Device).filter(Device.user_id == matched_user.id).all()
+    the unconditional, reliable path regardless of this. But if a contact's
+    phone happens to belong to a registered user (they're a contact who
+    also uses the app), also push to their registered devices for a
+    faster, richer in-app notification. Exact match on the indexed
+    User.phone column — see normalize_phone's docstring for why this isn't
+    a fuzzy match (was previously an unindexed full-table scan comparing
+    last-10-digits, which was both slow and, more importantly, could match
+    the wrong real person's account).
+
+    Batched across all contacts up front (2 queries total) rather than
+    once per contact — fanning out to a contact list of any real size
+    previously meant 2 extra round trips per contact on top of the SMS
+    send itself."""
+    targets = {normalize_phone(p) for p in phones if normalize_phone(p)}
+    if not targets:
+        return {}
+    users = db.query(User.id, User.phone).filter(User.phone.in_(targets)).all()
+    if not users:
+        return {}
+    user_id_by_phone = {phone: user_id for user_id, phone in users}
+    devices = db.query(Device).filter(Device.user_id.in_(user_id_by_phone.values())).all()
+    devices_by_user_id: dict[uuid.UUID, list[Device]] = {}
+    for device in devices:
+        devices_by_user_id.setdefault(device.user_id, []).append(device)
+    return {
+        phone: devices_by_user_id.get(user_id, [])
+        for phone, user_id in user_id_by_phone.items()
+    }
 
 
 def _send_push_and_prune(db, device: Device, title: str, body: str, data: dict) -> None:
@@ -104,6 +116,7 @@ def fanout_sos_alerts(self, sos_event_id: str):
 
         body = _alert_body(user, event)
         any_failed = False
+        devices_by_phone = _matching_user_devices_by_phone(db, [c.phone for c in contacts])
 
         for contact in contacts:
             delivery = (
@@ -138,7 +151,7 @@ def fanout_sos_alerts(self, sos_event_id: str):
 
             db.commit()
 
-            for device in _matching_user_devices(db, contact.phone):
+            for device in devices_by_phone.get(normalize_phone(contact.phone), []):
                 _send_push_and_prune(
                     db, device, "SAFETEE Alert", f"{user.full_name} triggered an emergency alert",
                     data={"url": "/app/alerts"},
@@ -167,6 +180,7 @@ def notify_contacts_of_evidence(sos_event_id: str):
             return
         user = db.get(User, event.user_id)
         contacts = db.query(TrustedContact).filter(TrustedContact.user_id == event.user_id).all()
+        devices_by_phone = _matching_user_devices_by_phone(db, [c.phone for c in contacts])
 
         for contact in contacts:
             token = create_share_token(scope="sos_evidence", resource_id=str(event.id), contact_id=str(contact.id))
@@ -180,7 +194,7 @@ def notify_contacts_of_evidence(sos_event_id: str):
             # A contact who's also a user gets in-app access via their own
             # login (see get_evidence's phone-match check), so this deep
             # link doesn't need the ?token= a non-account contact requires.
-            for device in _matching_user_devices(db, contact.phone):
+            for device in devices_by_phone.get(normalize_phone(contact.phone), []):
                 _send_push_and_prune(
                     db, device, "SAFETEE Evidence", f"Audio/video evidence is available for {user.full_name}'s alert",
                     data={"url": f"/track/{event.id}/evidence"},

@@ -14,7 +14,7 @@ class TrustedContact(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(120))
     relationship_label: Mapped[str | None] = mapped_column(String(60), nullable=True)
     # Indexed — matched exactly against User.phone in list_incoming_alerts/
-    # _is_trusted_contact_of (app/api/v1/sos.py) and _matching_user_devices
+    # _is_trusted_contact_of (app/api/v1/sos.py) and _matching_user_devices_by_phone
     # (sos_tasks.py) to find whether this contact is also a registered user.
     phone: Mapped[str] = mapped_column(String(20), index=True)
 

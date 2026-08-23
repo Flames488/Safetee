@@ -10,6 +10,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.rate_limit import enforce_rate_limit
 from app.core.scheduler import run_soon
 from app.core.security import decode_share_token, decode_token, verify_password
 from app.db.session import get_db
@@ -185,6 +186,13 @@ async def create_evidence_upload_url(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
+    # Each call mints a real signed upload URL against Supabase and, if the
+    # client actually uploads to it without ever calling confirm, leaves an
+    # orphaned object behind — the cap below only counts *confirmed*
+    # evidence, so nothing else stops a buggy or malicious client from
+    # calling this endpoint indefinitely and growing storage unbounded.
+    await enforce_rate_limit(f"evidence-upload-url:{user.id}:{event_id}", max_attempts=30, window_seconds=600)
+
     event = await _get_event(db, event_id, user.id)
 
     # Defense-in-depth: the frontend already skips requesting a disabled
@@ -224,6 +232,18 @@ async def confirm_evidence(
     expected_prefix = f"{user.id}/{event.id}/"
     if not payload.path.startswith(expected_prefix):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Path does not belong to this event")
+
+    # Evidence chunks land every 15-30s and each confirm does a Python-level
+    # read-modify-write of a Postgres ARRAY column (append, then write the
+    # whole list back) — two confirms for the same event overlapping (two
+    # chunks confirmed back-to-back, or a retried request racing the
+    # original) would otherwise silently lose whichever one commits first,
+    # since both start from the same `existing` snapshot. Locking the row
+    # here serializes those confirms so the second one re-reads the
+    # first's already-committed append instead of clobbering it.
+    event = (
+        await db.execute(select(SOSEvent).where(SOSEvent.id == event.id).with_for_update())
+    ).scalar_one()
 
     field_name = _EVIDENCE_FIELD[payload.media_type]
     existing = getattr(event, field_name)
