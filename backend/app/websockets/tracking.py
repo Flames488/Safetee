@@ -33,7 +33,16 @@ class ConnectionManager:
         self.rooms.setdefault(journey_id, set()).add(ws)
 
     def disconnect(self, journey_id: str, ws: WebSocket):
-        self.rooms.get(journey_id, set()).discard(ws)
+        room = self.rooms.get(journey_id)
+        if room is None:
+            return
+        room.discard(ws)
+        # Without this, every journey/share ever tracked leaves a
+        # permanently-empty entry behind — an unbounded leak over the
+        # life of the process, since nothing else ever revisits a room
+        # once its last connection has left.
+        if not room:
+            del self.rooms[journey_id]
 
     async def broadcast(self, journey_id: str, payload: dict):
         dead = []
@@ -114,4 +123,10 @@ async def journey_tracking_socket(
                 continue
             await manager.broadcast(journey_id, payload)
     except WebSocketDisconnect:
+        pass
+    finally:
+        # Not just in the WebSocketDisconnect branch — any other exception
+        # out of the loop above must still free this connection's slot, or
+        # it stays registered in the room forever (see location_sharing.py,
+        # which already used finally for the same reason).
         manager.disconnect(journey_id, websocket)
