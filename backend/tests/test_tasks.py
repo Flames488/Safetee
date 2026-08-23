@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
@@ -137,8 +138,10 @@ async def test_fanout_matches_each_contacts_device_to_the_right_account(client, 
         fanout_sos_alerts.apply(args=[sos_id])
 
     assert mock_push.call_count == 2
-    pushed_tokens = {call.args[0] for call in mock_push.call_args_list}
-    assert pushed_tokens == {
+    # push_token stores the whole {endpoint, keys} subscription as JSON
+    # (see POST /devices), not the bare endpoint URL.
+    pushed_endpoints = {json.loads(call.args[0])["endpoint"] for call in mock_push.call_args_list}
+    assert pushed_endpoints == {
         "https://fcm.googleapis.com/fcm/send/a",
         "https://fcm.googleapis.com/fcm/send/b",
     }
