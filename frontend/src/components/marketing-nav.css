@@ -1,6 +1,12 @@
 .mn-nav{
-  border-bottom:1px solid var(--glass-border); position:sticky; top:0; z-index:10;
-  background:var(--glass-bg); backdrop-filter:blur(var(--glass-blur)); -webkit-backdrop-filter:blur(var(--glass-blur));
+  border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10;
+  /* A solid surface color, not the translucent --glass-bg token — this
+     bar sits over page content that scrolls underneath it (the hero's
+     own text included), and depended entirely on backdrop-filter to stay
+     readable. Any browser/setting without backdrop-filter support left it
+     see-through with no fallback. var(--bg-1) is a real opaque color in
+     both themes, so the bar is always solid regardless of blur support. */
+  background:var(--bg-1);
 }
 .mn-nav-inner{ max-width:1120px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; gap:32px; }
 .mn-logo{ display:flex; align-items:center; gap:9px; font-size:14px; letter-spacing:.1em; font-weight:700; }

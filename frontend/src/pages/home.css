@@ -18,8 +18,13 @@
   display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center;
 }
 .hm-hero-copy{ display:flex; flex-direction:column; gap:20px; align-items:flex-start; }
-.hm-h1{ font-size:44px; line-height:1.06; color:#F5F6F8; }
-.hm-lede{ font-size:16px; color:rgba(245,246,248,.72); line-height:1.65; max-width:480px; }
+/* Theme-aware, not hardcoded white — this hero used to always sit on a
+   dark full-bleed photo (any theme), but that photo's gone now (see the
+   "Replace hero visual" commit): it's just the page's own background,
+   which turns light in light theme, so fixed white text was unreadable
+   there. */
+.hm-h1{ font-size:44px; line-height:1.06; color:var(--ink); }
+.hm-lede{ font-size:16px; color:var(--ink-1); line-height:1.65; max-width:480px; }
 .hm-hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
 
 /* Stacked, not overlapping — the photo's subject (face top, phone screen
