@@ -58,7 +58,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /root/safetee
+            cd ~/safetee
             bash infra/scripts/deploy.sh
 
       - name: Post-deploy health check

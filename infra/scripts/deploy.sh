@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Pulls the latest CI-built image and redeploys the backend stack on the
-# production VPS. Run this FROM the server, inside /root/safetee.
+# production VPS. Run this FROM the server, inside ~/safetee (the deploy
+# user's own checkout — not /root, which the deploy SSH user has no
+# access to).
 #
 # Deliberately does NOT run `docker compose build` — the production VPS is
 # low-spec (see README), and a pip-install build under load has already
