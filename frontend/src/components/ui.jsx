@@ -34,6 +34,18 @@ export function Avatar({ src, name }) {
   return initialsOf(name) || '—';
 }
 
+// Same broken-load fallback as Avatar, for a full-bleed decorative photo
+// (marketing hero/CTA/tile backgrounds) rather than an avatar-shaped slot.
+// Renders nothing on a failed load — instead of a broken-image icon — so
+// whatever background/gradient already sits behind it in the page's own
+// CSS shows through untouched. className positions it (typically
+// absolute inset-0, object-fit: cover) via the page's own stylesheet.
+export function BgPhoto({ src, className }) {
+  const [broken, setBroken] = useState(false);
+  if (!src || broken) return null;
+  return <img src={src} alt="" className={className} onError={() => setBroken(true)} />;
+}
+
 // Animates from 0 (or its previous value) to `value` whenever `value`
 // changes — used for hero/KPI figures so real data updates read as
 // alive rather than just replacing text instantly.

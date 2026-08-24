@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail, MessageCircle, ShieldAlert, Clock } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
-import { Button } from '../components/ui';
+import { Button, BgPhoto } from '../components/ui';
 import './simple-page.css';
 
 export default function Contact() {
@@ -20,7 +20,9 @@ export default function Contact() {
     <div className="sp">
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
-        <div className="sp-hero-photo-media" style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?phone,communication)' }} />
+        <div className="sp-hero-photo-media">
+          <BgPhoto src="https://picsum.photos/seed/safetee-contact/1600/900" className="sp-hero-photo-img" />
+        </div>
         <div className="sp-hero-photo-inner">
           <h1 className="sp-h1">Get in touch.</h1>
           <p className="sp-lede">Questions, feedback, or something not working right: here's how to reach us directly.</p>

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
-import { Button, Pill } from '../components/ui';
+import { Button, Pill, BgPhoto } from '../components/ui';
 import './simple-page.css';
 
 export default function About() {
@@ -11,7 +11,9 @@ export default function About() {
     <div className="sp">
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
-        <div className="sp-hero-photo-media" style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?dark,office)' }} />
+        <div className="sp-hero-photo-media">
+          <BgPhoto src="https://picsum.photos/seed/safetee-about/1600/900" className="sp-hero-photo-img" />
+        </div>
         <div className="sp-hero-photo-inner">
           <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>
           <h1 className="sp-h1">Built for the seconds<br /><span className="text-gradient">that matter most.</span></h1>
