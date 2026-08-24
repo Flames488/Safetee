@@ -49,8 +49,15 @@ async def start_journey(
     # exists — same reasoning as the location-sharing feature's push.
     if user.share_location_enabled and journey.notify_contact_ids:
         contact_ids = {uuid.UUID(cid) for cid in journey.notify_contact_ids}
+        # Scoped to this user's own contacts — without this, a crafted
+        # notify_contact_ids UUID belonging to another user would send that
+        # stranger's contact an unsolicited SMS with a live-location link.
         contacts = (
-            await db.execute(select(TrustedContact).where(TrustedContact.id.in_(contact_ids)))
+            await db.execute(
+                select(TrustedContact).where(
+                    TrustedContact.id.in_(contact_ids), TrustedContact.user_id == user.id
+                )
+            )
         ).scalars().all()
         for contact in contacts:
             token = create_share_token(scope="journey", resource_id=str(journey.id), contact_id=str(contact.id))

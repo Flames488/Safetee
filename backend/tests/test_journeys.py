@@ -1,3 +1,36 @@
+from unittest.mock import patch
+
+
+async def test_start_journey_ignores_a_notify_contact_id_owned_by_another_user(client, auth_client):
+    """notify_contact_ids comes straight from the client — without scoping
+    the lookup to the caller's own contacts, a crafted UUID belonging to a
+    different user's contact would get an unsolicited SMS with a live
+    location-share link for a journey they have nothing to do with."""
+    other_signup = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Other User", "phone": "+2348100005599", "password": "supersecret123"},
+    )
+    other_token = other_signup.json()["access_token"]
+    other_contact = await client.post(
+        "/api/v1/contacts",
+        headers={"Authorization": f"Bearer {other_token}"},
+        json={"name": "Other's contact", "phone": "+2348100005588", "priority": 1},
+    )
+    other_contact_id = other_contact.json()["id"]
+
+    with patch("app.api.v1.journeys.send_with_fallback") as mock_send:
+        r = await auth_client.post(
+            "/api/v1/journeys",
+            json={
+                "destination_label": "Somewhere",
+                "expected_minutes": 15,
+                "notify_contact_ids": [other_contact_id],
+            },
+        )
+    assert r.status_code == 201
+    mock_send.assert_not_called()
+
+
 async def test_start_journey(auth_client):
     r = await auth_client.post(
         "/api/v1/journeys",
