@@ -16,7 +16,7 @@
   content:''; position:absolute; inset:0;
   background:
     linear-gradient(180deg, rgba(8,9,13,.6) 0%, rgba(8,9,13,.88) 75%, var(--bg) 100%),
-    radial-gradient(700px 460px at 50% 0%, rgba(110,91,255,.28), transparent 65%);
+    radial-gradient(700px 460px at 50% 0%, rgba(47,138,23,.28), transparent 65%);
 }
 .pr-hero-photo-inner{ position:relative; z-index:1; max-width:680px; margin:0 auto; }
 .pr-hero-photo .sp-h1{ color:#F5F6F8; }

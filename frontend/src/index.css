@@ -30,15 +30,15 @@
   --ink-1:#9BA0AF;
   --ink-2:#666B7A;
 
-  /* brand — indigo/violet primary */
-  --brand:#6E5BFF;
-  --brand-deep:#5643E0;
-  --brand-bright:#8B7CFF;
-  --brand-ink:#F8F7FF;
-  --brand-soft:rgba(110,91,255,0.14);
-  --brand-line:rgba(110,91,255,0.38);
-  --brand-glow:0 0 28px rgba(110,91,255,.38);
-  --brand-gradient:linear-gradient(135deg, #8B7CFF 0%, #6E5BFF 55%, #4C3DDB 100%);
+  /* brand — green, matching the shield/pin logo mark */
+  --brand:#2F8A17;
+  --brand-deep:#1A5A0E;
+  --brand-bright:#5FBF32;
+  --brand-ink:#F8FFF4;
+  --brand-soft:rgba(47,138,23,0.14);
+  --brand-line:rgba(47,138,23,0.38);
+  --brand-glow:0 0 28px rgba(47,138,23,.38);
+  --brand-gradient:linear-gradient(135deg, #4CA824 0%, #2F8A17 55%, #175613 100%);
 
   /* info — soft blue, secondary accent */
   --info:#3AA0FF;
@@ -245,7 +245,7 @@ h1,h2,h3,h4{
 .focus-page{
   min-height:100vh; min-height:100dvh; width:100%;
   background:
-    radial-gradient(800px 560px at 50% 0%, rgba(110,91,255,.34), transparent 68%),
+    radial-gradient(800px 560px at 50% 0%, rgba(47,138,23,.34), transparent 68%),
     radial-gradient(680px 520px at 100% 100%, rgba(58,160,255,.24), transparent 62%),
     var(--bg);
 }

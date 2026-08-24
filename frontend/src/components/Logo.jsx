@@ -1,18 +1,17 @@
-// The recurring "gradient chip + glow" mark used everywhere the
-// wordmark lockup appears (marketing nav, auth split-screen, sidebar,
-// footer) — one place to keep that treatment consistent.
+// The mark used everywhere the wordmark lockup appears (marketing nav,
+// auth split-screen, sidebar, footer) — one place to keep it consistent.
+// Rendered directly rather than inside a colored chip: unlike the old
+// thin-line glyph (which needed a brand-gradient backing to read as
+// intentional), this artwork is already a fully-shaded, self-contained
+// mark, so a wrapper chip would just fight it for attention. Width is
+// slightly narrower than height (the source art isn't a perfect square),
+// so `size` sets the height and width follows its own aspect ratio.
 export default function Logo({ size = 24, className = '' }) {
-  const pad = Math.round(size * 0.28);
-  const box = size + pad;
   return (
-    <span
-      className={`chip-gradient ${className}`}
-      style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: box, height: box, borderRadius: box * 0.32, flexShrink: 0,
-      }}
-    >
-      <img src="/logo-mark.svg" alt="" width={size} height={size} style={{ display: 'block' }} />
-    </span>
+    <img
+      src="/logo-mark.png" alt=""
+      style={{ height: size, width: 'auto', display: 'block', flexShrink: 0 }}
+      className={className}
+    />
   );
 }

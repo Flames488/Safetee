@@ -73,7 +73,7 @@ export default function Home() {
               <img src={heroAppPreview} alt="Someone holding up a phone with the Safetee app open" className="hm-hero-photo" />
             </div>
 
-            <div className="hm-status-card glass hm-status-card-float">
+            <div className="hm-status-card glass">
               <div className="hm-status-head">
                 <span className="hm-status-dot" />
                 <span>All systems operational</span>

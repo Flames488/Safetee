@@ -14,8 +14,8 @@
 .btn-sm{ padding:9px 16px; font-size:13px; }
 .btn-lg{ padding:17px 26px; font-size:16px; }
 
-.btn-primary{ background:var(--brand-gradient); color:var(--brand-ink); box-shadow:0 10px 28px -12px rgba(110,91,255,.6); }
-.btn-primary:hover{ box-shadow:0 14px 34px -12px rgba(110,91,255,.7); transform:translateY(-1px); }
+.btn-primary{ background:var(--brand-gradient); color:var(--brand-ink); box-shadow:0 10px 28px -12px rgba(47,138,23,.6); }
+.btn-primary:hover{ box-shadow:0 14px 34px -12px rgba(47,138,23,.7); transform:translateY(-1px); }
 
 .btn-secondary{ background:var(--card-hi); color:var(--ink); border:1px solid var(--line-strong); }
 .btn-secondary:hover{ border-color:var(--brand-line); }

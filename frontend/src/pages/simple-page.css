@@ -12,7 +12,7 @@
 .sp-hero{
   max-width:720px; margin:0 auto; padding:56px 24px 8px; text-align:center;
   background:
-    radial-gradient(900px 560px at 50% -10%, rgba(110,91,255,.32), transparent 65%),
+    radial-gradient(900px 560px at 50% -10%, rgba(47,138,23,.32), transparent 65%),
     radial-gradient(700px 480px at 100% 0%, rgba(58,160,255,.16), transparent 60%);
 }
 .sp-hero-photo{
@@ -27,7 +27,7 @@
   content:''; position:absolute; inset:0;
   background:
     linear-gradient(180deg, rgba(8,9,13,.6) 0%, rgba(8,9,13,.88) 75%, var(--bg) 100%),
-    radial-gradient(700px 460px at 50% 0%, rgba(110,91,255,.28), transparent 65%);
+    radial-gradient(700px 460px at 50% 0%, rgba(47,138,23,.28), transparent 65%);
 }
 .sp-hero-photo-inner{ position:relative; z-index:1; max-width:720px; margin:0 auto; }
 .sp-hero-photo .sp-h1{ color:#F5F6F8; }
