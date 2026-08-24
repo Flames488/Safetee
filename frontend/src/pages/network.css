@@ -1,3 +1,12 @@
+/* A subtle ambient glow behind the whole page instead of flat black —
+   same "give it real depth" treatment Dashboard/Contacts already use,
+   this page was the one flat holdout. */
+.net-columns{
+  position:relative;
+  background:radial-gradient(700px 360px at 90% -10%, var(--brand-soft), transparent 65%);
+  padding-top:4px;
+}
+
 .net-empty{ padding:16px; font-size:13px; color:var(--ink-2); text-align:center; }
 
 .net-error{
