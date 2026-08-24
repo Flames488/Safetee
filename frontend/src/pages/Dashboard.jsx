@@ -318,7 +318,9 @@ export default function Dashboard() {
             <Card className="dash-sos-card">
               <button className="dash-sos-btn" onClick={() => navigate('/app/sos')}>
                 <VitalRing size={172} color="green">
-                  <span className="dash-sos-inner mono">HOLD FOR<br /><strong>SOS</strong></span>
+                  <span className="dash-sos-core">
+                    <span className="dash-sos-inner mono">HOLD FOR<br /><strong>SOS</strong></span>
+                  </span>
                 </VitalRing>
               </button>
               <p className="dash-sos-hint">Press and hold 2 seconds to alert your trusted contacts</p>

@@ -109,8 +109,23 @@
   pointer-events:none;
 }
 .dash-sos-btn{ display:flex; position:relative; }
-.dash-sos-inner{ font-size:11px; line-height:1.5; letter-spacing:.06em; color:var(--ink-1); text-align:center; }
-.dash-sos-inner strong{ font-size:20px; color:var(--good); letter-spacing:0; font-family:var(--font-display); }
+/* Solid red circle, not just text in a ring — reads as a real emergency
+   trigger at a glance, the way a physical SOS button would. Red here is
+   consistent with the design system's own rule that red is reserved for
+   active/critical SOS states; this is the control that starts one. */
+.dash-sos-core{
+  /* Fixed to 78% of the 172px VitalRing this is always used inside (see
+     Dashboard.jsx) — percentages don't resolve here since vital-core, its
+     parent, sizes itself to content rather than to the ring around it. */
+  width:134px; height:134px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--danger-deep) 0%, var(--danger) 55%, #A3101F 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 14px 32px -10px rgba(226,50,70,.55);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .12s ease;
+}
+.dash-sos-btn:active .dash-sos-core{ transform:scale(.96); }
+.dash-sos-inner{ font-size:11px; line-height:1.5; letter-spacing:.06em; color:rgba(255,255,255,.85); text-align:center; }
+.dash-sos-inner strong{ font-size:22px; color:#fff; letter-spacing:.02em; font-family:var(--font-display); }
 .dash-sos-hint{ font-size:12.5px; color:var(--ink-2); max-width:230px; }
 
 .dash-section-head{ margin-top:10px; display:flex; align-items:center; justify-content:space-between; }

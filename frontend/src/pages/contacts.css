@@ -5,6 +5,31 @@
 
 .ct-list{ flex:1; padding:0 20px 24px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
 
+/* Decorative cluster: up to 4 contacts' own initials (never fabricated
+   photos — this app has no avatar photo for a trusted contact, only a
+   name) arranged around a central shield, echoing the "people around a
+   shield" motif from the app's own icon. */
+.ct-hero{ display:flex; flex-direction:column; align-items:center; gap:18px; padding:20px 0 4px; }
+.ct-hero-cluster{ position:relative; width:180px; height:150px; flex-shrink:0; }
+.ct-hero-center{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:56px; height:56px; border-radius:50%; background:var(--green-soft); color:var(--green);
+  display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 6px var(--bg-1);
+}
+.ct-hero-avatar{
+  position:absolute; width:46px; height:46px; border-radius:50%; background:var(--card);
+  border:2px solid var(--green-line); color:var(--green); font-size:13px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);
+}
+.ct-hero-avatar-0{ top:0; left:50%; transform:translateX(-50%); }
+.ct-hero-avatar-1{ top:50%; left:0; transform:translateY(-50%); }
+.ct-hero-avatar-2{ top:50%; right:0; transform:translateY(-50%); }
+.ct-hero-avatar-3{ bottom:0; left:50%; transform:translateX(-50%); }
+.ct-hero-label{ font-size:13px; color:var(--ink-1); text-align:center; }
+.ct-hero-label strong{ color:var(--ink); }
+
+.ct-cta-add{ grid-column:1 / -1; margin-top:4px; }
+
 .ct-form{ padding:16px; display:flex; flex-direction:column; gap:10px; border-color:var(--green-line); }
 .ct-form-head{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--ink-1); }
 .ct-form-head button{ color:var(--ink-2); }
@@ -57,7 +82,7 @@
 
   /* Cards become a browsable grid rather than a single mobile column */
   .ct-list{ display:grid; grid-template-columns:repeat(3, 1fr); align-content:start; }
-  .ct-form, .ct-note, .ct-empty{ grid-column:1 / -1; }
+  .ct-form, .ct-note, .ct-empty, .ct-hero{ grid-column:1 / -1; }
   .ct-card{ padding:18px; align-items:flex-start; }
   .ct-avatar{ width:44px; height:44px; font-size:13.5px; }
   .ct-name-row strong{ font-size:15px; }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BatteryMedium, LocateFixed, CheckCircle2, XCircle } from 'lucide-react';
+import { BatteryMedium, LocateFixed, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { VitalDot } from '../components/VitalRing';
 import { Card, Button, Pill, ConfirmDialog } from '../components/ui';
 import { api } from '../lib/api';
@@ -36,6 +36,10 @@ export default function LiveTracking() {
   }, [journeyId, isRealJourney]);
 
   const [seconds, setSeconds] = useState((state?.journey?.expected_minutes || 30) * 60);
+  // Captured once, from the very first render — the ring below shows time
+  // remaining as a fraction of the original countdown, not of whatever
+  // `seconds` happens to be on a given re-render.
+  const totalSeconds = useRef(seconds).current || 1;
   const [lastCheckin, setLastCheckin] = useState(null); // 'ok' | 'error' | null
   const [checkinAgo, setCheckinAgo] = useState(0);
   const [battery, setBattery] = useState(null);
@@ -163,8 +167,21 @@ export default function LiveTracking() {
 
       <div className="tk-sheet">
         <div className="tk-eta">
+          <div className="tk-ring">
+            <svg viewBox="0 0 100 100" className="tk-ring-svg">
+              <circle cx="50" cy="50" r="45" className="tk-ring-track" />
+              <circle
+                cx="50" cy="50" r="45" className="tk-ring-progress"
+                style={{ strokeDashoffset: 283 * (1 - seconds / totalSeconds) }}
+              />
+            </svg>
+            <div className="tk-ring-core">
+              <ShieldCheck size={22} strokeWidth={2} className="tk-ring-icon" />
+              <span className="tk-ring-label">Journey Active</span>
+              <span className="tk-eta-time mono">{mm}:{ss}</span>
+            </div>
+          </div>
           <span className="section-label">Arriving at {journey?.destination_label || 'your destination'} in</span>
-          <span className="tk-eta-time mono">{mm}:{ss}</span>
         </div>
 
         <div className="tk-stats">
