@@ -1,12 +1,15 @@
+import asyncio
 import json
 import logging
 import uuid
 
 import jwt
+import redis.asyncio as redis
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import decode_share_token, decode_token
 from app.db.session import get_db
 from app.models.journey import Journey
@@ -16,24 +19,38 @@ router = APIRouter()
 
 
 class ConnectionManager:
-    """In-memory per-journey connection registry.
+    """Per-room connection registry, relayed across API processes via Redis
+    pub/sub. `channel_prefix` keeps each feature's rooms (journey tracking
+    vs. location sharing) on separate channels even though both features
+    share this class, so a UUID collision between a journey and a share
+    can never cross-talk.
 
-    NOTE: this only works within a single API process. Once the API scales
-    past one instance, replace this with a Redis pub/sub channel per
-    journey_id — the API worker publishes on check-in, and each instance's
-    websocket connections subscribe and forward. Flagged here rather than
-    built now since it's not needed until traffic requires >1 replica.
+    The local `rooms` dict alone only ever covers connections held by this
+    one process — with more than one gunicorn worker (see Dockerfile's
+    `-w 2`), a journey's owner and a viewer holding its share link can
+    easily land on different processes, and neither would ever see the
+    other's frames without this relay.
     """
 
-    def __init__(self):
+    def __init__(self, channel_prefix: str):
         self.rooms: dict[str, set[WebSocket]] = {}
+        self._channel_prefix = channel_prefix
+        self._instance_id = uuid.uuid4().hex
+        self._redis = redis.from_url(settings.redis_url, decode_responses=True)
+        self._relay_tasks: dict[str, asyncio.Task] = {}
 
-    async def connect(self, journey_id: str, ws: WebSocket):
+    def _channel(self, room_id: str) -> str:
+        return f"ws:{self._channel_prefix}:{room_id}"
+
+    async def connect(self, room_id: str, ws: WebSocket):
         await ws.accept()
-        self.rooms.setdefault(journey_id, set()).add(ws)
+        is_new_room = room_id not in self.rooms
+        self.rooms.setdefault(room_id, set()).add(ws)
+        if is_new_room:
+            self._relay_tasks[room_id] = asyncio.create_task(self._relay(room_id))
 
-    def disconnect(self, journey_id: str, ws: WebSocket):
-        room = self.rooms.get(journey_id)
+    def disconnect(self, room_id: str, ws: WebSocket):
+        room = self.rooms.get(room_id)
         if room is None:
             return
         room.discard(ws)
@@ -42,20 +59,71 @@ class ConnectionManager:
         # life of the process, since nothing else ever revisits a room
         # once its last connection has left.
         if not room:
-            del self.rooms[journey_id]
+            del self.rooms[room_id]
+            task = self._relay_tasks.pop(room_id, None)
+            if task:
+                task.cancel()
 
-    async def broadcast(self, journey_id: str, payload: dict):
+    async def broadcast(self, room_id: str, payload: dict):
         dead = []
-        for ws in self.rooms.get(journey_id, set()):
+        for ws in self.rooms.get(room_id, set()):
             try:
                 await ws.send_text(json.dumps(payload))
             except Exception:  # noqa: BLE001
                 dead.append(ws)
         for ws in dead:
-            self.disconnect(journey_id, ws)
+            self.disconnect(room_id, ws)
+
+        # Best-effort relay to any other process holding a connection for
+        # this same room. If Redis is briefly unreachable, same-process
+        # delivery above still covers the common case, so this failure is
+        # logged rather than raised.
+        try:
+            await self._redis.publish(
+                self._channel(room_id),
+                json.dumps({"origin": self._instance_id, "payload": payload}),
+            )
+        except redis.RedisError:
+            logger.warning("Cross-process broadcast relay failed for room %s", room_id)
+
+    async def _relay(self, room_id: str):
+        """Forwards frames published by *other* processes to this
+        process's local sockets for the room. Runs only while this
+        process has at least one local connection in the room (started in
+        connect(), cancelled in disconnect() once the room empties here)."""
+        pubsub = self._redis.pubsub()
+        try:
+            await pubsub.subscribe(self._channel(room_id))
+            async for message in pubsub.listen():
+                if message["type"] != "message":
+                    continue
+                try:
+                    envelope = json.loads(message["data"])
+                except json.JSONDecodeError:
+                    continue
+                if envelope.get("origin") == self._instance_id:
+                    continue  # this process's own broadcast() already delivered it locally
+                dead = []
+                for ws in self.rooms.get(room_id, set()):
+                    try:
+                        await ws.send_text(json.dumps(envelope["payload"]))
+                    except Exception:  # noqa: BLE001
+                        dead.append(ws)
+                for ws in dead:
+                    self.disconnect(room_id, ws)
+        except asyncio.CancelledError:
+            pass
+        except redis.RedisError:
+            logger.warning("Redis relay subscription failed for room %s", room_id)
+        finally:
+            try:
+                await pubsub.unsubscribe(self._channel(room_id))
+                await pubsub.aclose()
+            except Exception:  # noqa: BLE001
+                pass
 
 
-manager = ConnectionManager()
+manager = ConnectionManager(channel_prefix="journey")
 
 
 async def _authorize(journey_id: str, token: str | None, db: AsyncSession) -> bool | None:

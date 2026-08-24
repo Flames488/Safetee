@@ -19,10 +19,11 @@ router = APIRouter()
 
 # Separate room registry from the journey-tracking one (app/websockets/
 # tracking.py) — same class, different keyspace (share_id vs journey_id),
-# kept as distinct instances rather than sharing one dict so the two
-# features can never cross-talk even in the (practically impossible) case
-# of a UUID collision between a journey and a location share.
-manager = ConnectionManager()
+# kept as distinct instances (and a distinct Redis channel prefix) rather
+# than sharing one dict so the two features can never cross-talk even in
+# the (practically impossible) case of a UUID collision between a journey
+# and a location share.
+manager = ConnectionManager(channel_prefix="location")
 
 
 async def _authorize(share_id: str, token: str | None, db: AsyncSession) -> bool | None:
