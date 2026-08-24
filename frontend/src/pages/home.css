@@ -91,31 +91,34 @@
 .hm-step strong{ font-size:15px; }
 .hm-step p{ font-size:13px; color:var(--ink-2); line-height:1.6; }
 
-/* ── Features: image-tile grid — a real photo per feature, dark scrim,
-   icon + copy pinned to the bottom, same shape as a "solutions" grid. ── */
-.hm-features{ max-width:1120px; margin:0 auto; padding:60px 24px 40px; }
-.hm-tile-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
-.hm-tile{
-  position:relative; border-radius:var(--r-lg); overflow:hidden; min-height:220px;
-  display:flex; align-items:flex-end; border:1px solid var(--line);
-  transition:transform .18s ease, border-color .18s ease;
+/* ── Features: alternating showcase rows — real app screens, shown large
+   enough to actually read, paired with the site's own copy (not relying
+   on any text baked into the image itself). Rows alternate image side on
+   desktop (.hm-showcase-row-rev flips it via `order`); on mobile the copy
+   always comes first regardless of that alternation — see the max-width
+   860px override below, which is the whole point of forcing `order`
+   explicitly rather than relying on source order. */
+.hm-features{ max-width:1080px; margin:0 auto; padding:60px 24px 40px; }
+.hm-showcase-list{ display:flex; flex-direction:column; gap:56px; }
+.hm-showcase-row{
+  display:grid; grid-template-columns:1fr 1fr; gap:44px; align-items:center;
 }
-.hm-tile:hover{ transform:translateY(-3px); border-color:var(--brand-line); }
-.hm-tile-media{ position:absolute; inset:0; background-color:var(--bg-2); }
-.hm-tile-photo-img{
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+.hm-showcase-row-rev .hm-showcase-copy{ order:2; }
+.hm-showcase-row-rev .hm-showcase-media{ order:1; }
+.hm-showcase-copy{ display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+.hm-showcase-copy h3{ font-size:21px; }
+.hm-showcase-copy p{ font-size:14.5px; color:var(--ink-2); line-height:1.65; max-width:420px; }
+.hm-showcase-media{
+  border-radius:var(--r-xl); overflow:hidden; border:1px solid var(--line-strong); box-shadow:var(--shadow-lg);
 }
-.hm-tile-media::after{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(8,9,13,0) 30%, rgba(8,9,13,.92) 100%);
+.hm-showcase-img{ width:100%; height:100%; object-fit:cover; aspect-ratio:1/1; display:block; }
+
+.hm-showcase-plain{
+  display:flex; align-items:flex-start; gap:16px; padding:22px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
 }
-.hm-tile-body{ position:relative; z-index:1; padding:16px; display:flex; flex-direction:column; gap:6px; }
-.hm-tile-icon{
-  width:30px; height:30px; border-radius:9px; background:var(--glass-bg); border:1px solid var(--glass-border);
-  color:#fff; display:flex; align-items:center; justify-content:center; margin-bottom:2px;
-}
-.hm-tile-body strong{ font-size:14px; color:#fff; }
-.hm-tile-body p{ font-size:12px; color:rgba(255,255,255,.78); line-height:1.55; }
+.hm-showcase-plain strong{ font-size:15px; display:block; margin-bottom:4px; }
+.hm-showcase-plain p{ font-size:13px; color:var(--ink-2); line-height:1.6; }
 
 .hm-trust{ max-width:1120px; margin:0 auto; padding:60px 24px 20px; }
 .hm-trust-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
@@ -140,12 +143,12 @@
 }
 .hm-pricing-link:hover{ gap:10px; }
 
-/* ── Dark CTA banner: full-bleed photo, same overlay treatment as hero ── */
+/* ── Dark CTA banner: brand-glow gradient, no photo (nothing supplied
+   for this closing section specifically — every other photo on this page
+   is a real, specific asset, so this stays a clean gradient rather than
+   reaching for another stock/unrelated image). ── */
 .hm-cta{ position:relative; margin-top:64px; overflow:hidden; }
 .hm-cta-media{ position:absolute; inset:0; background-color:var(--bg-1); }
-.hm-cta-photo-img{
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-}
 .hm-cta-media::after{
   content:''; position:absolute; inset:0;
   background:
@@ -161,17 +164,21 @@
 
 @media (max-width: 860px){
   .hm-hero-inner{ grid-template-columns:1fr; padding-top:56px; }
-  .hm-hero-visual{ order:-1; margin-bottom:8px; }
+  /* Text stays first (its natural DOM/grid order) — no order:-1 flip. */
+  .hm-hero-visual{ margin-top:28px; }
   .hm-hero-photo-frame{ max-width:280px; }
   .hm-status-card{ max-width:none; align-self:stretch; }
   .hm-h1{ font-size:34px; }
   .hm-stats-inner{ grid-template-columns:1fr 1fr; }
   .hm-steps-grid{ grid-template-columns:1fr; }
-  .hm-tile-grid{ grid-template-columns:1fr 1fr; }
   .hm-trust-grid{ grid-template-columns:1fr; }
+  /* Copy always first, media always second — overrides the desktop
+     left/right alternation from .hm-showcase-row-rev. */
+  .hm-showcase-row{ grid-template-columns:1fr; gap:20px; }
+  .hm-showcase-copy{ order:1 !important; }
+  .hm-showcase-media{ order:2 !important; }
 }
 @media (max-width: 520px){
-  .hm-tile-grid{ grid-template-columns:1fr; }
   .hm-stats-inner{ grid-template-columns:1fr; }
   .hm-h1{ font-size:29px; }
 }

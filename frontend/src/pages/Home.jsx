@@ -5,27 +5,27 @@ import {
 } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
-import { Button, Pill, BgPhoto } from '../components/ui';
+import { Button, Pill } from '../components/ui';
 import heroAppPreview from '../assets/hero-app-preview.jpg';
+import featureSOS from '../assets/feature-sos.jpg';
+import featureHiddenTrigger from '../assets/feature-hidden-trigger.jpg';
+import featureGPS from '../assets/feature-gps.jpg';
+import featureContacts from '../assets/feature-contacts.jpg';
+import featureEvidence from '../assets/feature-evidence.jpg';
+import featureJourneyTimer from '../assets/feature-journey-timer.jpg';
 import './home.css';
 
-// loremflickr.com — keyword-matched real photos (pulled from Flickr search),
-// no API key required. This is what source.unsplash.com used to do before
-// Unsplash discontinued it (see the previous commit that switched to
-// picsum.photos: that fixed the "nothing renders" bug but Picsum has no
-// keyword search, so every photo was a random, thematically unrelated
-// stock shot). `lock=<n>` pins a stable photo per id instead of a fresh
-// random one on every reload.
-const flickr = (w, h, keywords, lock) => `https://loremflickr.com/${w}/${h}/${keywords}?lock=${lock}`;
-
+// Real product screens (supplied directly), one per feature except SMS
+// fallback — no photo for that one, so it stays a plain icon card below
+// rather than being paired with a stock/unrelated image.
 const FEATURES = [
-  { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.', photo: flickr(800, 600, 'smartphone,emergency', 101) },
-  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open, for when opening the real SOS screen isn\'t safe.', photo: flickr(800, 600, 'shadow,silhouette', 102) },
-  { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.', photo: flickr(800, 600, 'map,navigation', 103) },
-  { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.', photo: flickr(800, 600, 'friends,people', 104) },
-  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: flickr(800, 600, 'phone,signal', 105) },
-  { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.', photo: flickr(800, 600, 'camera,recording', 106) },
-  { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time, and Safetee checks in until you\'re there.', photo: flickr(800, 600, 'night,street', 107) },
+  { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.', photo: featureSOS },
+  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open, for when opening the real SOS screen isn\'t safe.', photo: featureHiddenTrigger },
+  { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.', photo: featureGPS },
+  { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.', photo: featureContacts },
+  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: null },
+  { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.', photo: featureEvidence },
+  { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time, and Safetee checks in until you\'re there.', photo: featureJourneyTimer },
 ];
 
 const STEPS = [
@@ -138,14 +138,23 @@ export default function Home() {
       <section className="hm-features">
         <span className="section-label hm-section-label">The essentials, done right</span>
         <h2 className="hm-h2">Seven tools. Nothing you don't need in an emergency.</h2>
-        <div className="hm-tile-grid">
-          {FEATURES.map((f) => (
-            <div key={f.name} className="hm-tile">
-              <div className="hm-tile-media">
-                <BgPhoto src={f.photo} className="hm-tile-photo-img" />
+        <div className="hm-showcase-list">
+          {FEATURES.filter((f) => f.photo).map((f, i) => (
+            <div key={f.name} className={`hm-showcase-row ${i % 2 === 1 ? 'hm-showcase-row-rev' : ''}`}>
+              <div className="hm-showcase-copy">
+                <span className="hm-card-icon"><f.icon size={19} strokeWidth={1.9} /></span>
+                <h3>{f.name}</h3>
+                <p>{f.desc}</p>
               </div>
-              <div className="hm-tile-body">
-                <span className="hm-tile-icon"><f.icon size={17} strokeWidth={2} /></span>
+              <div className="hm-showcase-media">
+                <img src={f.photo} alt={`The ${f.name} screen in the Safetee app`} className="hm-showcase-img" />
+              </div>
+            </div>
+          ))}
+          {FEATURES.filter((f) => !f.photo).map((f) => (
+            <div key={f.name} className="hm-showcase-plain">
+              <span className="hm-card-icon"><f.icon size={19} strokeWidth={1.9} /></span>
+              <div>
                 <strong>{f.name}</strong>
                 <p>{f.desc}</p>
               </div>
@@ -178,9 +187,7 @@ export default function Home() {
       </section>
 
       <section className="hm-cta">
-        <div className="hm-cta-media">
-          <BgPhoto src={flickr(1600, 900, 'city,night', 2)} className="hm-cta-photo-img" />
-        </div>
+        <div className="hm-cta-media" />
         <div className="hm-cta-inner">
           <h2 className="hm-h2">Set it up before you need it.</h2>
           <p className="hm-lede hm-cta-lede">Takes under three minutes. Free to start.</p>
