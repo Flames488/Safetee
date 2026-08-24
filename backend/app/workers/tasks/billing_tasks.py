@@ -24,10 +24,17 @@ def sweep_expired_subscriptions():
     try:
         now = datetime.now(UTC)
 
+        # Same safety ceiling as the other periodic sweeps (sos_tasks,
+        # journey_tasks): each match here flips out of the filtered status,
+        # so it won't be re-selected next run — a limit just caps how much
+        # a single run has to load and commit if this task went a while
+        # without running (e.g. a sleeping Render dyno) and built up a
+        # backlog. Leftovers are picked up on the next hourly run.
         expired_trials = (
             db.query(Subscription)
             .filter(Subscription.status == SubscriptionStatus.trialing)
             .filter(Subscription.trial_ends_at < now)
+            .limit(500)
             .all()
         )
         for sub in expired_trials:
@@ -38,6 +45,7 @@ def sweep_expired_subscriptions():
             db.query(Subscription)
             .filter(Subscription.status.in_([SubscriptionStatus.active, SubscriptionStatus.past_due]))
             .filter(Subscription.current_period_end < now)
+            .limit(500)
             .all()
         )
         for sub in lapsed:

@@ -1,17 +1,24 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.phone import normalize_phone
+from app.core.rate_limit import enforce_rate_limit
 from app.db.session import get_db
 from app.models.contact import TrustedContact
 from app.models.user import User
 from app.schemas.user import ContactCreate, ContactMoveRequest, ContactOut
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
+
+# Every contact added here is someone who gets a real SMS (real money, real
+# rate-limit budget on the Twilio/Termii account) on every SOS this user
+# ever triggers — unlike a plain read/write, an unbounded contact list is a
+# standing cost and abuse surface, not just extra rows.
+_MAX_CONTACTS_PER_USER = 25
 
 
 @router.get("", response_model=list[ContactOut])
@@ -63,6 +70,23 @@ async def create_contact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
+    # Nothing was previously stopping repeated calls to this endpoint —
+    # unlike login/signup/OTP, a plain per-request count is what's needed
+    # here (there's no "wrong guess" to count), but the risk is the same
+    # shape: free to hammer without this.
+    await enforce_rate_limit(f"contact-create:{user.id}", max_attempts=20, window_seconds=3600)
+
+    existing_count = (
+        await db.execute(
+            select(func.count()).select_from(TrustedContact).where(TrustedContact.user_id == user.id)
+        )
+    ).scalar_one()
+    if existing_count >= _MAX_CONTACTS_PER_USER:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"You can have at most {_MAX_CONTACTS_PER_USER} trusted contacts. Remove one before adding another.",
+        )
+
     # Stored normalized — see normalize_phone's docstring. Without this,
     # a contact added as "+234 803 123 4567" would never match that same
     # person's own account (stored as, say, "+2348031234567"), which

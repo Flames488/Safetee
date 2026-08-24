@@ -25,6 +25,13 @@ def purge_soft_deleted_accounts():
         overdue = (
             db.query(User)
             .filter(User.deleted_at.is_not(None), User.deleted_at < cutoff)
+            # Same safety ceiling as sweep_overdue_journeys/retry_failed_alerts —
+            # this only runs daily (see app/main.py), so a dyno that was asleep
+            # or a worker that was down for a while can otherwise hand this a
+            # huge backlog to delete (cascading to contacts/journeys/sos_events/
+            # etc. for each) inside a single transaction. Left-over rows are
+            # just picked up on the next run.
+            .limit(200)
             .all()
         )
         for user in overdue:
