@@ -40,10 +40,13 @@
   --brand-glow:0 0 28px rgba(47,138,23,.38);
   --brand-gradient:linear-gradient(135deg, #4CA824 0%, #2F8A17 55%, #175613 100%);
 
-  /* info — soft blue, secondary accent */
-  --info:#3AA0FF;
-  --info-soft:rgba(58,160,255,0.14);
-  --info-line:rgba(58,160,255,0.34);
+  /* info — muted sage green, secondary accent (was blue; the whole
+     palette is green/black now — this stays distinguishable from the
+     vivid --brand green and the emerald --good by being more muted/
+     olive, not by being a different color family). */
+  --info:#7CA65A;
+  --info-soft:rgba(124,166,90,0.14);
+  --info-line:rgba(124,166,90,0.34);
 
   /* good — emerald, status/success only (not "the brand" anymore) */
   --good:#22C55E;
@@ -246,7 +249,7 @@ h1,h2,h3,h4{
   min-height:100vh; min-height:100dvh; width:100%;
   background:
     radial-gradient(800px 560px at 50% 0%, rgba(47,138,23,.34), transparent 68%),
-    radial-gradient(680px 520px at 100% 100%, rgba(58,160,255,.24), transparent 62%),
+    radial-gradient(680px 520px at 100% 100%, rgba(124,166,90,.24), transparent 62%),
     var(--bg);
 }
 .focus-stage{

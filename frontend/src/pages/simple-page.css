@@ -13,7 +13,7 @@
   max-width:720px; margin:0 auto; padding:56px 24px 8px; text-align:center;
   background:
     radial-gradient(900px 560px at 50% -10%, rgba(47,138,23,.32), transparent 65%),
-    radial-gradient(700px 480px at 100% 0%, rgba(58,160,255,.16), transparent 60%);
+    radial-gradient(700px 480px at 100% 0%, rgba(124,166,90,.16), transparent 60%);
 }
 .sp-hero-photo{
   position:relative; overflow:hidden; max-width:none; padding:96px 24px 72px;
