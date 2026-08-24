@@ -47,7 +47,24 @@ class ConnectionManager:
         is_new_room = room_id not in self.rooms
         self.rooms.setdefault(room_id, set()).add(ws)
         if is_new_room:
-            self._relay_tasks[room_id] = asyncio.create_task(self._relay(room_id))
+            # Subscribing here (and awaiting it) rather than inside the
+            # background task below matters: Redis doesn't queue messages
+            # for a subscription that hasn't registered yet, so if a
+            # broadcast() on another process happened to publish between
+            # this task merely being *created* and it actually reaching
+            # its subscribe() call, that frame would be silently dropped.
+            # Awaiting the subscribe before connect() returns closes that
+            # window — by the time a caller can possibly trigger a
+            # broadcast, this room is already listening.
+            pubsub = self._redis.pubsub()
+            try:
+                await pubsub.subscribe(self._channel(room_id))
+            except redis.RedisError:
+                # Same-process delivery in broadcast() still works without
+                # this — only cross-process relay is lost while Redis is down.
+                logger.warning("Could not subscribe to relay channel for room %s", room_id)
+                return
+            self._relay_tasks[room_id] = asyncio.create_task(self._relay(room_id, pubsub))
 
     def disconnect(self, room_id: str, ws: WebSocket):
         room = self.rooms.get(room_id)
@@ -86,14 +103,13 @@ class ConnectionManager:
         except redis.RedisError:
             logger.warning("Cross-process broadcast relay failed for room %s", room_id)
 
-    async def _relay(self, room_id: str):
+    async def _relay(self, room_id: str, pubsub):
         """Forwards frames published by *other* processes to this
         process's local sockets for the room. Runs only while this
         process has at least one local connection in the room (started in
-        connect(), cancelled in disconnect() once the room empties here)."""
-        pubsub = self._redis.pubsub()
+        connect(), cancelled in disconnect() once the room empties here).
+        `pubsub` arrives already subscribed — see connect() for why."""
         try:
-            await pubsub.subscribe(self._channel(room_id))
             async for message in pubsub.listen():
                 if message["type"] != "message":
                     continue
