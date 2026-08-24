@@ -12,7 +12,7 @@ export default function About() {
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
         <div className="sp-hero-photo-media">
-          <BgPhoto src="https://picsum.photos/seed/safetee-about/1600/900" className="sp-hero-photo-img" />
+          <BgPhoto src="https://loremflickr.com/1600/900/office,dark?lock=3" className="sp-hero-photo-img" />
         </div>
         <div className="sp-hero-photo-inner">
           <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>

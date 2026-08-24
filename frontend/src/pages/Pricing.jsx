@@ -20,7 +20,7 @@ export default function Pricing() {
 
       <div className="pr-hero pr-hero-photo">
         <div className="pr-hero-photo-media">
-          <BgPhoto src="https://picsum.photos/seed/safetee-pricing/1600/900" className="pr-hero-photo-img" />
+          <BgPhoto src="https://loremflickr.com/1600/900/security,control-room?lock=5" className="pr-hero-photo-img" />
         </div>
         <div className="pr-hero-photo-inner">
           <h1 className="sp-h1">Simple pricing.<br />30 days free, no card required.</h1>

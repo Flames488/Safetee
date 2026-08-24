@@ -8,21 +8,23 @@ import Footer from '../components/Footer';
 import { Button, Pill, BgPhoto } from '../components/ui';
 import './home.css';
 
-// picsum.photos (Lorem Picsum) rather than Unsplash's old "Source" random-
-// by-keyword redirect (source.unsplash.com) — Unsplash discontinued Source
-// years ago, so those URLs resolved to nothing. Picsum doesn't support a
-// keyword/topic query, but a seed always resolves to a real photo, so each
-// of these renders reliably instead of matching the section's theme exactly.
-const picsum = (seed, w, h) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
+// loremflickr.com — keyword-matched real photos (pulled from Flickr search),
+// no API key required. This is what source.unsplash.com used to do before
+// Unsplash discontinued it (see the previous commit that switched to
+// picsum.photos: that fixed the "nothing renders" bug but Picsum has no
+// keyword search, so every photo was a random, thematically unrelated
+// stock shot). `lock=<n>` pins a stable photo per id instead of a fresh
+// random one on every reload.
+const flickr = (w, h, keywords, lock) => `https://loremflickr.com/${w}/${h}/${keywords}?lock=${lock}`;
 
 const FEATURES = [
-  { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.', photo: picsum('safetee-sos', 800, 600) },
-  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open, for when opening the real SOS screen isn\'t safe.', photo: picsum('safetee-hidden-trigger', 800, 600) },
-  { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.', photo: picsum('safetee-gps', 800, 600) },
-  { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.', photo: picsum('safetee-contacts', 800, 600) },
-  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: picsum('safetee-sms', 800, 600) },
-  { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.', photo: picsum('safetee-evidence', 800, 600) },
-  { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time, and Safetee checks in until you\'re there.', photo: picsum('safetee-journey', 800, 600) },
+  { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.', photo: flickr(800, 600, 'smartphone,emergency', 101) },
+  { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open, for when opening the real SOS screen isn\'t safe.', photo: flickr(800, 600, 'shadow,silhouette', 102) },
+  { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.', photo: flickr(800, 600, 'map,navigation', 103) },
+  { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.', photo: flickr(800, 600, 'friends,people', 104) },
+  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: flickr(800, 600, 'phone,signal', 105) },
+  { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.', photo: flickr(800, 600, 'camera,recording', 106) },
+  { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time, and Safetee checks in until you\'re there.', photo: flickr(800, 600, 'night,street', 107) },
 ];
 
 const STEPS = [
@@ -55,7 +57,7 @@ export default function Home() {
 
       <section className="hm-hero">
         <div className="hm-hero-media">
-          <BgPhoto src={picsum('safetee-hero', 1600, 1000)} className="hm-hero-photo-img" />
+          <BgPhoto src={flickr(1600, 1000, 'security,night', 1)} className="hm-hero-photo-img" />
         </div>
         <div className="hm-hero-inner">
           <div className="hm-hero-copy">
@@ -173,7 +175,7 @@ export default function Home() {
 
       <section className="hm-cta">
         <div className="hm-cta-media">
-          <BgPhoto src={picsum('safetee-cta', 1600, 900)} className="hm-cta-photo-img" />
+          <BgPhoto src={flickr(1600, 900, 'city,night', 2)} className="hm-cta-photo-img" />
         </div>
         <div className="hm-cta-inner">
           <h2 className="hm-h2">Set it up before you need it.</h2>

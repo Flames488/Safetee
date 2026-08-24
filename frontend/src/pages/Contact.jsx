@@ -21,7 +21,7 @@ export default function Contact() {
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
         <div className="sp-hero-photo-media">
-          <BgPhoto src="https://picsum.photos/seed/safetee-contact/1600/900" className="sp-hero-photo-img" />
+          <BgPhoto src="https://loremflickr.com/1600/900/phone,communication?lock=4" className="sp-hero-photo-img" />
         </div>
         <div className="sp-hero-photo-inner">
           <h1 className="sp-h1">Get in touch.</h1>
