@@ -6,4 +6,4 @@ Disallow: /login
 Disallow: /forgot-password
 Disallow: /onboarding
 
-Sitemap: https://getsafetee.com/sitemap.xml
+Sitemap: https://www.getsafetee.com/sitemap.xml

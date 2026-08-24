@@ -53,7 +53,7 @@ services:
       - key: ALLOWED_ORIGINS
         value: https://safetee.vercel.app,https://getsafetee.com,https://www.getsafetee.com
       - key: FRONTEND_URL
-        value: https://getsafetee.com
+        value: https://www.getsafetee.com
       - key: SUPER_ADMIN_PHONE
         sync: false
       - key: ADMIN_MASTER_PASSWORD
