@@ -3,20 +3,15 @@
   background:var(--bg);
 }
 
-/* ── Hero: full-bleed photo, dark gradient overlay, floating glass card ──
-   .hm-hero-media is the fallback surface (paints even if the photo 404s
-   or is still loading); .hm-hero-photo-img is the real <img>, absolutely
-   positioned to fill it; the ::after gradient sits above both. */
-.hm-hero{ position:relative; overflow:hidden; }
-.hm-hero-media{ position:absolute; inset:0; background-color:var(--bg-1); }
-.hm-hero-photo-img{
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-}
-.hm-hero-media::after{
-  content:''; position:absolute; inset:0;
+/* ── Hero: ambient brand glow (no full-bleed photo here — a portrait
+   product shot doesn't survive a cover-crop/dark-scrim treatment the way
+   a wide, unfocused photo does), a framed product photo on the right,
+   and the glass status card overlapping its bottom-left corner. */
+.hm-hero{
+  position:relative; overflow:hidden;
   background:
-    linear-gradient(180deg, rgba(8,9,13,.55) 0%, rgba(8,9,13,.82) 68%, var(--bg) 100%),
-    radial-gradient(760px 520px at 8% 10%, rgba(110,91,255,.32), transparent 62%);
+    radial-gradient(900px 620px at 10% 0%, rgba(110,91,255,.30), transparent 62%),
+    radial-gradient(700px 480px at 100% 30%, rgba(58,160,255,.14), transparent 58%);
 }
 .hm-hero-inner{
   position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:88px 24px 64px;
@@ -27,9 +22,24 @@
 .hm-lede{ font-size:16px; color:rgba(245,246,248,.72); line-height:1.65; max-width:480px; }
 .hm-hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
 
+.hm-hero-visual{ position:relative; display:flex; justify-content:center; padding:12px; }
+.hm-hero-visual::before{
+  content:''; position:absolute; z-index:0; width:340px; height:340px; max-width:80%;
+  border-radius:50%; background:var(--brand-soft); filter:blur(64px);
+}
+.hm-hero-photo-frame{
+  position:relative; z-index:1; width:100%; max-width:360px; aspect-ratio:4/5;
+  border-radius:var(--r-xl); overflow:hidden; border:1px solid var(--line-strong);
+  box-shadow:var(--shadow-lg);
+}
+.hm-hero-photo{ width:100%; height:100%; object-fit:cover; object-position:center 15%; }
+
 .hm-status-card{
   border-radius:var(--r-lg); padding:20px; box-shadow:var(--shadow-lg);
-  display:flex; flex-direction:column; gap:16px; justify-self:end; width:100%; max-width:340px;
+  display:flex; flex-direction:column; gap:16px; width:100%; max-width:300px;
+}
+.hm-status-card-float{
+  position:absolute; z-index:2; left:-8px; bottom:-20px;
 }
 .hm-status-head{ display:flex; align-items:center; gap:9px; font-size:13px; font-weight:600; color:var(--ink); }
 .hm-status-dot{
@@ -148,7 +158,9 @@
 
 @media (max-width: 860px){
   .hm-hero-inner{ grid-template-columns:1fr; padding-top:56px; }
-  .hm-status-card{ justify-self:stretch; max-width:none; }
+  .hm-hero-visual{ order:-1; margin-bottom:8px; }
+  .hm-hero-photo-frame{ max-width:280px; }
+  .hm-status-card-float{ position:static; max-width:none; margin-top:-32px; }
   .hm-h1{ font-size:34px; }
   .hm-stats-inner{ grid-template-columns:1fr 1fr; }
   .hm-steps-grid{ grid-template-columns:1fr; }

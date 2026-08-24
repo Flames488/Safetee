@@ -6,6 +6,7 @@ import {
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
 import { Button, Pill, BgPhoto } from '../components/ui';
+import heroAppPreview from '../assets/hero-app-preview.jpg';
 import './home.css';
 
 // loremflickr.com — keyword-matched real photos (pulled from Flickr search),
@@ -56,9 +57,6 @@ export default function Home() {
       <MarketingNav />
 
       <section className="hm-hero">
-        <div className="hm-hero-media">
-          <BgPhoto src={flickr(1600, 1000, 'security,night', 1)} className="hm-hero-photo-img" />
-        </div>
         <div className="hm-hero-inner">
           <div className="hm-hero-copy">
             <Pill tone="bad">If something happens, seconds matter</Pill>
@@ -70,31 +68,37 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hm-status-card glass">
-            <div className="hm-status-head">
-              <span className="hm-status-dot" />
-              <span>All systems operational</span>
+          <div className="hm-hero-visual">
+            <div className="hm-hero-photo-frame">
+              <img src={heroAppPreview} alt="Someone holding up a phone with the Safetee app open" className="hm-hero-photo" />
             </div>
-            <div className="hm-status-rows">
-              <div className="hm-status-row">
-                <span className="hm-status-icon"><Radio size={15} strokeWidth={2} /></span>
-                <div>
-                  <strong>SMS delivery</strong>
-                  <span>Primary + independent backup provider</span>
-                </div>
+
+            <div className="hm-status-card glass hm-status-card-float">
+              <div className="hm-status-head">
+                <span className="hm-status-dot" />
+                <span>All systems operational</span>
               </div>
-              <div className="hm-status-row">
-                <span className="hm-status-icon"><MapPin size={15} strokeWidth={2} /></span>
-                <div>
-                  <strong>Location sharing</strong>
-                  <span>Only during an active alert or journey</span>
+              <div className="hm-status-rows">
+                <div className="hm-status-row">
+                  <span className="hm-status-icon"><Radio size={15} strokeWidth={2} /></span>
+                  <div>
+                    <strong>SMS delivery</strong>
+                    <span>Primary + independent backup provider</span>
+                  </div>
                 </div>
-              </div>
-              <div className="hm-status-row">
-                <span className="hm-status-icon"><Timer size={15} strokeWidth={2} /></span>
-                <div>
-                  <strong>Setup time</strong>
-                  <span>Under 3 minutes</span>
+                <div className="hm-status-row">
+                  <span className="hm-status-icon"><MapPin size={15} strokeWidth={2} /></span>
+                  <div>
+                    <strong>Location sharing</strong>
+                    <span>Only during an active alert or journey</span>
+                  </div>
+                </div>
+                <div className="hm-status-row">
+                  <span className="hm-status-icon"><Timer size={15} strokeWidth={2} /></span>
+                  <div>
+                    <strong>Setup time</strong>
+                    <span>Under 3 minutes</span>
+                  </div>
                 </div>
               </div>
             </div>
