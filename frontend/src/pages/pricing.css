@@ -1,6 +1,26 @@
 .pr{ background:var(--bg); min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
 .pr-hero{ max-width:680px; margin:0 auto; padding:56px 24px 8px; text-align:center; }
 
+/* Photo hero band, matching the homepage/About/Contact treatment. Page-
+   local to Pricing.jsx only — everything below (.pr-toggle, .pr-tiers,
+   .pr-card, etc.) belongs to PlanPicker, which is also rendered inside
+   the signed-in app's Choose Plan screen, so those stay untouched. */
+.pr-hero-photo{
+  position:relative; overflow:hidden; max-width:none; padding:96px 24px 72px;
+}
+.pr-hero-photo-media{
+  position:absolute; inset:0; background-size:cover; background-position:center; background-color:var(--bg-1);
+}
+.pr-hero-photo-media::after{
+  content:''; position:absolute; inset:0;
+  background:
+    linear-gradient(180deg, rgba(8,9,13,.6) 0%, rgba(8,9,13,.88) 75%, var(--bg) 100%),
+    radial-gradient(700px 460px at 50% 0%, rgba(110,91,255,.28), transparent 65%);
+}
+.pr-hero-photo-inner{ position:relative; z-index:1; max-width:680px; margin:0 auto; }
+.pr-hero-photo .sp-h1{ color:#F5F6F8; }
+.pr-hero-photo .sp-lede{ color:rgba(245,246,248,.72); max-width:560px; margin-left:auto; margin-right:auto; }
+
 .pr-toggle{
   display:flex; gap:4px; margin:28px auto 0; padding:4px; background:var(--card); border:1px solid var(--line);
   border-radius:var(--r-pill); width:fit-content;

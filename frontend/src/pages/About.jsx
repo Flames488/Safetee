@@ -10,10 +10,13 @@ export default function About() {
   return (
     <div className="sp">
       <MarketingNav />
-      <div className="sp-hero">
-        <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>
-        <h1 className="sp-h1">Built for the seconds<br /><span className="text-gradient">that matter most.</span></h1>
-        <p className="sp-lede">Safetee exists so that when something goes wrong, the people who can help are already on their way, before you've had to explain, dial, or wait.</p>
+      <div className="sp-hero sp-hero-photo">
+        <div className="sp-hero-photo-media" style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?dark,office)' }} />
+        <div className="sp-hero-photo-inner">
+          <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>
+          <h1 className="sp-h1">Built for the seconds<br /><span className="text-gradient">that matter most.</span></h1>
+          <p className="sp-lede">Safetee exists so that when something goes wrong, the people who can help are already on their way, before you've had to explain, dial, or wait.</p>
+        </div>
       </div>
       <div className="sp-body">
         <div className="sp-section">

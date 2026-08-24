@@ -19,9 +19,12 @@ export default function Contact() {
   return (
     <div className="sp">
       <MarketingNav />
-      <div className="sp-hero">
-        <h1 className="sp-h1">Get in touch.</h1>
-        <p className="sp-lede">Questions, feedback, or something not working right: here's how to reach us directly.</p>
+      <div className="sp-hero sp-hero-photo">
+        <div className="sp-hero-photo-media" style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?phone,communication)' }} />
+        <div className="sp-hero-photo-inner">
+          <h1 className="sp-h1">Get in touch.</h1>
+          <p className="sp-lede">Questions, feedback, or something not working right: here's how to reach us directly.</p>
+        </div>
       </div>
       <div className="sp-body">
         <div className="sp-contact-list">

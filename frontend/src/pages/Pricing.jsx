@@ -17,9 +17,12 @@ export default function Pricing() {
     <div className="pr">
       <MarketingNav />
 
-      <div className="pr-hero">
-        <h1 className="sp-h1">Simple pricing.<br />30 days free, no card required.</h1>
-        <p className="sp-lede">One plan for you, one for your family, one for the people your organization actually needs to protect.</p>
+      <div className="pr-hero pr-hero-photo">
+        <div className="pr-hero-photo-media" style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?security,control-room)' }} />
+        <div className="pr-hero-photo-inner">
+          <h1 className="sp-h1">Simple pricing.<br />30 days free, no card required.</h1>
+          <p className="sp-lede">One plan for you, one for your family, one for the people your organization actually needs to protect.</p>
+        </div>
       </div>
 
       <PlanPicker />
