@@ -44,14 +44,23 @@ def create_access_token(subject: str, expires_delta: timedelta | None = None) ->
     # User.sessions_invalidated_at, so a token that's otherwise still
     # cryptographically valid stops working the moment an admin sets that
     # field — without minting a whole separate revocation-list system.
-    payload = {"sub": subject, "iat": now, "exp": expire, "type": "access"}
+    #
+    # iat is sent as now.timestamp() (a float), not the bare datetime —
+    # PyJWT silently floors a datetime `iat` claim to whole seconds on
+    # encode. sessions_invalidated_at is written with full microsecond
+    # precision, so a token minted in that same wall-clock second (even
+    # strictly after the invalidation) could decode to an iat that floors
+    # to *before* it, and get_current_user would wrongly reject an
+    # otherwise-fresh login. A float NumericDate is valid per the JWT spec
+    # and round-trips through decode_token with its precision intact.
+    payload = {"sub": subject, "iat": now.timestamp(), "exp": expire, "type": "access"}
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
 def create_refresh_token(subject: str) -> str:
     now = datetime.now(UTC)
     expire = now + timedelta(days=settings.refresh_token_expire_days)
-    payload = {"sub": subject, "iat": now, "exp": expire, "type": "refresh"}
+    payload = {"sub": subject, "iat": now.timestamp(), "exp": expire, "type": "refresh"}
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
