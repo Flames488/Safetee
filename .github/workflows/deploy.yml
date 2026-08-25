@@ -2,8 +2,18 @@ name: Deploy
 
 on:
   push:
+    branches: [main]
     tags: ["v*.*.*"]
   workflow_dispatch: {}
+
+# A second push landing on main while a deploy from the first is still
+# running would otherwise race it on the VPS — two overlapping `docker
+# compose up -d` runs against the same stack. Queues instead of running
+# concurrently; never cancels a deploy that's actually in flight (which
+# could leave the stack mid-restart).
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   build-and-push:
@@ -30,6 +40,12 @@ jobs:
         id: image
         run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/safetee-api" >> "$GITHUB_OUTPUT"
 
+      # docker-compose.prod.yml's SAFETEE_IMAGE defaults to :latest — the
+      # type=raw line below is what actually makes "deploy on every push to
+      # main" pick up the new image, kept explicit rather than relying on
+      # metadata-action's implicit latest=auto flavor. is_default_branch is
+      # false for a tag push, so tagging an old commit for a deliberate
+      # rollback never clobbers :latest with an older build.
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -38,6 +54,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push
         uses: docker/build-push-action@v6
