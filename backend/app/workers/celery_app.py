@@ -2,15 +2,16 @@ from celery import Celery
 
 from app.core.config import settings
 
-# On Render's free tier (no Background Worker instance type), every
-# `@celery_app.task`-decorated callable is only ever run via `.apply(...)` —
-# synchronously in-process by app/core/scheduler.py — so there's no broker
-# consumer or beat process there to pick up a real schedule. The schedule
-# below is only consumed when something actually points a `beat`/`worker`
-# process at this app (docker-compose.prod.yml, on the VPS deploy); on
-# Render/local dev, settings.run_periodic_tasks_in_process (default true)
-# keeps app/main.py's in-process scheduler as the one and only place these
-# sweeps run, so this schedule sitting unused there is harmless.
+# In local dev (and any single-process deploy with no Background Worker
+# process type), every `@celery_app.task`-decorated callable is only ever
+# run via `.apply(...)` — synchronously in-process by app/core/scheduler.py
+# — so there's no broker consumer or beat process there to pick up a real
+# schedule. The schedule below is only consumed when something actually
+# points a `beat`/`worker` process at this app (docker-compose.prod.yml, on
+# the production VPS); everywhere else, settings.run_periodic_tasks_in_process
+# (default true) keeps app/main.py's in-process scheduler as the one and
+# only place these sweeps run, so this schedule sitting unused there is
+# harmless.
 celery_app = Celery(
     "safetee",
     broker=settings.redis_url,

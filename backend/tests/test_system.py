@@ -4,6 +4,7 @@ async def test_system_status_reports_sms_not_configured_by_default(client):
     body = r.json()
     assert body["sms_primary_configured"] is False
     assert body["sms_fallback_configured"] is False
-    # None outside Render (RENDER_GIT_COMMIT unset) — real value only present
-    # in a real Render deploy, not something to hardcode here.
+    # None here (GIT_COMMIT unset outside the built Docker image) — a real
+    # value is only baked in by deploy.yml's build-arg, not something to
+    # hardcode in a test.
     assert "deploy_commit" in body

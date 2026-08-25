@@ -35,11 +35,13 @@ services:
       retries: 10
 
   # Delayed/periodic work (SOS fanout, journey sweeps, password-reset SMS)
-  # runs in-process on this container now — see app/core/scheduler.py and
-  # app/main.py's lifespan. No separate worker/beat containers: Render's
-  # free tier has no free Background Worker instance type, so those never
-  # actually ran in production, and celery_app.py no longer defines a beat
-  # schedule for them to consume even if started.
+  # runs in-process on this container by default — see app/core/scheduler.py
+  # and app/main.py's lifespan. No separate worker/beat containers *here*:
+  # this base file is what local dev uses directly, and what the production
+  # VPS overlay (docker-compose.prod.yml) builds on top of — that overlay
+  # adds real `worker`/`beat` containers and sets
+  # RUN_PERIODIC_TASKS_IN_PROCESS=false, so production consumes the real
+  # beat_schedule in app/workers/celery_app.py instead of this fallback.
   api:
     build: .
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

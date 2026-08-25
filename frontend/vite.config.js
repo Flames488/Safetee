@@ -8,7 +8,8 @@ export default defineConfig({
   // (no dashboard config needed) but only VITE_-prefixed vars are exposed to
   // client code — this bridges the two so Settings can show which build is
   // actually live, the one thing that was impossible to tell apart from a
-  // real bug without dashboard/SSH access to either Vercel or Render.
+  // real bug without dashboard access to Vercel or SSH access to the
+  // backend's VPS (see backend/app/api/v1/system.py's deploy_commit).
   define: {
     'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA || ''),
   },

@@ -6,10 +6,11 @@ const MAX_RECONNECT_DELAY_MS = 15_000;
 // can't set custom headers on a WebSocket handshake).
 //
 // Reconnects with backoff on any non-terminal close. This matters a lot
-// more than it looks: safetee-api is on Render's free tier and sleeps
-// after ~15min idle — the very first handshake attempt after a cold
-// start plausibly fails or times out well before the API finishes waking
-// up, and with no retry, these features silently produced nothing.
+// more than it looks: a deploy restarts the api container out from under
+// any open connection, and mobile networks drop WebSockets on their own
+// constantly (backgrounding, a tower handoff, a flaky connection) — with
+// no retry, these features would silently produce nothing the moment
+// either happened.
 // `onStatus` reports 'connecting' | 'connected' | 'reconnecting' | 'ended'
 // so the UI can show real state instead of quietly showing nothing.
 export function connectLiveSocket(path, token, { onFrame, onStatus } = {}) {

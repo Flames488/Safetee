@@ -37,10 +37,11 @@ if settings.sentry_dsn:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # In-process replacement for Celery beat — see app/core/scheduler.py for
-    # why (no free Background Worker instance type on Render). Intervals
-    # mirror celery_app.conf.beat_schedule, which a real `beat` container
-    # (docker-compose.prod.yml) runs these from instead — this flag is off
-    # there specifically so the same sweep never fires from both places.
+    # why (local dev / any single-process deploy). Intervals mirror
+    # celery_app.conf.beat_schedule, which a real `beat` container
+    # (docker-compose.prod.yml, the production VPS) runs these from instead
+    # — this flag is off there specifically so the same sweep never fires
+    # from both places.
     background = []
     if settings.run_periodic_tasks_in_process:
         background = [
@@ -73,8 +74,9 @@ async def security_headers(request, call_next):
     the separate Vercel-hosted frontend, which sets its own headers via
     vercel.json) — these are defense-in-depth on the JSON/WebSocket
     responses this service does send, cheap and safe to apply unconditionally.
-    Deliberately no HTTPSRedirectMiddleware here: Render terminates TLS at
-    its edge and forwards plain HTTP internally, which is also what the
+    Deliberately no HTTPSRedirectMiddleware here: the production VPS's own
+    nginx (infra/nginx/nginx.conf, docker-compose.prod.yml) terminates TLS
+    at the edge and forwards plain HTTP internally, which is also what the
     Docker healthcheck hits directly (see Dockerfile) — a redirect at this
     layer would break that, not just this app.
     """

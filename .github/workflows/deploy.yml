@@ -45,6 +45,8 @@ jobs:
           context: backend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
 
   deploy:
     needs: build-and-push

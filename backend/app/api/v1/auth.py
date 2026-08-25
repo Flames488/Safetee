@@ -43,12 +43,12 @@ _OTP_TTL_MINUTES = 10
 
 
 def _client_ip(request: Request) -> str | None:
-    """Render (like most PaaS platforms) terminates TLS at its own edge and
-    proxies plain HTTP to this container — request.client.host alone would
-    just be Render's internal proxy address, not the real caller. Trusts
-    the first hop of X-Forwarded-For since nothing between Render's edge
-    and this container is attacker-controlled; falls back to
-    request.client.host for local/direct-connection dev."""
+    """The production VPS's own nginx (infra/nginx/nginx.conf) terminates
+    TLS at its edge and proxies plain HTTP to this container —
+    request.client.host alone would just be nginx's internal proxy address,
+    not the real caller. Trusts the first hop of X-Forwarded-For since
+    nothing between nginx and this container is attacker-controlled; falls
+    back to request.client.host for local/direct-connection dev."""
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()

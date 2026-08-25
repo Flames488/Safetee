@@ -5,12 +5,16 @@ from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("safetee.scheduler")
 
-# In-process replacement for Celery's worker + beat. Render's free tier has
-# no free instance type for a Background Worker service — safetee-worker and
-# safetee-beat were declared in render.yaml but never actually provisioned,
-# so every `.delay()`/`.apply_async()` call in the app was silently queuing
-# into Redis with nothing ever consuming it (SOS alerts, journey escalation,
+# In-process replacement for Celery's worker + beat, for any deploy that
+# doesn't run separate worker/beat processes — originally written for a
+# free-tier PaaS host with no Background Worker instance type, where every
+# `.delay()`/`.apply_async()` call in the app was silently queuing into
+# Redis with nothing ever consuming it (SOS alerts, journey escalation,
 # password-reset SMS — none of it was reaching anyone in production).
+# The production VPS now runs real `worker`/`beat` containers instead (see
+# docker-compose.prod.yml, RUN_PERIODIC_TASKS_IN_PROCESS=false there) — this
+# stays the default for local dev (base docker-compose.yml) and as a
+# fallback for any future deploy that goes back to a single-process setup.
 #
 # `@celery_app.task`-decorated functions are still plain callables under the
 # decorator — `task.apply(...)` runs the task body synchronously in the
@@ -49,10 +53,11 @@ def run_soon(celery_task, *args, delay: float = 0.0) -> None:
 
 def start_periodic(celery_task, interval_seconds: float) -> asyncio.Task:
     """Runs `celery_task` on a fixed interval for the lifetime of this
-    process — only ticks while this web dyno is actually awake. Render's
-    free tier sleeps after ~15 minutes idle, so a sweep can be delayed until
-    the next request wakes it back up; accepted tradeoff for running this at
-    zero extra infrastructure cost (see app/main.py's lifespan)."""
+    process — only ticks while this process is actually running, so a sweep
+    can be delayed by a restart/deploy until the process comes back up. Fine
+    for local dev and any deploy without a real `beat` process (see
+    app/main.py's lifespan); the production VPS runs a real `beat`
+    container instead (docker-compose.prod.yml) and doesn't rely on this."""
 
     async def _loop():
         while True:

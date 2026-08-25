@@ -28,8 +28,8 @@ def sweep_expired_subscriptions():
         # journey_tasks): each match here flips out of the filtered status,
         # so it won't be re-selected next run — a limit just caps how much
         # a single run has to load and commit if this task went a while
-        # without running (e.g. a sleeping Render dyno) and built up a
-        # backlog. Leftovers are picked up on the next hourly run.
+        # without running (a deploy, a restart, a process outage) and built
+        # up a backlog. Leftovers are picked up on the next hourly run.
         expired_trials = (
             db.query(Subscription)
             .filter(Subscription.status == SubscriptionStatus.trialing)

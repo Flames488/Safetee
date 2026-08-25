@@ -60,8 +60,8 @@ class Settings(BaseSettings):
     # DELETE /users/me is unaffected — that's still an immediate hard delete.
     account_deletion_grace_days: int = 30
     frontend_url: str = "http://localhost:5173"
-    # True everywhere by default (Render's web dyno, local dev) — sweeps run
-    # in-process via app/core/scheduler.py. Set to false only on a deploy
+    # True everywhere by default (local dev, any single-process deploy) —
+    # sweeps run in-process via app/core/scheduler.py. Set to false only on a deploy
     # that actually runs separate `worker`/`beat` containers (see
     # docker-compose.prod.yml), so the same sweep never fires from both
     # places at once.
