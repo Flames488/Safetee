@@ -93,6 +93,10 @@ class ContactOut(BaseModel):
     # (e.g. DataExportOut) — a stale/unknown "no" is safe, a fabricated
     # "yes" wouldn't be.
     is_app_user: bool = False
+    # Only ever populated for an is_app_user contact — the matched account's
+    # own uploaded avatar, looked up server-side (see list_contacts). None
+    # for a contact who isn't a registered user, or hasn't set a picture.
+    avatar_url: str | None = None
 
 
 class AccountDeleteRequest(BaseModel):

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, MapPin, Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, IconTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker } from '../components/ui';
+import { Card, Pill, PersonTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker, KpiCard, useToast } from '../components/ui';
 import { api } from '../lib/api';
 import { markSeen } from '../lib/seenAlerts';
 import { timeLeft } from '../lib/time';
@@ -86,6 +86,7 @@ export default function IncomingAlerts() {
   const [duration, setDuration] = useState(30);
   const [busyId, setBusyId] = useState(null);
   const [ackingId, setAckingId] = useState(null);
+  const toast = useToast();
 
   const askForLocation = (userId) => {
     setRequestedIds((s) => new Set(s).add(userId));
@@ -108,13 +109,47 @@ export default function IncomingAlerts() {
 
   const acknowledge = (id) => {
     setAckingId(id);
-    api.acknowledgeAlert(id).then(reloadAlerts).finally(() => setAckingId(null));
+    api.acknowledgeAlert(id)
+      .then(reloadAlerts)
+      // A failed acknowledge used to fail completely silently — the button
+      // just went back to normal with nothing to show for it, which reads
+      // exactly like "I clicked Acknowledge and it did nothing" even
+      // though a real error (expired session, dropped connection) is what
+      // actually happened. Surfacing it means a genuine failure is now
+      // visible and retryable instead of indistinguishable from a bug.
+      .catch((err) => toast(err.message || "Couldn't acknowledge that alert. Try again.", { tone: 'bad' }))
+      .finally(() => setAckingId(null));
   };
+
+  // Real counts only — same "no fabricated states" rule as everywhere else
+  // in the app. null while a list hasn't loaded yet reads as 0 here, which
+  // is fine: the KPI tiles below already show their own skeleton via
+  // ProgressDots-less loading (SkeletonRow covers each list section).
+  const activeAlertsCount = (alerts || []).filter((a) => a.status === 'pending' || a.status === 'active').length;
+  const pendingRequestsCount = (requests || []).length;
+  const watchersCount = (watchers || []).length;
+  const heroLine = activeAlertsCount > 0
+    ? `${activeAlertsCount} active alert${activeAlertsCount > 1 ? 's' : ''} — check evidence and respond below.`
+    : pendingRequestsCount > 0
+      ? `${pendingRequestsCount} location request${pendingRequestsCount > 1 ? 's' : ''} waiting on your response.`
+      : "Everything's quiet — you'll see alerts and requests here the moment they come in.";
 
   return (
     <>
       <TopBar title="Network" back={false} subtitle="Alerts, location requests, and people who trust you" />
       <div className="hs-list">
+      <div className="net-hero">
+        <div className="net-hero-glow" />
+        <div className="net-hero-top">
+          <span className="net-eyebrow"><ShieldAlert size={13} strokeWidth={2.4} /> YOUR NETWORK</span>
+        </div>
+        <p className="net-hero-line">{heroLine}</p>
+        <div className="net-hero-kpis">
+          <div className="net-kpi-wrap"><KpiCard icon={ShieldAlert} label="Active alerts" value={activeAlertsCount} tint={activeAlertsCount > 0 ? 'danger' : 'brand'} /></div>
+          <div className="net-kpi-wrap"><KpiCard icon={MapPin} label="Requests" value={pendingRequestsCount} tint="info" /></div>
+          <div className="net-kpi-wrap"><KpiCard icon={Users} label="Watching you" value={watchersCount} tint="brand" /></div>
+        </div>
+      </div>
       <div className="net-columns">
       <div className="net-col">
         <SectionLabel>Location requests</SectionLabel>
@@ -126,7 +161,7 @@ export default function IncomingAlerts() {
         {requests?.map((r) => (
           <Card key={r.id} className="hs-card">
             <div className="hs-row">
-              <IconTile icon={MapPin} tone="info" size={32} />
+              <PersonTile icon={MapPin} tone="info" size={32} avatarUrl={r.viewer_avatar_url} name={r.viewer_name} />
               <span className="hs-text">
                 <strong>{r.viewer_name}</strong>
                 <span>wants to see your location</span>
@@ -161,7 +196,7 @@ export default function IncomingAlerts() {
         {viewing?.map((s) => (
           <Card key={s.id} className="hs-card">
             <Link className="hs-row" to={`/track/location/${s.id}`}>
-              <IconTile icon={MapPin} tone="good" size={32} />
+              <PersonTile icon={MapPin} tone="good" size={32} avatarUrl={s.owner_avatar_url} name={s.owner_name} />
               <span className="hs-text">
                 <strong>{s.owner_name}</strong>
                 <span>{timeLeft(s.expires_at)}</span>
@@ -196,7 +231,7 @@ export default function IncomingAlerts() {
           return (
             <Card key={a.id} className="hs-card">
               <div className="hs-row">
-                <IconTile icon={ShieldAlert} tone={meta.tone} size={32} />
+                <PersonTile icon={ShieldAlert} tone={meta.tone} size={32} avatarUrl={a.alerter_avatar_url} name={a.alerter_name} />
                 <span className="hs-text">
                   <strong>{a.alerter_name}</strong>
                   <span>Triggered via {TRIGGER_LABEL[a.trigger] || a.trigger}</span>
@@ -229,7 +264,7 @@ export default function IncomingAlerts() {
           return (
             <Card key={w.user_id} className="hs-card">
               <div className="hs-row">
-                <IconTile icon={Users} tone="brand" size={32} />
+                <PersonTile icon={Users} tone="brand" size={32} avatarUrl={w.avatar_url} name={w.full_name} />
                 <span className="hs-text"><strong>{w.full_name}</strong></span>
                 <Button size="sm" variant={requested ? 'ghost' : 'secondary'} disabled={requested} onClick={() => askForLocation(w.user_id)}>
                   {requested ? 'Requested' : 'Request location'}

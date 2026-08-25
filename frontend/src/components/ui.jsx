@@ -472,6 +472,22 @@ export function IconTile({ icon: Icon, tone = 'brand', size = 38 }) {
   );
 }
 
+// Same slot IconTile fills in a list row, but for a specific *person*
+// rather than an activity type: shows their real uploaded photo when one
+// exists (a trusted contact who's also a registered user, an alerter, a
+// watcher — anywhere else in the app one person's identity is shown next
+// to another's), falling back to the tone-coded activity icon exactly as
+// before when they have none. Avatar's own onError handling covers a
+// broken/stale avatar_url the same way.
+export function PersonTile({ icon: Icon, tone = 'brand', size = 38, avatarUrl, name }) {
+  if (!avatarUrl) return <IconTile icon={Icon} tone={tone} size={size} />;
+  return (
+    <span className="icon-tile person-tile" style={{ width: size, height: size }}>
+      <Avatar src={avatarUrl} name={name} />
+    </span>
+  );
+}
+
 // Labeled text input — replaces raw <input> markup duplicated across
 // Contacts' add-contact form, EditProfile, MedicalInfo, and PlanPicker's
 // email prompt with one consistently styled, accessible field.

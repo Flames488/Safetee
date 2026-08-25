@@ -12,6 +12,7 @@ class WatcherOut(BaseModel):
 
     user_id: uuid.UUID
     full_name: str
+    avatar_url: str | None = None
 
 
 class LocationRequestCreate(BaseModel):
@@ -44,3 +45,5 @@ class LocationShareOut(BaseModel):
     viewer_id: uuid.UUID
     owner_name: str
     viewer_name: str
+    owner_avatar_url: str | None = None
+    viewer_avatar_url: str | None = None

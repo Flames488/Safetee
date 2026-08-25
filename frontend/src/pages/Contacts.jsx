@@ -2,17 +2,13 @@ import { useEffect, useState } from 'react';
 import { Plus, Phone, MessageCircle, ShieldCheck, X, Trash2, ChevronUp, ChevronDown, Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, Button, Field, ConfirmDialog, ErrorState, SkeletonRow, useToast } from '../components/ui';
+import { Avatar, Card, Pill, Button, Field, ConfirmDialog, ErrorState, SkeletonRow, useToast } from '../components/ui';
 import { api } from '../lib/api';
 import './contacts.css';
 
 // Mirrors the backend's _MAX_CONTACTS_PER_USER (contacts.py) — shown as
 // a progress count, not enforced client-side (the server is the real gate).
 const MAX_CONTACTS = 25;
-
-function initialsOf(name) {
-  return name.split(' ').map((n) => n[0]).join('').slice(0, 2);
-}
 
 export default function Contacts() {
   // null = still loading. Never a fake/fallback list — an empty array is a
@@ -101,7 +97,9 @@ export default function Contacts() {
             <div className="ct-hero-cluster">
               <span className="ct-hero-center"><Users size={22} strokeWidth={2} /></span>
               {contacts.slice(0, 4).map((c, i) => (
-                <span key={c.id} className={`ct-hero-avatar ct-hero-avatar-${i}`}>{initialsOf(c.name)}</span>
+                <span key={c.id} className={`ct-hero-avatar ct-hero-avatar-${i}`}>
+                  <Avatar src={c.avatar_url} name={c.name} />
+                </span>
               ))}
             </div>
             <p className="ct-hero-label">
@@ -175,7 +173,7 @@ export default function Contacts() {
                 </button>
               </div>
             )}
-            <div className="ct-avatar mono">{initialsOf(c.name)}</div>
+            <div className="ct-avatar mono"><Avatar src={c.avatar_url} name={c.name} /></div>
             <div className="ct-info">
               <div className="ct-name-row">
                 <strong>{c.name}</strong>

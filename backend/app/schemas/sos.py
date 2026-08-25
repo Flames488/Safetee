@@ -100,3 +100,4 @@ class IncomingAlertOut(BaseModel):
     origin_lat: float | None
     origin_lng: float | None
     alerter_name: str
+    alerter_avatar_url: str | None = None

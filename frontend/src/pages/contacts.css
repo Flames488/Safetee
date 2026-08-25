@@ -5,10 +5,10 @@
 
 .ct-list{ flex:1; padding:0 20px 24px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
 
-/* Decorative cluster: up to 4 contacts' own initials (never fabricated
-   photos — this app has no avatar photo for a trusted contact, only a
-   name) arranged around a central shield, echoing the "people around a
-   shield" motif from the app's own icon. */
+/* Decorative cluster: up to 4 contacts, their real uploaded photo when
+   the contact is a matched Safetee account with one set (see Avatar's
+   src fallback-to-initials below), arranged around a central shield,
+   echoing the "people around a shield" motif from the app's own icon. */
 .ct-hero{ display:flex; flex-direction:column; align-items:center; gap:18px; padding:20px 0 4px; }
 .ct-hero-cluster{ position:relative; width:180px; height:150px; flex-shrink:0; }
 .ct-hero-center{
@@ -19,8 +19,9 @@
 .ct-hero-avatar{
   position:absolute; width:46px; height:46px; border-radius:50%; background:var(--card);
   border:2px solid var(--green-line); color:var(--green); font-size:13px; font-weight:700;
-  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); overflow:hidden;
 }
+.ct-hero-avatar img{ width:100%; height:100%; object-fit:cover; }
 .ct-hero-avatar-0{ top:0; left:50%; transform:translateX(-50%); }
 .ct-hero-avatar-1{ top:50%; left:0; transform:translateY(-50%); }
 .ct-hero-avatar-2{ top:50%; right:0; transform:translateY(-50%); }
@@ -48,7 +49,9 @@
 .ct-avatar{
   width:40px; height:40px; border-radius:50%; background:var(--green-soft); color:var(--green);
   display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;
+  overflow:hidden;
 }
+.ct-avatar img{ width:100%; height:100%; object-fit:cover; }
 .ct-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
 .ct-name-row{ display:flex; align-items:center; gap:8px; }
 .ct-name-row strong{ font-size:14px; }

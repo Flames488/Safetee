@@ -1,6 +1,31 @@
-/* A subtle ambient glow behind the whole page instead of flat black —
-   same "give it real depth" treatment Dashboard/Contacts already use,
-   this page was the one flat holdout. */
+/* Hero: same card-with-glow + KPI-strip treatment as Dashboard's hero,
+   so Network reads as the same product instead of a flatter, later
+   afterthought — real counts from the lists below, never fabricated. */
+.net-hero{
+  position:relative; border-radius:var(--r-xl); padding:20px 20px 18px; margin:0 0 16px;
+  background:var(--card); border:1px solid var(--line); overflow:hidden; box-shadow:var(--shadow-sm);
+}
+.net-hero-glow{
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(520px 260px at 88% -25%, var(--brand-soft), transparent 70%),
+    radial-gradient(360px 180px at -10% 120%, var(--info-soft), transparent 70%);
+}
+.net-hero-top{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.net-eyebrow{
+  display:flex; align-items:center; gap:6px; font-size:11px; color:var(--brand-bright);
+  letter-spacing:.1em; text-transform:uppercase; font-weight:600;
+}
+.net-hero-line{ position:relative; font-size:13.5px; color:var(--ink-1); line-height:1.5; margin-top:10px; max-width:440px; }
+.net-hero-kpis{ position:relative; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:16px; }
+.net-kpi-wrap .kpi{ padding:14px 12px; gap:10px; border-radius:var(--r-lg); box-shadow:var(--shadow-xs); }
+.net-kpi-wrap .kpi-icon{ width:30px; height:30px; border-radius:9px; }
+.net-kpi-wrap .kpi-value{ font-size:16px; }
+.net-kpi-wrap .kpi-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+
+/* A subtle ambient glow behind the columns below the hero, instead of
+   flat black — same "give it real depth" treatment Dashboard/Contacts
+   already use. */
 .net-columns{
   position:relative;
   background:radial-gradient(700px 360px at 90% -10%, var(--brand-soft), transparent 65%);

@@ -349,7 +349,7 @@ async def list_incoming_alerts(
         SOSAcknowledgment.user_id == user.id,
     )
     result = await db.execute(
-        select(SOSEvent, User.full_name)
+        select(SOSEvent, User)
         .join(User, User.id == SOSEvent.user_id)
         .where(SOSEvent.user_id.in_(owner_ids), not_(already_acked))
         .order_by(SOSEvent.created_at.desc())
@@ -364,9 +364,10 @@ async def list_incoming_alerts(
             resolved_at=event.resolved_at,
             origin_lat=event.origin_lat,
             origin_lng=event.origin_lng,
-            alerter_name=alerter_name,
+            alerter_name=alerter.full_name,
+            alerter_avatar_url=alerter.avatar_url,
         )
-        for event, alerter_name in result.all()
+        for event, alerter in result.all()
     ]
 
 

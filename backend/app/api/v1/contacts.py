@@ -39,17 +39,20 @@ async def list_contacts(
 
     # One batched query for the whole list rather than one per contact —
     # is_app_user drives whether "Request/share location" shows up for
-    # each contact in the frontend.
+    # each contact in the frontend, and the matched account (when any) is
+    # also where that contact's avatar comes from — ContactOut never had
+    # anywhere else to get one, which is why contact photos never showed.
     phones = {normalize_phone(c.phone) for c in contacts}
-    app_user_phones = set()
+    app_users_by_phone: dict[str, User] = {}
     if phones:
-        app_user_phones = set(
-            (await db.execute(select(User.phone).where(User.phone.in_(phones)))).scalars().all()
-        )
+        matched = (await db.execute(select(User).where(User.phone.in_(phones)))).scalars().all()
+        app_users_by_phone = {u.phone: u for u in matched}
 
     dirty = False
     for contact in contacts:
-        contact.is_app_user = normalize_phone(contact.phone) in app_user_phones
+        matched_user = app_users_by_phone.get(normalize_phone(contact.phone))
+        contact.is_app_user = matched_user is not None
+        contact.avatar_url = matched_user.avatar_url if matched_user else None
         # There's no SMS-OTP contact-verification flow built (is_verified
         # otherwise never gets set at all) — but a phone that matches a
         # registered account has already proven ownership of that number
@@ -97,11 +100,12 @@ async def create_contact(
     data["phone"] = normalize_phone(data["phone"])
     contact = TrustedContact(user_id=user.id, **data)
     matched = (
-        await db.execute(select(User.id).where(User.phone == contact.phone))
+        await db.execute(select(User).where(User.phone == contact.phone))
     ).scalar_one_or_none()
     if matched is not None:
         contact.is_app_user = True
         contact.is_verified = True
+        contact.avatar_url = matched.avatar_url
     db.add(contact)
     await db.commit()
     await db.refresh(contact)

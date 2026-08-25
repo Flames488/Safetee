@@ -20,8 +20,17 @@ async def is_trusted_contact_of(db: AsyncSession, owner_id: uuid.UUID, viewer_ph
     target = normalize_phone(viewer_phone)
     if not target:
         return False
+    # Nothing enforces phone uniqueness within one owner's contact list —
+    # someone can (accidentally or not) save the same number twice under
+    # different names, so this only asks "does at least one match exist",
+    # not "does exactly one" — scalar_one_or_none() crashed with
+    # MultipleResultsFound the moment that happened, taking down every
+    # authorization check that routes through here (location requests,
+    # evidence access, incoming-alert acknowledgment) for that pair.
     result = await db.execute(
-        select(TrustedContact.id).where(TrustedContact.user_id == owner_id, TrustedContact.phone == target)
+        select(TrustedContact.id)
+        .where(TrustedContact.user_id == owner_id, TrustedContact.phone == target)
+        .limit(1)
     )
     return result.scalar_one_or_none() is not None
 

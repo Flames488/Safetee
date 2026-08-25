@@ -61,10 +61,10 @@ async def _push_all(db: AsyncSession, user_id: uuid.UUID, title: str, body: str,
 
 async def _build_outs(db: AsyncSession, shares: list[LocationShare]) -> list[LocationShareOut]:
     user_ids = {s.owner_id for s in shares} | {s.viewer_id for s in shares}
-    names: dict[uuid.UUID, str] = {}
+    users: dict[uuid.UUID, User] = {}
     if user_ids:
-        rows = (await db.execute(select(User.id, User.full_name).where(User.id.in_(user_ids)))).all()
-        names = {r.id: r.full_name for r in rows}
+        rows = (await db.execute(select(User).where(User.id.in_(user_ids)))).scalars().all()
+        users = {u.id: u for u in rows}
     return [
         LocationShareOut(
             id=s.id,
@@ -76,8 +76,10 @@ async def _build_outs(db: AsyncSession, shares: list[LocationShare]) -> list[Loc
             created_at=s.created_at,
             owner_id=s.owner_id,
             viewer_id=s.viewer_id,
-            owner_name=names.get(s.owner_id, ""),
-            viewer_name=names.get(s.viewer_id, ""),
+            owner_name=users[s.owner_id].full_name if s.owner_id in users else "",
+            viewer_name=users[s.viewer_id].full_name if s.viewer_id in users else "",
+            owner_avatar_url=users[s.owner_id].avatar_url if s.owner_id in users else None,
+            viewer_avatar_url=users[s.viewer_id].avatar_url if s.viewer_id in users else None,
         )
         for s in shares
     ]
@@ -107,8 +109,8 @@ async def list_watchers(
     owner_ids.discard(user.id)
     if not owner_ids:
         return []
-    rows = (await db.execute(select(User.id, User.full_name).where(User.id.in_(owner_ids)))).all()
-    return [WatcherOut(user_id=r.id, full_name=r.full_name) for r in rows]
+    rows = (await db.execute(select(User).where(User.id.in_(owner_ids)))).scalars().all()
+    return [WatcherOut(user_id=r.id, full_name=r.full_name, avatar_url=r.avatar_url) for r in rows]
 
 
 @router.post("/requests", response_model=LocationShareOut, status_code=status.HTTP_201_CREATED)
