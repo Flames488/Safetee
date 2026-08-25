@@ -32,6 +32,18 @@
   padding-top:4px;
 }
 
+/* .net-col used to only become a flex column (with real spacing between
+   its cards) inside the 900px+ media query below, on the assumption
+   mobile "just stacking" needed nothing extra — but a plain block stack
+   has *zero* gap between siblings, so on mobile every card and section
+   label butted directly against the next with no breathing room at all.
+   Unconditional now, with its own top margin so a new section (Location
+   requests -> Shared with you -> ...) reads as a distinct group, not
+   just another card in the same pile. */
+.net-col{ display:flex; flex-direction:column; gap:14px; }
+.net-col .section-label{ margin-top:10px; }
+.net-col .section-label:first-child{ margin-top:0; }
+
 .net-empty{ padding:16px; font-size:13px; color:var(--ink-2); text-align:center; }
 
 .net-error{
@@ -52,9 +64,8 @@
 /* Four independent topics (requests, shares, alerts, watchers) read as
    one long, mostly-empty scroll on a wide screen if just stacked — group
    them into two columns instead, same idea as Dashboard's SOS/activity
-   split. Mobile stays a single stacked column (no media query needed —
-   .net-col is just a plain block there). */
+   split. Mobile stays a single stacked column (.net-col's own gap above
+   already covers spacing there). */
 @media (min-width:900px){
   .net-columns{ display:grid; grid-template-columns:1fr 1fr; gap:0 28px; align-items:start; }
-  .net-col{ display:flex; flex-direction:column; gap:12px; }
 }
