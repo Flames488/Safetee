@@ -24,6 +24,14 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm api ale
 echo "==> Restarting stack"
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
 
+# nginx's upstream resolves the "api" hostname once at startup and caches
+# the result. When `up -d` recreates the api container it gets a new
+# internal Docker-network IP, so nginx keeps sending traffic to the old,
+# now-dead address until it's restarted — every deploy otherwise breaks
+# external traffic until someone notices and restarts nginx by hand.
+echo "==> Restarting nginx (picks up the api container's new address)"
+docker compose -f docker-compose.yml -f docker-compose.prod.yml restart nginx
+
 echo "==> Pruning old images"
 docker image prune -f
 
