@@ -27,6 +27,7 @@ export default function Settings() {
   const [mic, setMic] = useState('checking');
   const [notif, setNotif] = useState('checking');
   const [smsStatus, setSmsStatus] = useState(null); // system-level, not per-user
+  const [backendCommit, setBackendCommit] = useState(null);
 
   const [triggerBusy, setTriggerBusy] = useState(false);
   const [pinDraft, setPinDraft] = useState(null); // null = form closed
@@ -46,9 +47,14 @@ export default function Settings() {
       setNotif('unsupported');
     }
     api.systemStatus()
-      .then((s) => setSmsStatus(Boolean(s.sms_primary_configured || s.sms_fallback_configured)))
+      .then((s) => {
+        setSmsStatus(Boolean(s.sms_primary_configured || s.sms_fallback_configured));
+        setBackendCommit(s.deploy_commit || null);
+      })
       .catch(() => setSmsStatus(false));
   }, []);
+
+  const frontendCommit = import.meta.env.VITE_COMMIT_SHA?.slice(0, 7) || null;
 
   // Trusts the actual callback outcome rather than re-querying the
   // Permissions API afterward — see the matching comment in useReliability.js
@@ -252,6 +258,14 @@ export default function Settings() {
         <Button variant="outline-danger" full icon={<LogOut size={16} />} onClick={handleLogout}>
           Log out
         </Button>
+
+        {(frontendCommit || backendCommit) && (
+          <p className="st-build-info mono">
+            {frontendCommit && `App ${frontendCommit}`}
+            {frontendCommit && backendCommit && ' · '}
+            {backendCommit && `API ${backendCommit}`}
+          </p>
+        )}
       </div>
       <BottomNav />
     </>

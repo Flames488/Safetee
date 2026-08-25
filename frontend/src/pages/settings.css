@@ -40,6 +40,7 @@
 .st-pin-form .btn{ margin-top:0; }
 
 .st-body > .btn{ margin-top:12px; }
+.st-build-info{ text-align:center; font-size:10.5px; color:var(--ink-2); margin-top:4px; }
 
 @media (min-width:900px){
   .st-body{ max-width:760px; margin:0 auto; padding:0; gap:12px; }
