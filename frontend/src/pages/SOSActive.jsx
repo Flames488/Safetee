@@ -1,20 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Phone, Mic, MapPin, Users, X, Video, Camera } from 'lucide-react';
+import { Phone, Mic, MapPin, Users, X, Video, Camera, WifiOff, MessageCircle } from 'lucide-react';
 import VitalRing, { VitalDot } from '../components/VitalRing';
 import { Button, Modal, PasswordInput } from '../components/ui';
 import { api } from '../lib/api';
 import { startEvidenceCapture } from '../lib/evidenceCapture';
+import { cacheContacts, getCachedContacts } from '../lib/contactsCache';
 import { useAuth } from '../context/AuthContext';
 import './sos.css';
+
+// iOS wants `sms:number&body=`, everything else wants `sms:number?body=`.
+// Using both delimiters together is a well-known cross-platform trick: each
+// OS parses the one it recognizes and ignores the other as a harmless
+// leading empty param, so one href works everywhere.
+function smsHref(phone, body) {
+  return `sms:${phone}?&body=${encodeURIComponent(body)}`;
+}
 
 // One contact can have multiple alert channels (push + SMS fallback) — pick
 // the best status across them so "delivered on SMS after push failed" reads
 // as delivered, not failed.
 const STATUS_RANK = { failed: 0, queued: 1, sent: 2, delivered: 3 };
-function contactAlertState(alerts, contactId) {
+function contactAlertState(alerts, contactId, sendFailed) {
   const rows = alerts.filter((a) => a.contact_id === contactId);
-  if (rows.length === 0) return 'queued';
+  // No rows yet because the trigger itself never reached the backend (no
+  // connection) reads as "queued forever" otherwise — sendFailed is what
+  // turns that into an honest "Not delivered" instead.
+  if (rows.length === 0) return sendFailed ? 'failed' : 'queued';
   return rows.reduce((best, r) => (STATUS_RANK[r.status] > STATUS_RANK[best] ? r.status : best), rows[0].status);
 }
 const STATE_LABEL = { queued: 'Sending…', sent: 'Sent', delivered: 'Sent', failed: 'Not delivered' };
@@ -47,6 +59,10 @@ export default function SOSActive() {
   const [phase, setPhase] = useState(trigger === 'gesture' ? 'active' : 'counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
+  // 'sending' | 'sent' | 'failed' — whether the trigger itself has ever
+  // reached the backend, independent of per-contact delivery below.
+  const [sendState, setSendState] = useState('sending');
+  const coordsRef = useRef({ lat: null, lng: null });
   const [contacts, setContacts] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [elapsed, setElapsed] = useState(0);
@@ -66,26 +82,70 @@ export default function SOSActive() {
   // shown to the user is purely a local "cancel window" UI; the backend
   // independently enforces its own cancel window before fanning alerts out,
   // so a slow/dropped network call here never delays the actual alert.
+  //
+  // A dropped connection here used to be swallowed silently, leaving every
+  // contact stuck on "Sending…" forever with no alert ever sent and no
+  // indication anything was wrong — a false sense of security in exactly
+  // the moment it matters most. Instead: report the failure honestly (see
+  // sendState below, and the manual sms: fallback in the render), and keep
+  // retrying automatically — immediately on the browser's 'online' event,
+  // and every few seconds regardless in case that event doesn't fire on
+  // this device. `inFlight`/`succeeded` guard against a race between the
+  // timer and the online listener firing two overlapping requests — the
+  // backend has no dedup, so a duplicate call here would double-alert
+  // every contact with a second, separate SOS event.
   useEffect(() => {
-    const send = (lat, lng) =>
-      api.triggerSOS({ trigger, lat, lng })
-        .then((event) => event && setEventId(event.id))
-        .catch(() => {}); // offline/demo mode — countdown still runs locally
+    let stopped = false;
+    let inFlight = false;
+    let succeeded = false;
+    let retryTimer = null;
+
+    const attempt = () => {
+      if (stopped || succeeded || inFlight) return;
+      inFlight = true;
+      api.triggerSOS({ trigger, lat: coordsRef.current.lat, lng: coordsRef.current.lng })
+        .then((event) => {
+          inFlight = false;
+          if (stopped) return;
+          succeeded = true;
+          if (event) setEventId(event.id);
+          setSendState('sent');
+        })
+        .catch(() => {
+          inFlight = false;
+          if (stopped || succeeded) return;
+          setSendState('failed');
+          retryTimer = setTimeout(attempt, 6000);
+        });
+    };
+
+    const onOnline = () => { clearTimeout(retryTimer); attempt(); };
+    window.addEventListener('online', onOnline);
 
     // The backend independently nulls lat/lng out server-side if this
     // preference is off, but there's no reason to prompt for GPS or spend
     // battery on it client-side when the value would just get discarded.
+    // Geolocation itself runs on GPS hardware, not the network, so this
+    // still resolves — and is worth having for the manual sms: fallback
+    // below — even with zero data connection.
     if (navigator.geolocation && (user?.share_location_enabled ?? true)) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => send(pos.coords.latitude, pos.coords.longitude),
-        () => send(null, null),
+        (pos) => { coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude }; attempt(); },
+        () => attempt(),
         { timeout: 3000 }
       );
     } else {
-      send(null, null);
+      attempt();
     }
 
-    api.listContacts().then(setContacts).catch(() => setContacts([]));
+    // Falls back to the last-synced contact list (cached whenever AppShell
+    // last fetched it while online) so the manual fallback below still has
+    // someone to text even when this call itself can't reach the backend.
+    api.listContacts()
+      .then((list) => { setContacts(list); cacheContacts(list); })
+      .catch(() => setContacts(getCachedContacts()));
+
+    return () => { stopped = true; clearTimeout(retryTimer); window.removeEventListener('online', onOnline); };
   }, []);
 
   useEffect(() => {
@@ -195,9 +255,13 @@ export default function SOSActive() {
   // straight from evidenceCapture.js reporting what the mic/camera are
   // actually doing, not a client-side guess.
   const steps = [
-    { key: 'location', icon: MapPin, label: 'Location sent', done: true, failed: false, live: false, stateLabel: 'Sent' },
+    {
+      key: 'location', icon: MapPin, label: 'Location sent',
+      done: sendState === 'sent', failed: sendState === 'failed', live: sendState === 'sending',
+      stateLabel: sendState === 'sent' ? 'Sent' : sendState === 'failed' ? 'Not delivered' : 'Sending…',
+    },
     ...contacts.map((c) => {
-      const state = contactAlertState(alerts, c.id);
+      const state = contactAlertState(alerts, c.id, sendState === 'failed');
       return {
         key: c.id, icon: Users, label: `${c.name} notified`,
         done: state === 'sent' || state === 'delivered', failed: state === 'failed', live: false,
@@ -243,6 +307,38 @@ export default function SOSActive() {
           ? "Your trusted contacts have your live location and can hear what's happening around you."
           : "You don't have any trusted contacts set up, so location is being recorded but no one else is being alerted."}
       </p>
+
+      {sendState === 'failed' && (
+        <div className="sos-offline-banner" role="alert">
+          <p className="sos-offline-title">
+            <WifiOff size={15} strokeWidth={2.2} /> Couldn't reach Safetee — retrying automatically
+          </p>
+          <p className="sos-offline-body">
+            Your alert hasn't gone out yet. While it keeps retrying, text your contacts directly right now —
+            this works over your carrier's SMS, not the internet:
+          </p>
+          {contacts.length === 0 ? (
+            <p className="sos-offline-body">No trusted contacts saved on this device to text.</p>
+          ) : (
+            <div className="sos-offline-contacts">
+              {contacts.map((c) => (
+                <a
+                  key={c.id}
+                  className="sos-offline-contact"
+                  href={smsHref(
+                    c.phone,
+                    coordsRef.current.lat != null
+                      ? `SOS — I need help and couldn't reach Safetee to alert you automatically. Please call me or send help. My last known location: https://maps.google.com/?q=${coordsRef.current.lat},${coordsRef.current.lng}`
+                      : "SOS — I need help and couldn't reach Safetee to alert you automatically. Please call me or send help."
+                  )}
+                >
+                  <MessageCircle size={14} strokeWidth={2.2} /> Text {c.name}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="sos-steps">
         {steps.map((s) => (

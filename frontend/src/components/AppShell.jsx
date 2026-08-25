@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { startShakeDetection } from '../lib/shakeDetector';
 import { useIncomingAlertsCount } from '../lib/useIncomingAlertsCount';
+import { cacheContacts } from '../lib/contactsCache';
 import './app-shell.css';
 
 // Grouped nav (label + items) rather than one flat list — the single
@@ -69,7 +70,10 @@ export default function AppShell({ children }) {
   useCloseOnOutsideClick(profileRef, () => setProfileOpen(false));
 
   useEffect(() => {
-    api.listContacts().then(setContacts).catch(() => {});
+    // Mounted on every /app/* page, so this is the one place that reliably
+    // keeps the offline SOS fallback's contact cache warm during normal,
+    // connected use — not just when the Contacts page itself is visited.
+    api.listContacts().then((list) => { setContacts(list); cacheContacts(list); }).catch(() => {});
   }, []);
 
   // Secret gesture trigger — only active while an AppShell-wrapped screen
