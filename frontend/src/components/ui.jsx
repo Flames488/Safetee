@@ -155,11 +155,22 @@ export function SectionLabel({ children }) {
   return <div className="section-label mono">{children}</div>;
 }
 
-export function ProgressDots({ total, active }) {
+export function ProgressDots({ total, active, onSelect }) {
   return (
     <div className="progress-dots">
       {Array.from({ length: total }).map((_, i) => (
-        <span key={i} className={`dot ${i === active ? 'dot-active' : i < active ? 'dot-done' : ''}`} />
+        onSelect ? (
+          <button
+            key={i}
+            type="button"
+            className={`dot ${i === active ? 'dot-active' : i < active ? 'dot-done' : ''}`}
+            aria-label={`Go to item ${i + 1} of ${total}`}
+            aria-current={i === active}
+            onClick={(e) => { e.stopPropagation(); onSelect(i); }}
+          />
+        ) : (
+          <span key={i} className={`dot ${i === active ? 'dot-active' : i < active ? 'dot-done' : ''}`} />
+        )
       ))}
     </div>
   );

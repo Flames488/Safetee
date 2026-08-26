@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LocateFixed, BatteryMedium, Users, Navigation, MessageSquare, Mic,
@@ -201,11 +201,27 @@ export default function Dashboard() {
   const protectedState = hasContacts;
 
   const [tipIndex, setTipIndex] = useState(0);
+  const goToTip = (i) => setTipIndex(((i % TIPS.length) + TIPS.length) % TIPS.length);
+  // Restarting the timer on every change (auto or manual) means a swipe or
+  // dot tap always buys a fresh 7s before the next auto-advance, instead of
+  // fighting whatever was already in flight.
   useEffect(() => {
     const interval = setInterval(() => setTipIndex((i) => (i + 1) % TIPS.length), 7000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tipIndex]);
   const tip = TIPS[tipIndex];
+
+  const tipTouchStart = useRef(null);
+  const handleTipTouchStart = (e) => { tipTouchStart.current = e.touches[0].clientX; };
+  const handleTipTouchEnd = (e) => {
+    const startX = tipTouchStart.current;
+    tipTouchStart.current = null;
+    if (startX === null) return;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const SWIPE_THRESHOLD = 40;
+    if (deltaX <= -SWIPE_THRESHOLD) { e.preventDefault(); goToTip(tipIndex + 1); }
+    else if (deltaX >= SWIPE_THRESHOLD) { e.preventDefault(); goToTip(tipIndex - 1); }
+  };
 
   return (
     <>
@@ -376,7 +392,7 @@ export default function Dashboard() {
             )}
             {contacts?.slice(0, 3).map((c) => (
               <Card key={c.id} interactive className="dash-contact-row" onClick={() => navigate('/app/contacts')}>
-                <span className="dash-contact-avatar chip-gradient mono">{c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>
+                <span className="dash-contact-avatar chip-gradient mono"><Avatar src={c.avatar_url} name={c.name} /></span>
                 <span className="dash-contact-text">
                   <strong>{c.name}</strong>
                   <span>{c.relationship_label || 'Trusted contact'}</span>
@@ -392,11 +408,18 @@ export default function Dashboard() {
         <div className="dash-section-head">
           <span className="section-label">Safety tips</span>
         </div>
-        <div className="dash-tip-promo" onClick={() => setTipIndex((i) => (i + 1) % TIPS.length)} role="button" tabIndex={0}>
+        <div
+          className="dash-tip-promo"
+          onClick={() => goToTip(tipIndex + 1)}
+          onTouchStart={handleTipTouchStart}
+          onTouchEnd={handleTipTouchEnd}
+          role="button"
+          tabIndex={0}
+        >
           <div className="dash-tip-promo-glow" aria-hidden="true" />
           <IconTile icon={tip.icon} tone="brand" size={40} />
           <p key={tipIndex} className="dash-tip-promo-text">{tip.text}</p>
-          <ProgressDots total={TIPS.length} active={tipIndex} />
+          <ProgressDots total={TIPS.length} active={tipIndex} onSelect={goToTip} />
         </div>
       </div>
       <BottomNav />
