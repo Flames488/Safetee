@@ -103,6 +103,7 @@
 
 .progress-dots{ display:flex; gap:6px; align-items:center; }
 .progress-dots .dot{ width:6px; height:6px; border-radius:99px; background:var(--line-strong); transition:all var(--dur-base) var(--ease-out); }
+.progress-dots button.dot{ padding:0; margin:0; border:none; appearance:none; cursor:pointer; }
 .progress-dots .dot-active{ width:20px; background:var(--brand); }
 .progress-dots .dot-done{ background:var(--brand-deep); opacity:.6; }
 
