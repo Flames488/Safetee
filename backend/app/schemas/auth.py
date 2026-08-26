@@ -12,9 +12,13 @@ class SignupRequest(BaseModel):
     # leaves this empty; anything else here is treated as bot traffic and
     # rejected in the signup handler. Not a full bot-protection story on
     # its own — pairs with the per-phone rate limit below — but real
-    # third-party protection (e.g. Cloudflare Turnstile) needs a service
-    # account this app doesn't have set up.
+    # third-party protection — see turnstile_token below, now wired up.
     website: str = ""
+    # Cloudflare Turnstile widget token from the signup form; verified
+    # server-side in verify_turnstile. Empty string is valid input (not a
+    # validation error) — verify_turnstile itself decides whether an empty
+    # token is acceptable, based on whether Turnstile is even configured.
+    turnstile_token: str = ""
 
 
 class LoginRequest(BaseModel):
@@ -27,6 +31,7 @@ class LoginRequest(BaseModel):
     # tell during what's supposed to look like an ordinary login.
     lat: float | None = None
     lng: float | None = None
+    turnstile_token: str = ""
 
 
 class TokenResponse(BaseModel):
@@ -41,6 +46,7 @@ class RefreshRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     phone: str
+    turnstile_token: str = ""
 
 
 class ResetPasswordRequest(BaseModel):

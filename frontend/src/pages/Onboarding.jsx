@@ -4,6 +4,7 @@ import { MapPin, Mic, Camera, MessageSquare, Bell, ChevronRight, ArrowLeft, User
 import VitalRing from '../components/VitalRing';
 import Logo from '../components/Logo';
 import { Button, ProgressDots, Pill, PasswordInput } from '../components/ui';
+import Turnstile, { turnstileEnabled } from '../components/Turnstile';
 import { useAuth } from '../context/AuthContext';
 import { motionPermissionNeeded, requestMotionPermission } from '../lib/shakeDetector';
 import { subscribeToPush } from '../lib/push';
@@ -81,6 +82,7 @@ export default function Onboarding() {
   // backend); a bot filling forms by DOM structure rather than rendering
   // usually does. Sent through as-is; the backend does the actual check.
   const [account, setAccount] = useState({ full_name: '', phone: '', password: '', website: '' });
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [accountError, setAccountError] = useState('');
   const [accountBusy, setAccountBusy] = useState(false);
   const [contact, setContact] = useState({ name: '', phone: '' });
@@ -113,6 +115,10 @@ export default function Onboarding() {
   };
 
   const handleCreateAccount = async () => {
+    if (turnstileEnabled && !turnstileToken) {
+      setAccountError('Please complete the verification check.');
+      return;
+    }
     setAccountBusy(true);
     setAccountError('');
     try {
@@ -121,6 +127,7 @@ export default function Onboarding() {
         phone: account.phone,
         password: account.password,
         website: account.website,
+        turnstile_token: turnstileToken,
       });
       setStep(STEP.PERMISSIONS);
     } catch (err) {
@@ -271,6 +278,7 @@ export default function Onboarding() {
               autoComplete="off"
               aria-hidden="true"
             />
+            <Turnstile onToken={setTurnstileToken} />
           </div>
           {accountError && <p className="ob-error" role="alert">{accountError}</p>}
           <div className="ob-spacer" />

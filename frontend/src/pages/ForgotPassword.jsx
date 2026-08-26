@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button, PasswordInput } from '../components/ui';
 import Logo from '../components/Logo';
+import Turnstile, { turnstileEnabled } from '../components/Turnstile';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import './login.css';
@@ -18,14 +19,19 @@ export default function ForgotPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const requestCode = async (e) => {
     e.preventDefault();
     if (!phone) return;
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the verification check.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      await api.forgotPassword(phone);
+      await api.forgotPassword(phone, turnstileToken);
       setStep(STEP.RESET);
     } catch (err) {
       // Deliberately vague — the backend never confirms whether a phone
@@ -113,6 +119,7 @@ export default function ForgotPassword() {
           />
         </label>
       </div>
+      <Turnstile onToken={setTurnstileToken} />
       {error && <p className="lg-error" role="alert">{error}</p>}
       <Button full size="lg" type="submit" disabled={submitting}>
         {submitting ? 'Sending…' : 'Send reset code'}

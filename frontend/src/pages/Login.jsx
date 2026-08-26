@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button, PasswordInput } from '../components/ui';
 import Logo from '../components/Logo';
+import Turnstile, { turnstileEnabled } from '../components/Turnstile';
 import { useAuth } from '../context/AuthContext';
 import './login.css';
 
@@ -38,12 +39,17 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [waking, setWaking] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   if (status === 'authenticated') return <Navigate to="/app" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!phone || !password) return;
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the verification check.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     // Past this threshold, say something rather than leaving a plain
@@ -53,7 +59,7 @@ export default function Login() {
     const slowTimer = setTimeout(() => setWaking(true), 4000);
     try {
       const { lat, lng } = await silentLocation();
-      await login(phone, password, lat, lng);
+      await login(phone, password, lat, lng, turnstileToken);
       navigate('/app');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
@@ -98,6 +104,7 @@ export default function Login() {
           Forgot password?
         </button>
       </div>
+      <Turnstile onToken={setTurnstileToken} />
       {error && <p className="lg-error" role="alert">{error}</p>}
       {waking && (
         <p className="lg-hint" role="status">Still working on it. This is taking longer than usual.</p>

@@ -19,6 +19,7 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
+from app.core.turnstile import verify_turnstile
 from app.db.session import get_db
 from app.models.enums import AccountStatus, SOSStatus, SOSTrigger, SubscriptionStatus
 from app.models.login_event import LoginEvent
@@ -56,7 +57,9 @@ def _client_ip(request: Request) -> str | None:
 
 
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
+async def signup(payload: SignupRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    await verify_turnstile(payload.turnstile_token, _client_ip(request))
+
     # Honeypot — see SignupRequest.website's docstring. A filled value
     # means whatever submitted this isn't the real form; fail exactly like
     # a validation error rather than revealing the mechanism.
@@ -104,6 +107,8 @@ async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    await verify_turnstile(payload.turnstile_token, _client_ip(request))
+
     # Capped independently of whether any individual guess is right or
     # wrong — otherwise this endpoint is a free way to brute-force a known
     # phone number's password with no limit on attempts.
@@ -208,12 +213,18 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
-async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+async def forgot_password(payload: ForgotPasswordRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Always returns 204 regardless of whether the phone number is
     registered — a different response here would let someone enumerate
     which numbers have accounts. If it is registered, a 6-digit code is
     sent by SMS (Twilio, falling back to Termii) and expires in 10 minutes.
     """
+    # This is the endpoint that actually spends real SMS credit per call,
+    # unauthenticated — the highest-value place for bot protection, ahead
+    # of even the per-phone rate limit below (which a bot can spread
+    # across many different target numbers).
+    await verify_turnstile(payload.turnstile_token, _client_ip(request))
+
     # Rate-limited by phone before touching the DB — otherwise this endpoint
     # is a free way to spam someone's phone with SMS (or run up your Twilio
     # bill) by repeatedly requesting codes for the same number.

@@ -103,12 +103,13 @@ async function request(path, opts = {}) {
 }
 
 export const api = {
-  login: (phone, password, lat, lng) =>
-    rawRequest('/auth/login', { method: 'POST', body: { phone, password, lat, lng }, auth: false }).then(setTokens),
+  login: (phone, password, lat, lng, turnstileToken) =>
+    rawRequest('/auth/login', { method: 'POST', body: { phone, password, lat, lng, turnstile_token: turnstileToken }, auth: false }).then(setTokens),
   signup: (payload) =>
     rawRequest('/auth/signup', { method: 'POST', body: payload, auth: false }).then(setTokens),
   logout: () => clearTokens(),
-  forgotPassword: (phone) => rawRequest('/auth/forgot-password', { method: 'POST', body: { phone }, auth: false }),
+  forgotPassword: (phone, turnstileToken) =>
+    rawRequest('/auth/forgot-password', { method: 'POST', body: { phone, turnstile_token: turnstileToken }, auth: false }),
   resetPassword: (payload) =>
     rawRequest('/auth/reset-password', { method: 'POST', body: payload, auth: false }).then(setTokens),
 

@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     journey_checkin_grace_minutes: int = 10
     sos_fanout_max_retries: int = 4
 
+    # Cloudflare Turnstile — bot protection on signup/login/forgot-password.
+    # Blank skips verification entirely (see verify_turnstile), so local
+    # dev never needs a Cloudflare account just to sign up or log in.
+    turnstile_secret_key: str = ""
+
     paystack_secret_key: str = ""
     paystack_public_key: str = ""
     trial_period_days: int = 30
