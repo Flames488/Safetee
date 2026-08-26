@@ -1,23 +1,6 @@
 import { useState } from 'react';
 import './charts.css';
 
-// Small inline trend line — no axis chrome, just a shape (e.g. inside a
-// KpiCard's sub-area). Deliberately minimal per the "one meaningful trend
-// chart beats five decorative ones" research finding.
-export function Sparkline({ data, width = 120, height = 32, color = 'var(--brand-bright)' }) {
-  if (!data || data.length < 2) return null;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const stepX = width / (data.length - 1);
-  const points = data.map((v, i) => `${i * stepX},${height - ((v - min) / range) * height}`).join(' ');
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="sparkline" preserveAspectRatio="none" aria-hidden="true">
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
 // The dashboard's one real trend visualization — a filled line chart with
 // a hover tooltip. `data` is `[{ label, value }]` already bucketed by the
 // caller (e.g. signups per day derived client-side from user records).

@@ -111,19 +111,6 @@ export function KpiCardSkeleton() {
   );
 }
 
-// Config-driven status pill — one lookup table instead of a pill-tone
-// prop threaded through every call site, so adding a new status only
-// means adding a row here.
-const STATUS_TONES = {
-  active: 'good', trialing: 'info', past_due: 'warn', cancelled: 'warn', expired: 'bad',
-  suspended: 'bad', pending: 'warn', resolved: 'good', escalated: 'bad',
-  none: 'neutral', viewer: 'info', super_admin: 'good',
-};
-export function StatusBadge({ status, label }) {
-  const tone = STATUS_TONES[status] || 'neutral';
-  return <Pill tone={tone}>{label || String(status).replace(/_/g, ' ')}</Pill>;
-}
-
 export function Pill({ tone = 'neutral', children }) {
   return <span className={`pill pill-${tone}`}>{children}</span>;
 }
