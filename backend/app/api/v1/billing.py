@@ -149,7 +149,16 @@ async def paystack_webhook(request: Request, db: AsyncSession = Depends(get_db))
     if not reference:
         return {"received": True}
 
-    result = await db.execute(select(Payment).where(Payment.paystack_reference == reference))
+    # Locked — this and verify_payment below both read-then-activate the
+    # same Payment with no atomic guard otherwise, and the frontend calling
+    # verify_payment the instant Paystack redirects back is expected to
+    # race this webhook for the same reference (see verify_payment's own
+    # docstring). Blocks the second request until the first commits, so it
+    # re-reads a post-activation `success` status and returns early instead
+    # of redoing activation. Same pattern as confirm_evidence in sos.py.
+    result = await db.execute(
+        select(Payment).where(Payment.paystack_reference == reference).with_for_update()
+    )
     payment = result.scalar_one_or_none()
     if payment is None or payment.status == PaymentStatus.success:
         return {"received": True}  # unknown reference, or already processed — webhooks can repeat
@@ -181,8 +190,10 @@ async def verify_payment(reference: str, db: AsyncSession = Depends(get_db), use
     Scoped to the caller's own payment — this only lets someone confirm
     a transaction that's actually theirs, not probe arbitrary references.
     """
+    # Locked — see paystack_webhook's identical lock for why (this races
+    # that handler for the same reference by design).
     result = await db.execute(
-        select(Payment).where(Payment.paystack_reference == reference, Payment.user_id == user.id)
+        select(Payment).where(Payment.paystack_reference == reference, Payment.user_id == user.id).with_for_update()
     )
     payment = result.scalar_one_or_none()
     if payment is None:

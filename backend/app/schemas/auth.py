@@ -53,3 +53,10 @@ class ResetPasswordRequest(BaseModel):
     phone: str
     otp: str = Field(min_length=6, max_length=6)
     new_password: str = Field(min_length=8, max_length=512)
+
+
+class RecoverAccountRequest(BaseModel):
+    phone: str
+    backup_code: str = Field(min_length=6, max_length=20)
+    new_password: str = Field(min_length=8, max_length=512)
+    turnstile_token: str = ""

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Mic, MessageSquare, Bell, KeyRound, Fingerprint, User, Lock, CreditCard, Shield, ChevronRight, LogOut, X } from 'lucide-react';
+import { MapPin, Mic, MessageSquare, Bell, KeyRound, Fingerprint, User, Lock, CreditCard, Shield, ChevronRight, LogOut, X, PlayCircle, KeySquare } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
-import { Card, Pill, Toggle, SectionLabel, Button, PasswordInput } from '../components/ui';
+import { Card, Pill, Toggle, SectionLabel, Button, PasswordInput, Modal } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { queryPermission } from '../lib/useReliability';
 import { subscribeToPush } from '../lib/push';
@@ -34,6 +34,10 @@ export default function Settings() {
   const [pinValue, setPinValue] = useState('');
   const [pinError, setPinError] = useState('');
   const [gestureError, setGestureError] = useState('');
+  const [armingPractice, setArmingPractice] = useState(false);
+  const [backupCodes, setBackupCodes] = useState(null);
+  const [generatingCodes, setGeneratingCodes] = useState(false);
+  const [codesError, setCodesError] = useState('');
 
   useEffect(() => {
     queryPermission('geolocation').then(setLocation);
@@ -135,6 +139,34 @@ export default function Settings() {
     patchTriggers({ gesture_trigger_enabled: enabled });
   };
 
+  const armPractice = async () => {
+    setArmingPractice(true);
+    try {
+      setUser(await api.armPracticeDrill());
+    } catch {
+      // Silently no-op — the button just stays as "Start a practice drill"
+      // and the user can try again, no state to roll back.
+    } finally {
+      setArmingPractice(false);
+    }
+  };
+
+  const practiceArmedUntil = user?.practice_armed_until ? new Date(user.practice_armed_until) : null;
+  const practiceArmed = practiceArmedUntil && practiceArmedUntil > new Date();
+
+  const generateCodes = async () => {
+    setGeneratingCodes(true);
+    setCodesError('');
+    try {
+      const { codes } = await api.generateBackupCodes();
+      setBackupCodes(codes);
+    } catch (err) {
+      setCodesError(err.message || 'Could not generate backup codes. Please try again.');
+    } finally {
+      setGeneratingCodes(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -223,6 +255,21 @@ export default function Settings() {
             />
           </div>
           {gestureError && <p className="st-pin-error st-gesture-error">{gestureError}</p>}
+
+          <div className="st-row">
+            <span className="st-icon"><PlayCircle size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Practice your trigger</strong>
+              <span className="st-desc">
+                {practiceArmed
+                  ? 'Armed — trigger it for real (button or shake) in the next couple minutes. No real alert will be sent.'
+                  : 'Rehearse your shake gesture or the SOS button for real, without alerting your contacts or recording evidence.'}
+              </span>
+            </span>
+            <Button size="sm" onClick={armPractice} disabled={armingPractice || practiceArmed}>
+              {practiceArmed ? 'Armed' : armingPractice ? 'Arming…' : 'Start drill'}
+            </Button>
+          </div>
         </Card>
 
         <SectionLabel>Account</SectionLabel>
@@ -242,6 +289,15 @@ export default function Settings() {
             <span className="st-row-text"><strong>Privacy &amp; data controls</strong></span>
             <ChevronRight size={16} color="var(--ink-2)" />
           </button>
+          <button className="st-link" onClick={generateCodes} disabled={generatingCodes}>
+            <span className="st-icon"><KeySquare size={16} strokeWidth={2.1} /></span>
+            <span className="st-row-text">
+              <strong>Backup codes</strong>
+              <span className="st-desc">In case you lose your phone and forget your password</span>
+            </span>
+            <ChevronRight size={16} color="var(--ink-2)" />
+          </button>
+          {codesError && <p className="st-pin-error">{codesError}</p>}
           {/* Desktop reaches this via the sidebar's "Platform" group
               (AppShell.jsx) — mobile has no sidebar, and Admin isn't one
               of BottomNav's 5 fixed tabs, so without this link admins on
@@ -267,6 +323,24 @@ export default function Settings() {
           </p>
         )}
       </div>
+
+      <Modal open={Boolean(backupCodes)} onClose={() => setBackupCodes(null)} title="Your backup codes" width={420}>
+        <p className="st-desc">
+          Save these somewhere safe — a password manager, printed and stored securely. Each code
+          works once. Generating new codes retires all of these immediately.
+        </p>
+        <div className="st-backup-codes mono">
+          {backupCodes?.map((code) => <span key={code}>{code}</span>)}
+        </div>
+        <Button
+          full size="sm"
+          onClick={() => { navigator.clipboard?.writeText(backupCodes?.join('\n') || ''); }}
+        >
+          Copy all
+        </Button>
+        <Button full size="sm" onClick={() => setBackupCodes(null)}>Done</Button>
+      </Modal>
+
       <BottomNav />
     </>
   );

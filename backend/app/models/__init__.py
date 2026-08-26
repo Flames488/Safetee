@@ -1,4 +1,5 @@
 from app.models.admin_audit_log import AdminAuditLog  # noqa: F401
+from app.models.backup_code import BackupCode  # noqa: F401
 from app.models.contact import TrustedContact  # noqa: F401
 from app.models.device import Device  # noqa: F401
 from app.models.journey import Journey, LocationPing  # noqa: F401

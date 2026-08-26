@@ -1,8 +1,9 @@
+import secrets
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -10,6 +11,7 @@ from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.db.session import get_db
+from app.models.backup_code import BackupCode
 from app.models.contact import TrustedContact
 from app.models.journey import Journey
 from app.models.sos_event import SOSEvent
@@ -19,6 +21,7 @@ from app.schemas.user import (
     AvatarConfirmRequest,
     AvatarUploadRequest,
     AvatarUploadResponse,
+    BackupCodesOut,
     DataExportOut,
     PreferencesUpdate,
     ProfileUpdate,
@@ -131,6 +134,60 @@ async def update_triggers(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+@router.post("/me/practice-drill/arm", response_model=UserOut)
+async def arm_practice_drill(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Arms a 2-minute window in which the *next* /sos/trigger call (from
+    any real path — the button, or a genuine shake gesture caught by
+    AppShell.jsx's detector) is treated as a practice drill instead of a
+    real emergency: trigger_sos consumes and clears this immediately, so
+    it only ever affects one trigger, not every one until it happens to
+    expire.
+
+    Deliberately server-side rather than a flag the frontend passes with
+    the trigger itself — the whole point is letting someone rehearse
+    their *actual* hidden trigger through its *actual* path (three real
+    shakes) and see it work, not a separate fake demo screen that
+    wouldn't build the muscle memory a drill exists for. Not offered for
+    the fake-PIN duress trigger — arming a bypass there would mean
+    building a way to distinguish a real duress login from a drill one,
+    which undermines the one property that trigger depends on entirely:
+    that it's indistinguishable from a real login.
+    """
+    user.practice_armed_until = datetime.now(UTC) + timedelta(minutes=2)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+_BACKUP_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O/1/I/L — easy to type from paper
+
+
+@router.post("/me/backup-codes", response_model=BackupCodesOut)
+async def generate_backup_codes(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Account recovery for when the phone is lost *and* the password is
+    forgotten — see POST /auth/recover. Shown to the user exactly once,
+    here; only the bcrypt hash is ever persisted (BackupCode.code_hash),
+    same as a password. Regenerating replaces the whole batch — every
+    previous code, used or not, stops working immediately, standard
+    practice for this kind of one-time code."""
+    await db.execute(delete(BackupCode).where(BackupCode.user_id == user.id))
+    plaintext_codes = [
+        "".join(secrets.choice(_BACKUP_CODE_ALPHABET) for _ in range(10))
+        for _ in range(8)
+    ]
+    for code in plaintext_codes:
+        db.add(BackupCode(user_id=user.id, code_hash=hash_password(code)))
+    await db.commit()
+    return BackupCodesOut(codes=[f"{c[:5]}-{c[5:]}" for c in plaintext_codes])
 
 
 @router.patch("/me/preferences", response_model=UserOut)

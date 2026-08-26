@@ -29,7 +29,10 @@ function contactAlertState(alerts, contactId, sendFailed) {
   if (rows.length === 0) return sendFailed ? 'failed' : 'queued';
   return rows.reduce((best, r) => (STATUS_RANK[r.status] > STATUS_RANK[best] ? r.status : best), rows[0].status);
 }
-const STATE_LABEL = { queued: 'Sending…', sent: 'Sent', delivered: 'Sent', failed: 'Not delivered' };
+const STATE_LABEL = {
+  queued: 'Sending…', sent: 'Sent', delivered: 'Sent', failed: 'Not delivered',
+  simulated: 'Would notify (drill)',
+};
 
 const EVIDENCE_ICON = { audio: Mic, video: Video, photo: Camera };
 const EVIDENCE_LABEL = { audio: 'Audio recording', video: 'Video recording', photo: 'Photo capture' };
@@ -59,6 +62,7 @@ export default function SOSActive() {
   const [phase, setPhase] = useState(trigger === 'gesture' ? 'active' : 'counting');
   const [count, setCount] = useState(5);
   const [eventId, setEventId] = useState(null);
+  const [isPractice, setIsPractice] = useState(false);
   // 'sending' | 'sent' | 'failed' — whether the trigger itself has ever
   // reached the backend, independent of per-contact delivery below.
   const [sendState, setSendState] = useState('sending');
@@ -108,7 +112,10 @@ export default function SOSActive() {
           inFlight = false;
           if (stopped) return;
           succeeded = true;
-          if (event) setEventId(event.id);
+          if (event) {
+            setEventId(event.id);
+            setIsPractice(Boolean(event.is_practice));
+          }
           setSendState('sent');
         })
         .catch(() => {
@@ -201,7 +208,7 @@ export default function SOSActive() {
   // SOS event, never elsewhere in the app. A cancelled/practice trigger
   // never requests a permission prompt or records anything.
   useEffect(() => {
-    if (phase !== 'active' || !eventId) return;
+    if (phase !== 'active' || !eventId || isPractice) return;
     let cancelled = false;
     let stop = () => {};
     const enabled = { audio: audioEnabled, video: videoEnabled, photo: photoEnabled };
@@ -209,7 +216,7 @@ export default function SOSActive() {
       setEvidenceStatus((s) => ({ ...s, [mediaType]: status }))
     ).then((fn) => { if (cancelled) fn(); else stop = fn; });
     return () => { cancelled = true; stop(); };
-  }, [phase, eventId, audioEnabled, videoEnabled, photoEnabled]);
+  }, [phase, eventId, isPractice, audioEnabled, videoEnabled, photoEnabled]);
 
   // Without this, a hold started right as the screen unmounts (e.g. the
   // event auto-resolved and something else navigated away) would still
@@ -264,7 +271,7 @@ export default function SOSActive() {
       const state = contactAlertState(alerts, c.id, sendState === 'failed');
       return {
         key: c.id, icon: Users, label: `${c.name} notified`,
-        done: state === 'sent' || state === 'delivered', failed: state === 'failed', live: false,
+        done: state === 'sent' || state === 'delivered' || state === 'simulated', failed: state === 'failed', live: false,
         stateLabel: STATE_LABEL[state],
       };
     }),
@@ -297,16 +304,32 @@ export default function SOSActive() {
     <>
     <div className="sos-screen sos-active">
       <div className="sos-active-top">
-        <span className="sos-live-pill mono"><VitalDot color="red" size={7} /> SOS ACTIVE</span>
+        {isPractice ? (
+          <span className="sos-live-pill mono"><VitalDot color="green" size={7} /> PRACTICE DRILL</span>
+        ) : (
+          <span className="sos-live-pill mono"><VitalDot color="red" size={7} /> SOS ACTIVE</span>
+        )}
         <span className="sos-timer mono">{mmss(elapsed)}</span>
       </div>
 
-      <h1 className="sos-h1 sos-h1-left">Help is on the way.</h1>
-      <p className="sos-p sos-p-left">
-        {contacts.length
-          ? "Your trusted contacts have your live location and can hear what's happening around you."
-          : "You don't have any trusted contacts set up, so location is being recorded but no one else is being alerted."}
-      </p>
+      {isPractice ? (
+        <>
+          <h1 className="sos-h1 sos-h1-left">This is a practice drill.</h1>
+          <p className="sos-p sos-p-left">
+            No real alert was sent and nothing was recorded. The checklist below shows exactly who
+            would have been notified if this were real.
+          </p>
+        </>
+      ) : (
+        <>
+          <h1 className="sos-h1 sos-h1-left">Help is on the way.</h1>
+          <p className="sos-p sos-p-left">
+            {contacts.length
+              ? "Your trusted contacts have your live location and can hear what's happening around you."
+              : "You don't have any trusted contacts set up, so location is being recorded but no one else is being alerted."}
+          </p>
+        </>
+      )}
 
       {sendState === 'failed' && (
         <div className="sos-offline-banner" role="alert">

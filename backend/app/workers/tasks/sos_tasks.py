@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from app.core.config import settings
 from app.core.phone import normalize_phone
@@ -7,7 +8,7 @@ from app.core.security import create_share_token
 from app.db.sync_session import SyncSessionLocal
 from app.models.contact import TrustedContact
 from app.models.device import Device
-from app.models.enums import AlertStatus, SOSStatus
+from app.models.enums import AlertChannel, AlertStatus, SOSStatus
 from app.models.journey import Journey
 from app.models.sos_event import SOSAlertDelivery, SOSEvent
 from app.models.user import User
@@ -114,6 +115,22 @@ def fanout_sos_alerts(self, sos_event_id: str):
             logger.error("SOS %s fired with zero trusted contacts on file", sos_event_id)
             return
 
+        if event.is_practice:
+            # No send_with_fallback/send_push call anywhere in this branch
+            # — that's the entire point of a drill. Recorded as its own
+            # AlertStatus so the drill UI can show "who would have been
+            # alerted" using the same per-contact checklist a real SOS
+            # uses, without a real contact ever being touched.
+            for contact in contacts:
+                if db.query(SOSAlertDelivery).filter_by(sos_event_id=event.id, contact_id=contact.id).first():
+                    continue
+                db.add(SOSAlertDelivery(
+                    sos_event_id=event.id, contact_id=contact.id,
+                    channel=AlertChannel.simulated, status=AlertStatus.simulated, attempt_count=1,
+                ))
+            db.commit()
+            return
+
         body = _alert_body(user, event)
         any_failed = False
         devices_by_phone = _matching_user_devices_by_phone(db, [c.phone for c in contacts])
@@ -204,6 +221,52 @@ def notify_contacts_of_evidence(sos_event_id: str):
 
 
 @celery_app.task
+def notify_contacts_of_resolution(sos_event_id: str):
+    """Fired once from resolve_sos. Only messages contacts who actually
+    received the original alert (a `sent` SOSAlertDelivery row) — not
+    every trusted contact, since a journey-scoped alert or a failed
+    delivery means some contacts on file were never notified in the first
+    place and have nothing to be told is over. A contact who isn't also a
+    Safetee user has no other way to learn the emergency ended short of
+    the user personally texting them, which risks needless anxiety or an
+    unnecessary escalation (e.g. someone calling emergency services over
+    an already-resolved situation)."""
+    db = SyncSessionLocal()
+    try:
+        event = db.get(SOSEvent, sos_event_id)
+        if event is None:
+            return
+        user = db.get(User, event.user_id)
+        alerted_contact_ids = {
+            d.contact_id for d in (
+                db.query(SOSAlertDelivery)
+                .filter_by(sos_event_id=event.id, status=AlertStatus.sent)
+                .all()
+            )
+            if d.contact_id is not None  # SET NULL if the contact was since deleted
+        }
+        if not alerted_contact_ids:
+            return
+        contacts = db.query(TrustedContact).filter(TrustedContact.id.in_(alerted_contact_ids)).all()
+        devices_by_phone = _matching_user_devices_by_phone(db, [c.phone for c in contacts])
+
+        body = f"SAFETEE: {user.full_name} has marked themselves safe. The earlier alert is now resolved."
+        for contact in contacts:
+            try:
+                send_with_fallback(contact.phone, body)
+            except SMSDeliveryFailed as exc:
+                logger.error("Resolution notify for SOS %s: failed to reach %s: %s", sos_event_id, contact.phone, exc)
+
+            for device in devices_by_phone.get(normalize_phone(contact.phone), []):
+                _send_push_and_prune(
+                    db, device, "SAFETEE", f"{user.full_name} has marked themselves safe",
+                    data={"url": "/app/alerts"},
+                )
+    finally:
+        db.close()
+
+
+@celery_app.task
 def retry_failed_alerts():
     """Runs every 2 minutes. Re-attempts only the individual deliveries that
     failed, up to SOS_FANOUT_MAX_RETRIES, instead of re-firing whole events."""
@@ -235,6 +298,11 @@ def retry_failed_alerts():
             if event is None or event.status == SOSStatus.cancelled:
                 continue
             contact = contacts.get(delivery.contact_id)
+            if contact is None:
+                # The contact was deleted after this delivery was recorded
+                # (contact_id is SET NULL on delete, not CASCADE — see
+                # SOSAlertDelivery.contact_id) — nothing left to retry.
+                continue
             user = users.get(event.user_id)
             delivery.attempt_count += 1
             try:
@@ -249,3 +317,44 @@ def retry_failed_alerts():
             db.commit()
     finally:
         db.close()
+
+
+@celery_app.task
+def sweep_stuck_sos_events():
+    """Runs every minute. `trigger_sos`/`add_evidence_notify` dispatch the
+    real fanout via `run_soon` (app/core/scheduler.py) — an in-process
+    asyncio task on the API's own web process, not a broker-backed Celery
+    call — so an API restart/deploy landing inside the cancel-window sleep
+    (or in the instant between fanout flipping the event to `active` and
+    it creating any delivery row) silently drops the dispatch entirely.
+    Unlike retry_failed_alerts, which only retries deliveries that were at
+    least attempted, nothing else watches for an event that never got a
+    fanout attempt in the first place.
+
+    Safe to just re-run fanout_sos_alerts directly — it already skips any
+    contact with an existing AlertStatus.sent delivery, so re-triggering a
+    partially-completed fanout never double-sends.
+    """
+    cutoff = datetime.now(UTC) - timedelta(seconds=settings.sos_cancel_window_seconds + 60)
+    db = SyncSessionLocal()
+    try:
+        stuck_ids = [
+            row[0] for row in (
+                db.query(SOSEvent.id)
+                .outerjoin(SOSAlertDelivery, SOSAlertDelivery.sos_event_id == SOSEvent.id)
+                .filter(
+                    SOSEvent.status.in_([SOSStatus.pending, SOSStatus.active]),
+                    SOSEvent.created_at < cutoff,
+                    SOSAlertDelivery.id.is_(None),
+                )
+                .distinct()
+                .limit(50)
+                .all()
+            )
+        ]
+    finally:
+        db.close()
+
+    for event_id in stuck_ids:
+        logger.warning("SOS %s had no fanout attempt after its cancel window — retriggering", event_id)
+        fanout_sos_alerts.apply(args=[str(event_id)])

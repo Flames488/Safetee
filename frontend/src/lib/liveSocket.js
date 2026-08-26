@@ -38,11 +38,12 @@ export function connectLiveSocket(path, token, { onFrame, onStatus } = {}) {
     };
     socket.onclose = (event) => {
       if (stopped) return;
-      // 4401 (auth rejected) and 4408 (time window ended) are terminal:
-      // the backend is telling us this session is genuinely done, not
-      // that the network hiccuped. Anything else — including a cold API
-      // dropping the handshake — is worth retrying.
-      if (event.code === 4401 || event.code === 4408) {
+      // 4401 (auth rejected), 4408 (time window ended), and 4409 (owner
+      // stopped the share) are terminal: the backend is telling us this
+      // session is genuinely done, not that the network hiccuped.
+      // Anything else — including a cold API dropping the handshake — is
+      // worth retrying.
+      if (event.code === 4401 || event.code === 4408 || event.code === 4409) {
         onStatus?.('ended');
         return;
       }

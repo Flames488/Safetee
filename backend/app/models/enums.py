@@ -28,6 +28,7 @@ class AlertChannel(str, enum.Enum):
     sms_twilio = "sms_twilio"
     sms_termii = "sms_termii"
     call = "call"
+    simulated = "simulated"  # practice drill — see SOSEvent.is_practice
 
 
 class AlertStatus(str, enum.Enum):
@@ -35,6 +36,11 @@ class AlertStatus(str, enum.Enum):
     sent = "sent"
     delivered = "delivered"
     failed = "failed"
+    # Practice drill only — never a real send. Deliberately distinct from
+    # `sent` so retry_failed_alerts/notify_contacts_of_resolution, which
+    # filter on specific statuses, exclude these without needing their own
+    # is_practice check.
+    simulated = "simulated"
 
 
 class PlanTier(str, enum.Enum):

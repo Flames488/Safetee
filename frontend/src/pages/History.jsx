@@ -146,7 +146,13 @@ export default function History() {
           <EmptyState title="Nothing here yet" message="Your journeys and alerts will show up as you use Safetee." />
         )}
         {events?.map((e) => {
-          const meta = META[e.kind][e.status] || { title: e.status, tone: 'neutral' };
+          // Never rendered with the same red/urgent styling a real SOS
+          // entry gets, regardless of its underlying status — a past
+          // drill in History should read as a routine log line, not
+          // something that looks like it needs attention.
+          const meta = e.kind === 'sos' && e.is_practice
+            ? { title: `Practice drill: ${e.status}`, tone: 'neutral' }
+            : META[e.kind][e.status] || { title: e.status, tone: 'neutral' };
           const isOpen = open === e.id;
           const clearable = isClearable(e);
           const selected = selectedIds.has(e.id);
@@ -180,8 +186,8 @@ export default function History() {
                     : (
                       <>
                         {e.alerts?.length
-                          ? `${e.alerts.length} contact${e.alerts.length === 1 ? '' : 's'} alerted`
-                          : 'No contacts alerted yet'}
+                          ? `${e.alerts.length} contact${e.alerts.length === 1 ? '' : 's'} ${e.is_practice ? 'would have been alerted' : 'alerted'}`
+                          : e.is_practice ? 'No contacts on file to alert' : 'No contacts alerted yet'}
                         {e.resolved_at ? ` · Resolved ${fmt(e.resolved_at)}` : ''}
                       </>
                     )}

@@ -67,13 +67,24 @@ export function AuthProvider({ children }) {
     return me;
   };
 
+  const recoverAccount = async (payload) => {
+    await api.recoverAccount(payload);
+    const me = await api.getMe();
+    setUser(me);
+    setStatus('authenticated');
+    return me;
+  };
+
   const logout = () => {
     api.logout();
     setUser(null);
     setStatus('unauthenticated');
   };
 
-  const value = useMemo(() => ({ user, status, login, signup, resetPassword, logout, setUser }), [user, status]);
+  const value = useMemo(
+    () => ({ user, status, login, signup, resetPassword, recoverAccount, logout, setUser }),
+    [user, status]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

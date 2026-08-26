@@ -70,6 +70,26 @@ async def test_delete_nonexistent_contact_returns_404(auth_client):
     assert r.status_code == 404
 
 
+async def test_delete_a_contact_who_was_alerted_by_a_real_sos_does_not_500(auth_client):
+    # SOSAlertDelivery.contact_id previously had no ondelete (defaulting
+    # to Postgres's NO ACTION), so deleting a contact who was ever alerted
+    # raised an unhandled IntegrityError instead of a clean response.
+    from unittest.mock import patch
+
+    r = await auth_client.post("/api/v1/contacts", json={"name": "Amaka Obi", "phone": "+2348100001234"})
+    contact_id = r.json()["id"]
+
+    with patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send:
+        mock_send.return_value = ("sms_twilio", "SM-fake-ref")
+        r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+        sos_id = r.json()["id"]
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        fanout_sos_alerts.apply(args=[sos_id])
+
+    r = await auth_client.delete(f"/api/v1/contacts/{contact_id}")
+    assert r.status_code == 204
+
+
 async def test_contacts_are_scoped_per_user(client):
     # user A creates a contact
     r = await client.post(

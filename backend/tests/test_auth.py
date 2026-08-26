@@ -150,3 +150,52 @@ async def test_protected_route_with_garbage_token_is_rejected(client):
         "/api/v1/contacts", headers={"Authorization": "Bearer not.a.real.token"}
     )
     assert r.status_code == 401
+
+
+async def test_backup_code_recovers_account_and_retires_itself(auth_client):
+    r = await auth_client.post("/api/v1/users/me/backup-codes")
+    assert r.status_code == 200
+    codes = r.json()["codes"]
+    assert len(codes) == 8
+
+    me = await auth_client.get("/api/v1/users/me")
+    phone = me.json()["phone"]
+
+    # /auth/recover doesn't require auth — using auth_client here anyway is
+    # harmless, it just means an ignored Authorization header on a public
+    # endpoint, same client the fixture already gives every other test.
+    r = await auth_client.post(
+        "/api/v1/auth/recover",
+        json={"phone": phone, "backup_code": codes[0], "new_password": "brand-new-pass123"},
+    )
+    assert r.status_code == 200
+    assert r.json()["access_token"]
+
+    # Same code again must fail — single use.
+    r = await auth_client.post(
+        "/api/v1/auth/recover",
+        json={"phone": phone, "backup_code": codes[0], "new_password": "another-pass456"},
+    )
+    assert r.status_code == 400
+
+    # The old password no longer works; the new one does.
+    r = await auth_client.post("/api/v1/auth/login", json={"phone": phone, "password": "supersecret123"})
+    assert r.status_code == 401
+    r = await auth_client.post("/api/v1/auth/login", json={"phone": phone, "password": "brand-new-pass123"})
+    assert r.status_code == 200
+
+
+async def test_regenerating_backup_codes_retires_the_old_batch(auth_client):
+    r = await auth_client.post("/api/v1/users/me/backup-codes")
+    old_codes = r.json()["codes"]
+    r = await auth_client.post("/api/v1/users/me/backup-codes")
+    assert r.status_code == 200
+
+    me = await auth_client.get("/api/v1/users/me")
+    phone = me.json()["phone"]
+
+    r = await auth_client.post(
+        "/api/v1/auth/recover",
+        json={"phone": phone, "backup_code": old_codes[0], "new_password": "whatever-pass123"},
+    )
+    assert r.status_code == 400

@@ -91,6 +91,18 @@ async def location_share_socket(
     await manager.connect(share_id, websocket)
     try:
         while True:
+            # db.get() on the object already loaded above would just
+            # return the same session-cached instance without re-querying
+            # — an explicit refresh is required to see a stop_share()
+            # commit made from a different request/session. Without this,
+            # POST /shares/{id}/stop had zero effect on a socket that was
+            # already open (a second tab, a background tab, anything that
+            # doesn't proactively .close() the way ShareLocation.jsx does)
+            # until expires_at eventually passed on its own.
+            await db.refresh(share)
+            if share.status != LocationShareStatus.active:
+                await websocket.close(code=4409)  # owner stopped the share
+                break
             remaining = (share.expires_at - datetime.now(UTC)).total_seconds()
             if remaining <= 0:
                 await websocket.close(code=4408)  # session's time window ended

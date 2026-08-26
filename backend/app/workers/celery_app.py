@@ -45,6 +45,10 @@ celery_app.conf.update(
             "task": "app.workers.tasks.sos_tasks.retry_failed_alerts",
             "schedule": 120.0,
         },
+        "sweep-stuck-sos-events": {
+            "task": "app.workers.tasks.sos_tasks.sweep_stuck_sos_events",
+            "schedule": 60.0,
+        },
         "sweep-expired-subscriptions": {
             "task": "app.workers.tasks.billing_tasks.sweep_expired_subscriptions",
             "schedule": 3600.0,

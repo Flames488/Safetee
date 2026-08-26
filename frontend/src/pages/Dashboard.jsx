@@ -130,6 +130,18 @@ export default function Dashboard() {
   const [incomingAlerts, setIncomingAlerts] = useState([]);
   const [locationActivity, setLocationActivity] = useState({ requests: [], viewing: [] });
 
+  // The button's own label ("HOLD FOR SOS") and hint text already promise
+  // a 2s hold, not a tap — same pattern as SOSActive's hold-to-cancel/
+  // hold-to-mark-safe (see its user-select CSS comment for why touch
+  // devices need this: a long-press otherwise triggers the browser's own
+  // text-selection/copy popup instead of registering as a hold).
+  const sosHoldTimer = useRef(null);
+  const startSosHold = () => {
+    sosHoldTimer.current = setTimeout(() => navigate('/app/sos'), 2000);
+  };
+  const endSosHold = () => clearTimeout(sosHoldTimer.current);
+  useEffect(() => () => clearTimeout(sosHoldTimer.current), []);
+
   useEffect(() => {
     api.getSubscription().then(setSub).catch(() => {});
   }, []);
@@ -332,7 +344,11 @@ export default function Dashboard() {
         <div className="dash-body">
           <div className="dash-col-main">
             <Card className="dash-sos-card">
-              <button className="dash-sos-btn" onClick={() => navigate('/app/sos')}>
+              <button
+                className="dash-sos-btn"
+                onMouseDown={startSosHold} onMouseUp={endSosHold} onMouseLeave={endSosHold}
+                onTouchStart={startSosHold} onTouchEnd={endSosHold}
+              >
                 <VitalRing size={172} color="green">
                   <span className="dash-sos-core">
                     <span className="dash-sos-inner mono">HOLD FOR<br /><strong>SOS</strong></span>

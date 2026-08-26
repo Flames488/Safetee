@@ -16,6 +16,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import RecoverAccount from './pages/RecoverAccount';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Contacts from './pages/Contacts';
@@ -102,6 +103,7 @@ export default function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<FocusScreen><Login /></FocusScreen>} />
           <Route path="/forgot-password" element={<FocusScreen><ForgotPassword /></FocusScreen>} />
+          <Route path="/recover-account" element={<FocusScreen><RecoverAccount /></FocusScreen>} />
           <Route path="/onboarding" element={<FocusScreen><Onboarding /></FocusScreen>} />
 
           <Route path="/app" element={<AppScreen><Dashboard /></AppScreen>} />

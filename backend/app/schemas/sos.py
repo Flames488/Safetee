@@ -69,7 +69,9 @@ class EvidenceOut(BaseModel):
 class SOSAlertOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    contact_id: uuid.UUID
+    # Nullable — SOSAlertDelivery.contact_id is SET NULL if the contact was
+    # since deleted, and this schema serializes existing rows either way.
+    contact_id: uuid.UUID | None
     channel: AlertChannel
     status: AlertStatus
 
@@ -80,6 +82,7 @@ class SOSEventOut(BaseModel):
     id: uuid.UUID
     status: SOSStatus
     trigger: SOSTrigger
+    is_practice: bool
     cancel_window_ends_at: datetime
     resolved_at: datetime | None
     created_at: datetime

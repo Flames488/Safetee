@@ -241,3 +241,119 @@ async def test_journey_sweep_does_not_double_escalate(auth_client):
         assert mock_fanout.apply.call_count == 1
         sweep_overdue_journeys.apply()
         assert mock_fanout.apply.call_count == 1  # unchanged — already escalated
+
+
+async def test_sweep_retriggers_a_pending_sos_event_with_no_fanout_attempt(auth_client):
+    # trigger_sos dispatches fanout via run_soon (an in-process asyncio
+    # task) rather than actually calling fanout_sos_alerts here — so a
+    # freshly-triggered event has no SOSAlertDelivery rows yet, exactly
+    # like one whose API process crashed before that dispatch ran.
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    db = SyncSessionLocal()
+    event = db.get(SOSEvent, sos_id)
+    event.created_at = datetime.now(UTC) - timedelta(minutes=5)
+    db.commit()
+    db.close()
+
+    with patch("app.workers.tasks.sos_tasks.fanout_sos_alerts") as mock_fanout:
+        from app.workers.tasks.sos_tasks import sweep_stuck_sos_events
+        sweep_stuck_sos_events.apply()
+
+    assert mock_fanout.apply.called
+    assert mock_fanout.apply.call_args.kwargs["args"] == [sos_id]
+
+
+async def test_sweep_ignores_an_event_still_inside_its_cancel_window(auth_client):
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]  # created just now — well inside the cutoff
+
+    with patch("app.workers.tasks.sos_tasks.fanout_sos_alerts") as mock_fanout:
+        from app.workers.tasks.sos_tasks import sweep_stuck_sos_events
+        sweep_stuck_sos_events.apply()
+
+    assert not mock_fanout.apply.called
+    db = SyncSessionLocal()
+    assert db.get(SOSEvent, sos_id) is not None  # sanity: event really exists
+    db.close()
+
+
+async def test_sweep_ignores_an_event_that_already_has_a_delivery(auth_client):
+    # Simulates fanout having actually run (even if every send failed) —
+    # retry_failed_alerts owns that case, not this sweep.
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    with patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send:
+        mock_send.side_effect = SMSDeliveryFailed("down")
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        fanout_sos_alerts.apply(args=[sos_id])
+
+    db = SyncSessionLocal()
+    event = db.get(SOSEvent, sos_id)
+    event.created_at = datetime.now(UTC) - timedelta(minutes=5)
+    db.commit()
+    db.close()
+
+    with patch("app.workers.tasks.sos_tasks.fanout_sos_alerts") as mock_fanout:
+        from app.workers.tasks.sos_tasks import sweep_stuck_sos_events
+        sweep_stuck_sos_events.apply()
+
+    assert not mock_fanout.apply.called
+
+
+async def test_practice_drill_never_sends_a_real_alert(auth_client):
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/users/me/practice-drill/arm")
+    assert r.json()["practice_armed_until"] is not None
+
+    with patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send, \
+         patch("app.services.notifications.push.send_push") as mock_push:
+        r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+        assert r.json()["is_practice"] is True
+        sos_id = r.json()["id"]
+
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        fanout_sos_alerts.apply(args=[sos_id])
+
+        assert not mock_send.called
+        assert not mock_push.called
+
+    db = SyncSessionLocal()
+    deliveries = db.query(SOSAlertDelivery).filter_by(sos_event_id=sos_id).all()
+    assert len(deliveries) == 1
+    assert deliveries[0].status.value == "simulated"
+    db.close()
+
+    # Single-shot: arming again is required for a second drill.
+    me = await auth_client.get("/api/v1/users/me")
+    assert me.json()["practice_armed_until"] is None
+
+
+async def test_unarmed_trigger_is_a_real_alert(auth_client):
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    assert r.json()["is_practice"] is False
+
+
+async def test_resolving_a_practice_drill_does_not_notify_real_contacts(auth_client):
+    await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
+    await auth_client.post("/api/v1/users/me/practice-drill/arm")
+    r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})
+    sos_id = r.json()["id"]
+
+    from app.workers.tasks.sos_tasks import fanout_sos_alerts
+    fanout_sos_alerts.apply(args=[sos_id])
+
+    with patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send:
+        r = await auth_client.post(f"/api/v1/sos/{sos_id}/resolve", json={"password": "supersecret123"})
+        assert r.status_code == 200
+
+        from app.workers.tasks.sos_tasks import notify_contacts_of_resolution
+        notify_contacts_of_resolution.apply(args=[sos_id])
+
+        assert not mock_send.called

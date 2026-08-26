@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BatteryMedium, LocateFixed, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { VitalDot } from '../components/VitalRing';
@@ -7,6 +7,10 @@ import { api } from '../lib/api';
 import { connectJourneyTracking } from '../lib/journeyTracking';
 import { joinNames } from '../lib/time';
 import './tracking.css';
+
+// maplibre-gl is a heavy dependency (~1MB) — only worth loading for
+// someone actually on this screen, not bundled into every page load.
+const LiveMap = lazy(() => import('../components/LiveMap'));
 
 const CHECKIN_INTERVAL_MS = 30_000;
 
@@ -152,13 +156,15 @@ export default function LiveTracking() {
   return (
     <div className="tk-wrap">
       <div className="tk-map">
-        <div className="tk-map-grid" />
-        <div className="tk-map-route" />
-        <div className="tk-map-pin tk-map-pin-start" />
-        <div className="tk-map-pin tk-map-pin-end" />
-        <div className="tk-map-me">
-          <VitalDot color="blue" size={14} />
-        </div>
+        <Suspense fallback={<div className="tk-map-loading" />}>
+          <LiveMap
+            destination={
+              journey?.destination_lat && journey?.destination_lng
+                ? { lat: journey.destination_lat, lng: journey.destination_lng, label: journey.destination_label }
+                : null
+            }
+          />
+        </Suspense>
         <div className="tk-map-topbar">
           <Pill tone="good">Journey active</Pill>
           <button className="tk-close mono" onClick={() => navigate('/app')}>Minimize</button>

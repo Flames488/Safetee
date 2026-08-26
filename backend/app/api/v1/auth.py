@@ -21,6 +21,7 @@ from app.core.security import (
 )
 from app.core.turnstile import verify_turnstile
 from app.db.session import get_db
+from app.models.backup_code import BackupCode
 from app.models.enums import AccountStatus, SOSStatus, SOSTrigger, SubscriptionStatus
 from app.models.login_event import LoginEvent
 from app.models.sos_event import SOSEvent
@@ -29,6 +30,7 @@ from app.models.user import User
 from app.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
+    RecoverAccountRequest,
     RefreshRequest,
     ResetPasswordRequest,
     SignupRequest,
@@ -277,6 +279,52 @@ async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depen
 
     # Signing them straight in avoids a second "great, now log in" step
     # right after they've just proven who they are with the OTP.
+    return TokenResponse(
+        access_token=create_access_token(str(user.id)),
+        refresh_token=create_refresh_token(str(user.id)),
+    )
+
+
+@router.post("/recover", response_model=TokenResponse)
+async def recover_account(payload: RecoverAccountRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """Account recovery via a backup code (see POST /users/me/backup-codes)
+    — the path back in when the phone itself is lost, since forgot-password
+    only ever has one channel: SMS to that same phone. Codes are hashed,
+    so this has to loop over the user's own unused ones and check each
+    with verify_password rather than looking one up directly; the set is
+    small (8 per user) so this is cheap.
+
+    Recovering access this way invalidates every previously-issued token
+    (sessions_invalidated_at) — the whole scenario this exists for is the
+    old phone being lost, possibly to someone else, so anything already
+    signed in on it shouldn't keep working silently.
+    """
+    await verify_turnstile(payload.turnstile_token, _client_ip(request))
+    await enforce_rate_limit(f"account-recover:{payload.phone}", max_attempts=5, window_seconds=900)
+
+    invalid = HTTPException(status.HTTP_400_BAD_REQUEST, "That backup code is invalid or has already been used.")
+
+    result = await db.execute(select(User).where(User.phone == normalize_phone(payload.phone)))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise invalid
+
+    normalized_code = "".join(payload.backup_code.split()).replace("-", "").upper()
+    codes_result = await db.execute(
+        select(BackupCode).where(BackupCode.user_id == user.id, BackupCode.used_at.is_(None))
+    )
+    matched = next(
+        (c for c in codes_result.scalars().all() if verify_password(normalized_code, c.code_hash)), None
+    )
+    if matched is None:
+        raise invalid
+
+    matched.used_at = datetime.now(UTC)
+    user.password_hash = hash_password(payload.new_password)
+    user.sessions_invalidated_at = datetime.now(UTC)
+    db.add_all([matched, user])
+    await db.commit()
+
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),

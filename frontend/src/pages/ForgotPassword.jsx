@@ -124,6 +124,9 @@ export default function ForgotPassword() {
       <Button full size="lg" type="submit" disabled={submitting}>
         {submitting ? 'Sending…' : 'Send reset code'}
       </Button>
+      <button type="button" className="lg-link mono" onClick={() => navigate('/recover-account')}>
+        Lost your phone too? Use a backup code
+      </button>
     </form>
   );
 }

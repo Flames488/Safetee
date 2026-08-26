@@ -112,10 +112,14 @@ export const api = {
     rawRequest('/auth/forgot-password', { method: 'POST', body: { phone, turnstile_token: turnstileToken }, auth: false }),
   resetPassword: (payload) =>
     rawRequest('/auth/reset-password', { method: 'POST', body: payload, auth: false }).then(setTokens),
+  recoverAccount: (payload) =>
+    rawRequest('/auth/recover', { method: 'POST', body: payload, auth: false }).then(setTokens),
 
   getMe: () => request('/users/me'),
   updateProfile: (payload) => request('/users/me', { method: 'PATCH', body: payload }),
   updateTriggers: (payload) => request('/users/me/triggers', { method: 'PATCH', body: payload }),
+  armPracticeDrill: () => request('/users/me/practice-drill/arm', { method: 'POST' }),
+  generateBackupCodes: () => request('/users/me/backup-codes', { method: 'POST' }),
   updatePreferences: (payload) => request('/users/me/preferences', { method: 'PATCH', body: payload }),
   exportMyData: () => request('/users/me/export'),
   deleteAccount: (password) => request('/users/me', { method: 'DELETE', body: { password } }),

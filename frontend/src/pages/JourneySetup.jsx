@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navigation2, Check, UserPlus } from 'lucide-react';
+import { Navigation2, Check, UserPlus, MapPin } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import { Card, Button } from '../components/ui';
 import { api } from '../lib/api';
+import { searchPlaces } from '../lib/geocode';
 import './journey.css';
 
 const DURATIONS = [15, 30, 45, 60];
 
 export default function JourneySetup() {
   const [destination, setDestination] = useState('');
+  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const searchTimer = useRef(null);
   const [duration, setDuration] = useState(30);
   const [contacts, setContacts] = useState(null); // null = loading
   const [notify, setNotify] = useState([]); // real contact ids
@@ -32,12 +36,32 @@ export default function JourneySetup() {
   const toggleContact = (id) =>
     setNotify((n) => (n.includes(id) ? n.filter((x) => x !== id) : [...n, id]));
 
+  // Debounced — Photon is free but not meant for a request per keystroke.
+  // Typing further after picking a suggestion clears its coordinates
+  // rather than silently keeping them attached to now-different text.
+  const handleDestinationChange = (value) => {
+    setDestination(value);
+    setDestinationCoords(null);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(async () => {
+      setSuggestions(await searchPlaces(value));
+    }, 350);
+  };
+
+  const pickSuggestion = (s) => {
+    setDestination(s.label);
+    setDestinationCoords({ lat: s.lat, lng: s.lng });
+    setSuggestions([]);
+  };
+
   const handleStart = async () => {
     setStarting(true);
     setStartError('');
     try {
       const journey = await api.startJourney({
         destination_label: destination,
+        destination_lat: destinationCoords?.lat ?? null,
+        destination_lng: destinationCoords?.lng ?? null,
         expected_minutes: duration,
         notify_contact_ids: notify,
       });
@@ -61,9 +85,23 @@ export default function JourneySetup() {
             <span>Current location</span>
           </div>
           <div className="jr-route-line" />
-          <div className="jr-route-row">
+          <div className="jr-route-row jr-route-row-dest">
             <span className="jr-dot jr-dot-b" />
-            <input placeholder="Where are you headed?" value={destination} onChange={(e) => setDestination(e.target.value)} />
+            <input
+              placeholder="Where are you headed?" value={destination}
+              onChange={(e) => handleDestinationChange(e.target.value)}
+              autoComplete="off"
+            />
+            {suggestions.length > 0 && (
+              <div className="jr-suggestions">
+                {suggestions.map((s) => (
+                  <button key={`${s.lat},${s.lng}`} type="button" className="jr-suggestion" onClick={() => pickSuggestion(s)}>
+                    <MapPin size={14} strokeWidth={2.2} />
+                    <span>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </Card>
 

@@ -31,6 +31,13 @@ class UserOut(BaseModel):
     admin_role: AdminRole
     medical_info: str | None = None
     avatar_url: str | None = None
+    practice_armed_until: datetime | None = None
+
+
+class BackupCodesOut(BaseModel):
+    # Plaintext, on purpose — the only moment these are ever shown. Not
+    # persisted anywhere in this form; the DB only ever holds code_hash.
+    codes: list[str]
 
 
 class ProfileUpdate(BaseModel):

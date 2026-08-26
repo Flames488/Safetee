@@ -7,6 +7,18 @@
 .jr-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 .jr-dot-a{ background:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
 .jr-dot-b{ background:var(--green); box-shadow:0 0 0 3px var(--green-soft); }
+.jr-route-row-dest{ position:relative; }
+.jr-suggestions{
+  position:absolute; left:21px; right:0; top:100%; z-index:5; margin-top:4px;
+  background:var(--bg-1); border:1px solid var(--line); border-radius:12px;
+  overflow:hidden; box-shadow:0 12px 28px -8px rgba(0,0,0,.35);
+}
+.jr-suggestion{
+  display:flex; align-items:center; gap:8px; width:100%; padding:10px 12px;
+  font-size:13.5px; text-align:left; color:var(--ink-1); background:none; border:none;
+}
+.jr-suggestion:hover, .jr-suggestion:focus-visible{ background:var(--bg-2); }
+.jr-suggestion svg{ flex-shrink:0; color:var(--ink-2); }
 .jr-route-line{ width:1px; height:16px; background:var(--line-strong); margin-left:4px; }
 
 .jr-label{ margin-top:-8px; }

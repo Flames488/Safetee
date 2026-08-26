@@ -29,6 +29,15 @@ class User(Base, UUIDMixin, TimestampMixin):
     power_button_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     gesture_trigger_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Set by POST /users/me/practice-drill/arm, cleared the instant it's
+    # consumed by the next /sos/trigger call (single-shot, never left
+    # armed indefinitely) — see that endpoint's docstring for why this is
+    # server-side rather than a client-passed flag: it lets the user
+    # rehearse the *real* shake gesture/button through their normal path
+    # with no real alert reaching contacts, not just a separate fake demo
+    # screen that wouldn't build the muscle memory the drill is for.
+    practice_armed_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # What gets shared/captured during an actual emergency — default True
     # (matches the app's core safety promise) but genuinely user-controlled.
     # Enforced server-side at the point of use (trigger_sos, journey checkin,
@@ -100,6 +109,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     subscription = relationship("Subscription", back_populates="user", uselist=False, cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
     login_events = relationship("LoginEvent", back_populates="user", cascade="all, delete-orphan")
+    backup_codes = relationship("BackupCode", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def has_fake_pin(self) -> bool:

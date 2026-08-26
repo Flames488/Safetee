@@ -4,20 +4,6 @@
   height:280px; position:relative; overflow:hidden; flex-shrink:0;
   background:linear-gradient(160deg, #0C1B22, #0A121A);
 }
-.tk-map-grid{
-  position:absolute; inset:0;
-  background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size:34px 34px;
-  opacity:.5;
-}
-.tk-map-route{
-  position:absolute; left:20%; top:70%; width:60%; height:2px; background:var(--blue);
-  transform:rotate(-32deg); border-radius:2px; box-shadow:0 0 12px rgba(76,141,255,.5);
-}
-.tk-map-pin{ position:absolute; width:10px; height:10px; border-radius:50%; }
-.tk-map-pin-start{ left:16%; top:76%; background:var(--ink-2); }
-.tk-map-pin-end{ left:76%; top:26%; background:var(--green); box-shadow:0 0 0 4px var(--green-soft); }
-.tk-map-me{ position:absolute; left:46%; top:52%; }
 
 .tk-map-topbar{
   position:absolute; top:calc(16px + env(safe-area-inset-top)); left:16px; right:16px;

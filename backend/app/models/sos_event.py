@@ -21,6 +21,12 @@ class SOSEvent(Base, UUIDMixin, TimestampMixin):
     status: Mapped[SOSStatus] = mapped_column(
         Enum(SOSStatus, name="sos_status"), default=SOSStatus.pending, index=True
     )
+    # A deliberate drill (see User.practice_armed_until) — real countdown,
+    # real cancel/resolve flow, fully visible to the owner in History, but
+    # fanout_sos_alerts never calls send_with_fallback/send_push for one:
+    # it just records AlertStatus.simulated deliveries so the drill UI can
+    # show "who would have been alerted" without touching a real contact.
+    is_practice: Mapped[bool] = mapped_column(default=False, server_default="false")
 
     origin_lat: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
     origin_lng: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
@@ -57,7 +63,14 @@ class SOSAlertDelivery(Base, UUIDMixin, TimestampMixin):
     sos_event_id: Mapped[UUID] = mapped_column(
         ForeignKey("sos_events.id", ondelete="CASCADE"), index=True
     )
-    contact_id: Mapped[UUID] = mapped_column(ForeignKey("trusted_contacts.id"))
+    # SET NULL, not CASCADE — a delivery row is the historical record that
+    # an alert really was sent to someone; deleting a contact later
+    # shouldn't erase evidence of that (same reasoning as
+    # AdminAuditLog.admin_id). Every retry_failed_alerts/fanout_sos_alerts
+    # lookup that dereferences this must handle it being None.
+    contact_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("trusted_contacts.id", ondelete="SET NULL"), nullable=True
+    )
 
     channel: Mapped[AlertChannel] = mapped_column(Enum(AlertChannel, name="alert_channel"))
     status: Mapped[AlertStatus] = mapped_column(

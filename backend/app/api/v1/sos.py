@@ -31,7 +31,11 @@ from app.schemas.sos import (
 )
 from app.services.contact_matching import is_trusted_contact_of, watched_owner_ids
 from app.services.storage.supabase_storage import SupabaseStorageError, supabase_storage
-from app.workers.tasks.sos_tasks import fanout_sos_alerts, notify_contacts_of_evidence
+from app.workers.tasks.sos_tasks import (
+    fanout_sos_alerts,
+    notify_contacts_of_evidence,
+    notify_contacts_of_resolution,
+)
 
 router = APIRouter(prefix="/sos", tags=["sos"])
 
@@ -79,11 +83,20 @@ async def trigger_sos(
     # false alarm" window is meant for.
     skip_cancel_window = payload.trigger == SOSTrigger.gesture
 
+    # Single-shot: consumed here regardless of outcome, so an armed window
+    # affects exactly the next trigger and never lingers — see
+    # POST /users/me/practice-drill/arm.
+    is_practice = user.practice_armed_until is not None and user.practice_armed_until > now
+    if user.practice_armed_until is not None:
+        user.practice_armed_until = None
+        db.add(user)
+
     event = SOSEvent(
         user_id=user.id,
         journey_id=payload.journey_id,
         trigger=payload.trigger,
         status=SOSStatus.pending,
+        is_practice=is_practice,
         origin_lat=payload.lat if share_location else None,
         origin_lng=payload.lng if share_location else None,
         cancel_window_ends_at=now if skip_cancel_window else now + timedelta(seconds=settings.sos_cancel_window_seconds),
@@ -146,6 +159,7 @@ async def resolve_sos(
     event.resolved_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(event, attribute_names=["status", "resolved_at"])
+    run_soon(notify_contacts_of_resolution, str(event.id))
     return event
 
 

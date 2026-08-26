@@ -25,6 +25,8 @@ class JourneyOut(BaseModel):
 
     id: uuid.UUID
     destination_label: str
+    destination_lat: float | None = None
+    destination_lng: float | None = None
     expected_minutes: int
     expected_arrival_at: datetime
     status: JourneyStatus
