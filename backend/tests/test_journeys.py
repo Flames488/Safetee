@@ -1,5 +1,9 @@
 from unittest.mock import patch
 
+from app.db.sync_session import SyncSessionLocal
+from app.models.enums import JourneyStatus
+from app.models.journey import Journey
+
 
 async def test_start_journey_ignores_a_notify_contact_id_owned_by_another_user(client, auth_client):
     """notify_contact_ids comes straight from the client — without scoping
@@ -96,6 +100,34 @@ async def test_cannot_checkin_on_already_arrived_journey(auth_client):
 async def test_journey_not_found_returns_404(auth_client):
     r = await auth_client.post("/api/v1/journeys/00000000-0000-0000-0000-000000000000/arrived")
     assert r.status_code == 404
+
+
+async def test_mark_arrived_after_journey_already_escalated_is_rejected(auth_client):
+    """Guards _claim_active_journey's atomic-claim UPDATE. The old
+    read-then-write (_get_active_journey's SELECT followed by a plain
+    attribute assignment + commit) had no WHERE-status guard on its own
+    write, so this would previously return 200 and silently overwrite an
+    already-escalated journey back to 'arrived' — masking that the overdue
+    sweep had already fired an SOS event for it."""
+    r = await auth_client.post(
+        "/api/v1/journeys",
+        json={"destination_label": "Somewhere", "expected_minutes": 15, "notify_contact_ids": []},
+    )
+    journey_id = r.json()["id"]
+
+    db = SyncSessionLocal()
+    journey = db.get(Journey, journey_id)
+    journey.status = JourneyStatus.escalated
+    db.commit()
+    db.close()
+
+    r = await auth_client.post(f"/api/v1/journeys/{journey_id}/arrived")
+    assert r.status_code == 409
+
+    db = SyncSessionLocal()
+    journey = db.get(Journey, journey_id)
+    assert journey.status == JourneyStatus.escalated  # unchanged, not overwritten
+    db.close()
 
 
 async def test_journey_history_lists_past_journeys(auth_client):

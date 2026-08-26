@@ -102,13 +102,23 @@ def fanout_sos_alerts(self, sos_event_id: str):
         # either no selection to honor, or honoring an empty one would
         # mean nobody hears about a genuine emergency, which is worse than
         # over-notifying.
+        notify_ids = None
         if event.journey_id is not None:
             journey = db.get(Journey, event.journey_id)
             if journey is not None and journey.notify_contact_ids:
                 notify_ids = {uuid.UUID(cid) for cid in journey.notify_contact_ids}
-                contacts_query = contacts_query.filter(TrustedContact.id.in_(notify_ids))
 
         contacts = contacts_query.all()
+        if notify_ids is not None:
+            scoped = [c for c in contacts if c.id in notify_ids]
+            # If every contact the journey selected has since been deleted,
+            # `scoped` is empty even though the user still has other trusted
+            # contacts on file — falling back to all of them, for the same
+            # reason an empty/missing selection notifies everyone above:
+            # honoring a selection that's since gone empty would mean nobody
+            # hears about a genuine emergency.
+            if scoped:
+                contacts = scoped
 
         if not contacts:
             logger.error("SOS %s fired with zero trusted contacts on file", sos_event_id)

@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
@@ -114,11 +114,7 @@ async def mark_arrived(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    journey = await _get_active_journey(db, journey_id, user.id)
-    journey.status = JourneyStatus.arrived
-    await db.commit()
-    await db.refresh(journey)
-    return journey
+    return await _claim_active_journey(db, journey_id, user.id, JourneyStatus.arrived)
 
 
 @router.post("/{journey_id}/cancel", response_model=JourneyOut)
@@ -127,11 +123,7 @@ async def cancel_journey(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    journey = await _get_active_journey(db, journey_id, user.id)
-    journey.status = JourneyStatus.cancelled
-    await db.commit()
-    await db.refresh(journey)
-    return journey
+    return await _claim_active_journey(db, journey_id, user.id, JourneyStatus.cancelled)
 
 
 async def _get_active_journey(db: AsyncSession, journey_id: uuid.UUID, user_id: uuid.UUID) -> Journey:
@@ -143,4 +135,41 @@ async def _get_active_journey(db: AsyncSession, journey_id: uuid.UUID, user_id: 
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Journey not found")
     if journey.status != JourneyStatus.active:
         raise HTTPException(status.HTTP_409_CONFLICT, f"Journey is already {journey.status.value}")
+    return journey
+
+
+async def _claim_active_journey(
+    db: AsyncSession, journey_id: uuid.UUID, user_id: uuid.UUID, new_status: JourneyStatus
+) -> Journey:
+    """Same atomic-claim shape as sweep_overdue_journeys' active -> escalated
+    UPDATE: the read-then-write this replaced (_get_active_journey's SELECT
+    followed by a plain attribute assignment + commit) had no WHERE-status
+    guard on its own write, so a journey the sweep escalated to an active
+    SOS event in the gap between that SELECT and this commit got silently
+    overwritten back to arrived/cancelled — masking that an alert had
+    already gone out. The UPDATE's own WHERE clause makes the transition
+    conditional on still being 'active' at commit time, so only one of the
+    two ever actually lands.
+    """
+    result = await db.execute(
+        update(Journey)
+        .where(Journey.id == journey_id, Journey.user_id == user_id, Journey.status == JourneyStatus.active)
+        .values(status=new_status)
+        .returning(Journey)
+    )
+    journey = result.scalar_one_or_none()
+    if journey is not None:
+        await db.commit()
+        return journey
+
+    await db.rollback()
+    existing = await _get_journey_or_404(db, journey_id, user_id)
+    raise HTTPException(status.HTTP_409_CONFLICT, f"Journey is already {existing.status.value}")
+
+
+async def _get_journey_or_404(db: AsyncSession, journey_id: uuid.UUID, user_id: uuid.UUID) -> Journey:
+    result = await db.execute(select(Journey).where(Journey.id == journey_id, Journey.user_id == user_id))
+    journey = result.scalar_one_or_none()
+    if journey is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Journey not found")
     return journey

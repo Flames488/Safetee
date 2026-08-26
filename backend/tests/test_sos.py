@@ -130,6 +130,35 @@ async def test_sos_history_lists_past_events(auth_client):
     assert statuses == {"cancelled", "resolved"}
 
 
+async def test_trigger_sos_ignores_a_journey_id_owned_by_another_user(client, auth_client):
+    """journey_id comes straight from the client — without scoping the
+    lookup to the caller's own journeys, a crafted UUID belonging to a
+    different user's journey would attach their notify_contact_ids
+    selection to this event, misdirecting or suppressing the alert (see
+    fanout_sos_alerts' journey-scoped filter)."""
+    other_signup = await client.post(
+        "/api/v1/auth/signup",
+        json={"full_name": "Other User", "phone": "+2348100005599", "password": "supersecret123"},
+    )
+    other_token = other_signup.json()["access_token"]
+    other_journey = await client.post(
+        "/api/v1/journeys",
+        headers={"Authorization": f"Bearer {other_token}"},
+        json={"destination_label": "Somewhere", "expected_minutes": 15, "notify_contact_ids": []},
+    )
+    other_journey_id = other_journey.json()["id"]
+
+    r = await auth_client.post(
+        "/api/v1/sos/trigger", json={"trigger": "button", "journey_id": other_journey_id}
+    )
+    assert r.status_code == 201
+    sos_id = r.json()["id"]
+
+    async with AsyncSessionLocal() as db:
+        event = await db.get(SOSEvent, sos_id)
+        assert event.journey_id is None
+
+
 async def test_sos_events_are_scoped_per_user(client):
     r = await client.post(
         "/api/v1/auth/signup", json={"full_name": "User A", "phone": "+2341111111111", "password": "supersecret123"}

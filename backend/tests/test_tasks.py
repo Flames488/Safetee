@@ -147,6 +147,45 @@ async def test_fanout_matches_each_contacts_device_to_the_right_account(client, 
     }
 
 
+async def test_fanout_falls_back_to_all_contacts_when_journey_selection_is_all_gone(auth_client):
+    """If every contact a journey's notify_contact_ids selected has since
+    been deleted, the scoped filter resolves to zero contacts even though
+    the user still has others on file. Falls back to notifying everyone —
+    same reasoning as an empty/missing selection: honoring a selection
+    that's since gone empty would mean nobody hears about a genuine
+    emergency."""
+    kept = await auth_client.post(
+        "/api/v1/contacts", json={"name": "Kept", "phone": "+2340000000002", "priority": 2}
+    )
+    selected = await auth_client.post(
+        "/api/v1/contacts", json={"name": "Selected", "phone": "+2340000000001", "priority": 1}
+    )
+    selected_id = selected.json()["id"]
+    assert kept.status_code == 201
+
+    journey = await auth_client.post(
+        "/api/v1/journeys",
+        json={"destination_label": "Somewhere", "expected_minutes": 15, "notify_contact_ids": [selected_id]},
+    )
+    journey_id = journey.json()["id"]
+
+    await auth_client.delete(f"/api/v1/contacts/{selected_id}")
+
+    r = await auth_client.post(
+        "/api/v1/sos/trigger", json={"trigger": "button", "journey_id": journey_id}
+    )
+    sos_id = r.json()["id"]
+
+    with patch("app.workers.tasks.sos_tasks.send_with_fallback") as mock_send:
+        mock_send.return_value = ("sms_twilio", "SM-fake-ref")
+        from app.workers.tasks.sos_tasks import fanout_sos_alerts
+        result = fanout_sos_alerts.apply(args=[sos_id])
+
+    assert result.state == "SUCCESS"
+    assert mock_send.call_count == 1
+    assert mock_send.call_args.args[0] == "+2340000000002"
+
+
 async def test_retry_failed_alerts_recovers_a_failed_delivery(auth_client):
     await auth_client.post("/api/v1/contacts", json={"name": "Contact", "phone": "+2340000000001"})
     r = await auth_client.post("/api/v1/sos/trigger", json={"trigger": "button"})

@@ -15,6 +15,7 @@ from app.core.scheduler import run_soon
 from app.core.security import decode_share_token, decode_token, verify_password
 from app.db.session import get_db
 from app.models.enums import SOSStatus, SOSTrigger
+from app.models.journey import Journey
 from app.models.sos_acknowledgment import SOSAcknowledgment
 from app.models.sos_event import SOSEvent
 from app.models.user import User
@@ -79,9 +80,22 @@ async def trigger_sos(
     # false alarm" window is meant for.
     skip_cancel_window = payload.trigger == SOSTrigger.gesture
 
+    # Scoped to this user's own journey — without this, a crafted journey_id
+    # belonging to another user would attach their journey (and its
+    # notify_contact_ids selection) to this event. fanout_sos_alerts uses
+    # journey_id to narrow which contacts get notified, so an unvalidated
+    # cross-user journey_id could silently misdirect or suppress the alert.
+    journey_id = payload.journey_id
+    if journey_id is not None:
+        owned = await db.execute(
+            select(Journey.id).where(Journey.id == journey_id, Journey.user_id == user.id)
+        )
+        if owned.scalar_one_or_none() is None:
+            journey_id = None
+
     event = SOSEvent(
         user_id=user.id,
-        journey_id=payload.journey_id,
+        journey_id=journey_id,
         trigger=payload.trigger,
         status=SOSStatus.pending,
         origin_lat=payload.lat if share_location else None,
