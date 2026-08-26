@@ -88,10 +88,37 @@ export default function Settings() {
     if (result === 'granted') subscribeToPush().catch((err) => console.error('Push subscription failed:', err));
   };
 
+  // The browser never lets a site revoke its own Notification permission —
+  // only the OS/browser UI can do that — but it can drop the push
+  // subscription so this device stops receiving pushes, and tell the
+  // backend to forget the device (unregister_device in devices.py existed
+  // but nothing ever called it). Falls back to 'prompt' in the UI: the
+  // permission itself may still technically be 'granted', but tapping
+  // "enable" again just silently re-subscribes without a real browser
+  // prompt, which is exactly the behavior we want here.
+  const disableNotif = async () => {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const { endpoint } = subscription.toJSON();
+        await subscription.unsubscribe();
+        if (endpoint) await api.unregisterDevice(endpoint).catch(() => {});
+      }
+    } finally {
+      setNotif('prompt');
+    }
+  };
+
   const PERMISSIONS = [
-    { icon: MapPin, name: 'Location', ...permStatus(location), onClick: location === 'prompt' ? requestLocation : null },
-    { icon: Mic, name: 'Microphone', ...permStatus(mic), onClick: mic === 'prompt' ? requestMic : null },
-    { icon: Bell, name: 'Notifications', ...permStatus(notif), onClick: notif === 'prompt' ? requestNotif : null },
+    { icon: MapPin, name: 'Location', ...permStatus(location), onClick: location === 'prompt' ? requestLocation : null, actionLabel: 'Tap to enable' },
+    { icon: Mic, name: 'Microphone', ...permStatus(mic), onClick: mic === 'prompt' ? requestMic : null, actionLabel: 'Tap to enable' },
+    {
+      icon: Bell, name: 'Notifications', ...permStatus(notif),
+      onClick: notif === 'prompt' ? requestNotif : notif === 'granted' ? disableNotif : null,
+      actionLabel: notif === 'granted' ? 'Tap to turn off' : 'Tap to enable',
+    },
   ];
 
   const patchTriggers = async (payload) => {
@@ -155,7 +182,7 @@ export default function Settings() {
                   <strong>{p.name}</strong>
                   <Pill tone={p.on ? 'good' : 'warn'}>{p.label}</Pill>
                 </span>
-                {p.onClick && <span className="st-row-action mono">Tap to enable</span>}
+                {p.onClick && <span className="st-row-action mono">{p.actionLabel}</span>}
               </Tag>
             );
           })}

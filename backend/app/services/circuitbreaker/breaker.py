@@ -7,10 +7,6 @@ from app.core.config import settings
 _redis = redis.from_url(settings.redis_url, decode_responses=True)
 
 
-class CircuitOpenError(Exception):
-    """Raised when a provider's circuit is open — caller should fail over."""
-
-
 class CircuitBreaker:
     """A minimal circuit breaker shared across worker processes via Redis,
     so one Celery worker tripping the breaker protects every other worker
