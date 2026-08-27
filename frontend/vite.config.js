@@ -16,7 +16,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' + registering manually via useRegisterSW (UpdatePrompt.jsx)
+      // instead of 'autoUpdate' — the new SW still installs in the
+      // background either way, but 'autoUpdate' never tells anyone already
+      // using the app that it happened, so a fix shipped to production
+      // could go untested for a long time against someone's stale,
+      // already-open tab.
+      registerType: 'prompt',
+      injectRegister: false,
       // Custom src/sw.js instead of the auto-generated one — needed for the
       // push/notificationclick listeners that make emergency-alert push
       // notifications actually show up and deep-link correctly.

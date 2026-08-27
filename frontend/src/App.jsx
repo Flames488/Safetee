@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ShieldCheck, LocateFixed, Users, Radio } from 'lucide-react';
 import AppShell from './components/AppShell';
 import InstallPrompt from './components/InstallPrompt';
+import UpdatePrompt from './components/UpdatePrompt';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import { ToastProvider } from './components/ui';
@@ -93,6 +94,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
         <InstallPrompt />
+        <UpdatePrompt />
         <BrowserRouter>
           <Routes>
           <Route path="/" element={<Home />} />

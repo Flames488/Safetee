@@ -6,6 +6,15 @@ import { precacheAndRoute } from 'workbox-precaching';
 // triggering (dishonest for a safety app to imply).
 precacheAndRoute(self.__WB_MANIFEST);
 
+// registerType: 'prompt' (see vite.config.js/UpdatePrompt.jsx) means a new
+// SW installs but deliberately waits rather than taking over immediately —
+// without this listener, tapping "Refresh" in that prompt would post
+// SKIP_WAITING and get no response, so the new version would never
+// actually activate.
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('push', (event) => {
   let payload = {};
   try {
