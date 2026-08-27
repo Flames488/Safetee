@@ -73,7 +73,11 @@ export default function ShareLocation() {
           connectionsRef.current.forEach((conn) => conn.publish(frame));
         },
         () => setGeoError(true),
-        { timeout: 8000 }
+        // Without enableHighAccuracy, the browser defaults to the
+        // cheapest method available (WiFi/cell-tower/IP-based) rather
+        // than GPS — indoors especially, that's tens of kilometers off,
+        // not the precise position this feature exists to share.
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 }
       );
     };
     publish();

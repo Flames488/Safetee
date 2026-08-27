@@ -63,7 +63,10 @@ export default function LiveTracking() {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve(pos.coords),
         () => resolve(null),
-        { timeout: 5000 }
+        // Without enableHighAccuracy, the browser defaults to the
+        // cheapest method available (WiFi/IP-based) rather than GPS —
+        // this position is what a trusted contact sees on the live map.
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 5000 }
       );
     });
 

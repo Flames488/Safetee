@@ -28,7 +28,7 @@ export default function RemoteLiveMap({ position }) {
       zoom: 15,
       attributionControl: false,
     });
-    map.addControl(new AttributionControl({ compact: true }));
+    map.addControl(new AttributionControl({ compact: true, customAttribution: '© OpenStreetMap contributors © OpenFreeMap' }));
     mapRef.current = map;
     markerRef.current = new Marker({ element: createDotEl() });
     return () => map.remove();

@@ -58,7 +58,7 @@ export default function LiveMap({ destination }) {
       attributionControl: false,
       dragRotate: true,
     });
-    map.addControl(new AttributionControl({ compact: true }));
+    map.addControl(new AttributionControl({ compact: true, customAttribution: '© OpenStreetMap contributors © OpenFreeMap' }));
     mapRef.current = map;
 
     markerRef.current = new Marker({ element: createPersonEl(), rotationAlignment: 'map' });

@@ -3,26 +3,12 @@
 // key tile source, so both read as one consistent map system rather than
 // two different UIs.
 
-// CARTO's free "Dark Matter" raster basemap — no API key, and already a
-// dark, minimal style that looks nothing like Google Maps' default light
-// basemap+blue-dot look, so no custom vector style needs authoring just
-// to avoid resembling it.
-export const MAP_STYLE = {
-  version: 8,
-  sources: {
-    carto: {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
-    },
-  },
-  layers: [{ id: 'carto', type: 'raster', source: 'carto' }],
-};
+// OpenFreeMap's hosted "dark" vector style — explicitly free forever, no
+// API key, no signup, no rate limit (unlike CARTO's legacy raster tiles,
+// which started demanding a key and broke this feature in production —
+// see git history). MapLibre fetches this URL itself and resolves its
+// own vector/sprite/glyph sources, so no local style JSON to maintain.
+export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/dark';
 
 export function createPersonEl() {
   const el = document.createElement('div');

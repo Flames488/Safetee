@@ -13,17 +13,16 @@ import featureGPS from '../assets/feature-gps.jpg';
 import featureContacts from '../assets/feature-contacts.jpg';
 import featureEvidence from '../assets/feature-evidence.jpg';
 import featureJourneyTimer from '../assets/feature-journey-timer.jpg';
+import featureSmsFallback from '../assets/feature-sms-fallback.jpg';
 import './home.css';
 
-// Real product screens (supplied directly), one per feature except SMS
-// fallback — no photo for that one, so it stays a plain icon card below
-// rather than being paired with a stock/unrelated image.
+// Real product screens (supplied directly) for every feature.
 const FEATURES = [
   { icon: ShieldCheck, name: 'One-touch SOS', desc: 'A single tap sends your location and audio to the people who can help fastest.', photo: featureSOS },
   { icon: EyeOff, name: 'Hidden trigger', desc: 'A fake PIN at login, or a secret shake while the app is open, for when opening the real SOS screen isn\'t safe.', photo: featureHiddenTrigger },
   { icon: MapPin, name: 'Live GPS sharing', desc: 'Real-time location, shared automatically the moment an alert goes out.', photo: featureGPS },
   { icon: Users, name: 'Trusted contacts', desc: 'Choose who\'s notified, in what order, every time.', photo: featureContacts },
-  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: null },
+  { icon: MessageSquare, name: 'SMS fallback', desc: 'No data connection? Your alert still goes out by text.', photo: featureSmsFallback },
   { icon: Mic, name: 'Audio, photo & video', desc: 'Ambient audio, photos, and video captured automatically as evidence during an alert.', photo: featureEvidence },
   { icon: Timer, name: 'Safe journey timer', desc: 'Set a destination and time, and Safetee checks in until you\'re there.', photo: featureJourneyTimer },
 ];
