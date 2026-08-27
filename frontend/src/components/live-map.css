@@ -10,6 +10,12 @@
   max-width:calc(100% - 24px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 
+.lm-error{
+  position:absolute; inset:0; z-index:1; display:flex; align-items:center; justify-content:center;
+  text-align:center; padding:0 20px; font-size:12.5px; color:var(--ink-1);
+  background:var(--bg-1);
+}
+
 /* The live position marker: a directional arrow (not a plain dot+cone —
    deliberately its own shape/silhouette) that rotates to face the
    direction of travel. The pulse ring keeps running continuously even

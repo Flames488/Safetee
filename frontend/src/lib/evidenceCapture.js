@@ -81,11 +81,26 @@ async function uploadSegment(eventId, mediaType, blob, ext) {
   // Straight to Supabase, not through our backend — the signed URL already
   // is a one-time write token, and proxying multi-MB blobs through the
   // free-tier API would burn its bandwidth for nothing.
+  //
+  // Content-Type set explicitly, stripped of any ;codecs=... parameter —
+  // relying on fetch's automatic behavior would store the MediaRecorder
+  // blob's exact type (e.g. "video/webm;codecs=vp8"), which is meant for
+  // negotiating playback support, not for a stored object's content-type.
+  // Evidence that "loaded" (the player UI appeared) but wouldn't actually
+  // play pointed here: some browsers serving that codec-qualified
+  // content-type back from storage refuse to play what's otherwise a
+  // perfectly valid file.
+  const contentType = blob.type.split(';')[0];
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
   let res;
   try {
-    res = await fetch(uploadUrl, { method: 'PUT', body: blob, signal: controller.signal });
+    res = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: blob,
+      headers: { 'Content-Type': contentType },
+      signal: controller.signal,
+    });
   } finally {
     clearTimeout(timeout);
   }

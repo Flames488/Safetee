@@ -139,16 +139,31 @@ export default function AppShell({ children }) {
           <div className="app-topbar-item" ref={notifRef}>
             <button className="app-icon-btn" onClick={() => setNotifOpen((o) => !o)} aria-label="Notifications">
               <Bell size={18} strokeWidth={2.1} />
-              {unverifiedCount > 0 && <span className="app-badge-dot" />}
+              {/* A real incoming SOS alert is a different order of urgency
+                  than "a contact hasn't verified yet" — this used to only
+                  ever reflect unverifiedCount, so the one notification that
+                  actually matters most never showed here at all. */}
+              {alertCount > 0 ? (
+                <span className="app-badge-dot app-badge-dot-danger" />
+              ) : (
+                unverifiedCount > 0 && <span className="app-badge-dot" />
+              )}
             </button>
             {notifOpen && (
               <div className="app-dropdown app-notif-dropdown">
-                {unverifiedCount > 0 ? (
+                {alertCount > 0 && (
+                  <button className="app-notif-item" onClick={() => { navigate('/app/alerts'); setNotifOpen(false); }}>
+                    <ShieldAlert size={15} strokeWidth={2.1} color="var(--danger)" />
+                    <span>{alertCount} incoming alert{alertCount === 1 ? '' : 's'} need your attention</span>
+                  </button>
+                )}
+                {unverifiedCount > 0 && (
                   <button className="app-notif-item" onClick={() => { navigate('/app/contacts'); setNotifOpen(false); }}>
                     <ShieldAlert size={15} strokeWidth={2.1} color="var(--amber)" />
                     <span>{unverifiedCount} contact{unverifiedCount === 1 ? '' : 's'} pending verification</span>
                   </button>
-                ) : (
+                )}
+                {alertCount === 0 && unverifiedCount === 0 && (
                   <p className="app-dropdown-empty">You're all caught up.</p>
                 )}
               </div>

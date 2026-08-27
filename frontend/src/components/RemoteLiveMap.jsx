@@ -17,6 +17,7 @@ export default function RemoteLiveMap({ position }) {
   const markerRef = useRef(null);
   const hasFramedRef = useRef(false);
   const [address, setAddress] = useState(null);
+  const [mapFailed, setMapFailed] = useState(false);
   const lastGeocodeRef = useRef(0);
 
   useEffect(() => {
@@ -28,10 +29,31 @@ export default function RemoteLiveMap({ position }) {
       zoom: 15,
       attributionControl: false,
     });
-    map.addControl(new AttributionControl({ compact: true, customAttribution: '© OpenStreetMap contributors © OpenFreeMap' }));
+    // compact:true alone (no customAttribution) — the style's own OSM/
+    // OpenFreeMap/OpenMapTiles credit already covers what's legally
+    // required; adding our own string on top just doubled it up into an
+    // overflowing wall of text in this small a container.
+    map.addControl(new AttributionControl({ compact: true }));
+    // A real tile/style load failure (bad network, the tile host down)
+    // previously left a silent black canvas with "Locating…" stuck
+    // forever — no different, visually, from a slow-but-working load.
+    // This surfaces it as an actual state instead, so the always-present
+    // "Open in Google Maps" fallback reads as the obvious next step
+    // rather than the map just looking broken.
+    map.on('error', (e) => {
+      console.error('Map failed to load:', e.error);
+      setMapFailed(true);
+    });
+    // Defensive against a container that had zero size at construction
+    // time (e.g. a layout pass not yet settled) — MapLibre doesn't always
+    // pick this up on its own once the container's real size resolves.
+    const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
     markerRef.current = new Marker({ element: createDotEl() });
-    return () => map.remove();
+    return () => {
+      clearTimeout(resizeTimer);
+      map.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -68,6 +90,9 @@ export default function RemoteLiveMap({ position }) {
   return (
     <div className="lm-wrap">
       <div ref={containerRef} className="lm-canvas" />
+      {mapFailed && (
+        <div className="lm-error">Map view unavailable right now — use "Open in Google Maps" below.</div>
+      )}
       <div className="lm-address mono">{address || 'Locating…'}</div>
     </div>
   );

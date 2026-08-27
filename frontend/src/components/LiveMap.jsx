@@ -45,6 +45,7 @@ export default function LiveMap({ destination }) {
   const headingRef = useRef(0);
   const [address, setAddress] = useState(null);
   const [gpsError, setGpsError] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
   const lastGeocodeRef = useRef(0);
 
   useEffect(() => {
@@ -58,14 +59,25 @@ export default function LiveMap({ destination }) {
       attributionControl: false,
       dragRotate: true,
     });
-    map.addControl(new AttributionControl({ compact: true, customAttribution: '© OpenStreetMap contributors © OpenFreeMap' }));
+    // compact:true alone — the style's own OSM/OpenFreeMap/OpenMapTiles
+    // credit already covers what's legally required; a duplicated custom
+    // string on top overflowed into a wall of text in this small a space.
+    map.addControl(new AttributionControl({ compact: true }));
+    map.on('error', (e) => {
+      console.error('Map failed to load:', e.error);
+      setMapFailed(true);
+    });
+    const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
 
     markerRef.current = new Marker({ element: createPersonEl(), rotationAlignment: 'map' });
 
     if (!navigator.geolocation) {
       setGpsError(true);
-      return () => map.remove();
+      return () => {
+        clearTimeout(resizeTimer);
+        map.remove();
+      };
     }
 
     const watchId = navigator.geolocation.watchPosition(
@@ -107,6 +119,7 @@ export default function LiveMap({ destination }) {
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
+      clearTimeout(resizeTimer);
       map.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,6 +167,7 @@ export default function LiveMap({ destination }) {
   return (
     <div className="lm-wrap">
       <div ref={containerRef} className="lm-canvas" />
+      {mapFailed && <div className="lm-error">Map view unavailable right now.</div>}
       <div className="lm-address mono">
         {gpsError ? 'Location unavailable' : address || 'Locating…'}
       </div>
