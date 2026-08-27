@@ -60,29 +60,42 @@ export default function ShareLocation() {
     }
   }, [activeShares]);
 
-  // One geolocation loop, fanned out to every open connection — cheaper
-  // than a separate watch per viewer, and viewers only ever see frames
-  // while this page stays open (see the file-level comment above).
+  // A single continuous GPS watch, fanned out to every open connection on
+  // a throttled cadence — cheaper than a separate watch per viewer, and
+  // viewers only ever see frames while this page stays open (see the
+  // file-level comment above).
+  //
+  // Deliberately watchPosition, not a fresh getCurrentPosition every
+  // BROADCAST_INTERVAL_MS — enableHighAccuracy only *requests* GPS, it
+  // doesn't force it: if a real GPS fix hasn't locked on within the
+  // timeout (common indoors, or on a cold start), the browser silently
+  // falls back to coarse network/cell-tower positioning and reports THAT
+  // instead, no error raised. Restarting acquisition from scratch every
+  // 15s with an 8s timeout meant GPS rarely got the time it needs to lock
+  // on at all — this is what produced accuracy readings in the tens of
+  // kilometers. A single long-lived watch lets the GPS chip stay warm and
+  // keep refining for as long as the share is active; each broadcast just
+  // reads whatever the watch's most recent (and by then likely much
+  // better) fix is.
   useEffect(() => {
     if (activeShares.length === 0 || !navigator.geolocation) return;
+    let latestFix = null;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setGeoError(false);
+        latestFix = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: pos.coords.accuracy };
+      },
+      () => setGeoError(true),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
     const publish = () => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setGeoError(false);
-          const frame = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy_m: pos.coords.accuracy };
-          connectionsRef.current.forEach((conn) => conn.publish(frame));
-        },
-        () => setGeoError(true),
-        // Without enableHighAccuracy, the browser defaults to the
-        // cheapest method available (WiFi/cell-tower/IP-based) rather
-        // than GPS — indoors especially, that's tens of kilometers off,
-        // not the precise position this feature exists to share.
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 }
-      );
+      if (latestFix) connectionsRef.current.forEach((conn) => conn.publish(latestFix));
     };
-    publish();
     const interval = setInterval(publish, BROADCAST_INTERVAL_MS);
-    return () => clearInterval(interval);
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      clearInterval(interval);
+    };
   }, [activeShares.length]);
 
   useEffect(() => () => {

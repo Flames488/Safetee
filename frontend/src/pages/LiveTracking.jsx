@@ -57,18 +57,28 @@ export default function LiveTracking() {
     }
   }, []);
 
-  const getPosition = () =>
-    new Promise((resolve) => {
-      if (!navigator.geolocation) return resolve(null);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve(pos.coords),
-        () => resolve(null),
-        // Without enableHighAccuracy, the browser defaults to the
-        // cheapest method available (WiFi/IP-based) rather than GPS —
-        // this position is what a trusted contact sees on the live map.
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 5000 }
-      );
-    });
+  // A single continuous GPS watch for the lifetime of this screen, rather
+  // than a fresh getCurrentPosition cold-start on every 30s check-in.
+  // enableHighAccuracy only *requests* GPS — if a real fix hasn't locked
+  // on within the timeout (common indoors, or on a cold start), the
+  // browser silently falls back to coarse network/cell-tower positioning
+  // instead, no error raised. Restarting acquisition from scratch every
+  // 30s with a 5s timeout rarely gave GPS the time it needs to lock on at
+  // all, which is what produced accuracy readings in the tens of
+  // kilometers for the contact watching this journey. Letting the chip
+  // stay warm across the whole journey gives it a real chance to refine.
+  const latestFixRef = useRef(null);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => { latestFixRef.current = pos.coords; },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  const getPosition = () => Promise.resolve(latestFixRef.current);
 
   // The websocket is what actually makes a notified contact's share link
   // show live movement — the HTTP check-in below (already existed) only
