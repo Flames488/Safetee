@@ -84,11 +84,12 @@ class Settings(BaseSettings):
     evidence_signed_url_ttl_seconds: int = 3600
     # Hard per-event caps so an active SOS can't silently run up storage/
     # bandwidth past what the free-tier backing store actually has —
-    # roughly 15 minutes of audio/video at a 20s chunk interval, and 15
-    # minutes of photos at a 60s interval. Deliberately conservative;
-    # raise these once there's a paid storage tier to back them.
-    evidence_max_audio_chunks: int = 45
-    evidence_max_video_chunks: int = 45
+    # roughly 15 minutes of audio/video at a 60s chunk interval (see
+    # evidenceCapture.js's SEGMENT_MS), and 15 minutes of photos at a 60s
+    # interval. Deliberately conservative; raise these once there's a
+    # paid storage tier to back them.
+    evidence_max_audio_chunks: int = 15
+    evidence_max_video_chunks: int = 15
     evidence_max_photos: int = 15
 
     # Contact-facing share links (evidence, and — see the tracking

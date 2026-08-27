@@ -3,15 +3,18 @@ import { api, ApiError } from './api';
 // Segment length: independent, self-contained files rather than one
 // continuous recording, so a chunk that already made it to storage
 // survives even if the device is destroyed mid-alert (see the model
-// comment on SOSEvent.audio_segment_paths). Matches the ~20s/60s
-// intervals the backend's evidence_max_* caps are sized around.
-const SEGMENT_MS = { audio: 20000, video: 20000 };
+// comment on SOSEvent.audio_segment_paths). 60s rather than a shorter
+// interval — fewer, more substantial clips read as real evidence instead
+// of a choppy filmstrip; the backend's evidence_max_*_chunks caps were
+// sized down to match so the total recorded duration budget (~15min)
+// stays the same, not 3x larger.
+const SEGMENT_MS = { audio: 60000, video: 60000 };
 // The very first segment is intentionally much shorter than the rest —
-// waiting a full 20s for the first audio/video to even finish recording
+// waiting a full 60s for the first audio/video to even finish recording
 // (on top of the 5s SOS cancel window) meant nothing reached a trusted
-// contact for 25+ seconds after the button was pressed. A short first
+// contact for over a minute after the button was pressed. A short first
 // clip gets *something* uploaded fast; subsequent segments go back to the
-// longer, more storage/overhead-efficient length.
+// longer, more substantial length for as long as the SOS stays active.
 const FIRST_SEGMENT_MS = { audio: 6000, video: 6000 };
 const PHOTO_INTERVAL_MS = 60000;
 
