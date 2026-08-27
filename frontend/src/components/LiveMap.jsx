@@ -2,28 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Map as MapLibreMap, Marker, AttributionControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { reverseGeocode } from '../lib/geocode';
+import { MAP_STYLE, createPersonEl, createDestinationEl } from '../lib/mapStyle';
 import './live-map.css';
-
-// CARTO's free "Dark Matter" raster basemap — no API key, and already a
-// dark, minimal style that looks nothing like Google Maps' default light
-// basemap+blue-dot look, so no custom vector style needs authoring just
-// to avoid resembling it.
-const STYLE = {
-  version: 8,
-  sources: {
-    carto: {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
-    },
-  },
-  layers: [{ id: 'carto', type: 'raster', source: 'carto' }],
-};
 
 // Bearing between two points, in degrees — used when the device doesn't
 // report coords.heading (very common while stationary, and on some
@@ -49,30 +29,6 @@ function distanceMeters(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function createPersonEl() {
-  const el = document.createElement('div');
-  el.className = 'lm-person';
-  el.innerHTML = `
-    <span class="lm-person-pulse"></span>
-    <svg class="lm-person-arrow" viewBox="0 0 32 32" width="32" height="32">
-      <path d="M16 2 L27 27 L16 21 L5 27 Z" fill="#22C55E" stroke="#08090D" stroke-width="1.5" stroke-linejoin="round"/>
-    </svg>
-  `;
-  return el;
-}
-
-function createDestinationEl() {
-  const el = document.createElement('div');
-  el.className = 'lm-destination';
-  el.innerHTML = `
-    <svg viewBox="0 0 24 32" width="26" height="34">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#F5A623"/>
-      <circle cx="12" cy="12" r="4.5" fill="#08090D"/>
-    </svg>
-  `;
-  return el;
-}
-
 // Self-contained live tracking map: watches the device's own GPS
 // continuously (independent of how often the journey check-in itself
 // fires — see LiveTracking.jsx) so the person marker actually animates
@@ -95,7 +51,7 @@ export default function LiveMap({ destination }) {
     if (!containerRef.current) return;
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: STYLE,
+      style: MAP_STYLE,
       center: [3.3792, 6.5244],
       zoom: 16,
       pitch: 45,

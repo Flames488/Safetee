@@ -23,6 +23,13 @@
   animation:lm-pulse 2.2s ease-out infinite;
 }
 .lm-person-arrow{ position:relative; z-index:1; filter:drop-shadow(0 2px 6px rgba(34,197,94,.5)); }
+/* No heading data to point in a direction (e.g. a viewer receiving
+   someone else's shared position) — a plain dot with the same pulse,
+   never a directional arrow implying a heading that isn't real. */
+.lm-dot{
+  position:relative; z-index:1; width:14px; height:14px; border-radius:50%;
+  background:#22C55E; border:2.5px solid #08090D; box-shadow:0 2px 6px rgba(34,197,94,.5);
+}
 
 @keyframes lm-pulse{
   0%{ transform:scale(0.6); opacity:.9; }

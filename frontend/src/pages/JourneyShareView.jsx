@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import TopBar from '../components/TopBar';
@@ -10,14 +10,16 @@ import './tracking.css';
 import './history.css';
 import './network.css';
 
+const RemoteLiveMap = lazy(() => import('../components/RemoteLiveMap'));
+
 // The contact-facing half of journey tracking — reached via the SMS link
 // sent when a journey starts (see POST /journeys). No account required:
 // authorizes purely via the share_token in the URL, same as the
 // websocket itself checks — there's no separate REST status endpoint for
 // a non-account viewer, so this page's state is driven entirely by the
-// connection's own status/frames. No embedded map library exists
-// anywhere in this app, so real numbers are shown honestly rather than
-// faking a map — same approach as LocationShareView.jsx.
+// connection's own status/frames. Renders on RemoteLiveMap (same map
+// system as LiveMap/LocationShareView) instead of only linking out to
+// Google Maps.
 export default function JourneyShareView() {
   const { journeyId } = useParams();
   const [searchParams] = useSearchParams();
@@ -62,6 +64,11 @@ export default function JourneyShareView() {
             </div>
             {frame ? (
               <>
+                <div className="ls-map">
+                  <Suspense fallback={null}>
+                    <RemoteLiveMap position={{ lat: frame.lat, lng: frame.lng }} />
+                  </Suspense>
+                </div>
                 <p>Last update {timeAgo(new Date(frameAt).toISOString())} · ±{Math.round(frame.accuracy_m || 0)}m accuracy</p>
                 <Button icon={<ExternalLink size={15} />} onClick={() => window.open(mapsLink, '_blank', 'noopener')}>
                   Open in Google Maps

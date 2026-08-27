@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, ExternalLink } from 'lucide-react';
 import TopBar from '../components/TopBar';
@@ -11,6 +11,10 @@ import './tracking.css';
 import './history.css';
 import './network.css';
 
+// maplibre-gl is a heavy dependency — only worth loading for someone
+// actually viewing a live share, not bundled into every page load.
+const RemoteLiveMap = lazy(() => import('../components/RemoteLiveMap'));
+
 const POLL_MS = 15_000;
 
 const EMPTY_STATE_META = {
@@ -22,11 +26,12 @@ const EMPTY_STATE_META = {
 
 // The viewer side of a location share — reused for both an accepted
 // request and a self-initiated "share at will" (same underlying
-// LocationShare either way, see the backend model). No embedded map
-// library exists anywhere in this app (LiveTracking.jsx's "map" is
-// decorative CSS, not real geography), so this shows the real numbers
-// honestly — last known coordinates, accuracy, staleness — plus a link
-// out to Google Maps, rather than faking a live map view.
+// LocationShare either way, see the backend model). Renders the shared
+// position on RemoteLiveMap (same map system as LiveMap) instead of
+// bouncing out to Google Maps — an external redirect for something this
+// core to the app reads as unfinished, not like a deliberate integration.
+// The Google Maps link stays as an optional secondary action for anyone
+// who specifically wants turn-by-turn directions there.
 export default function LocationShareView() {
   const { shareId } = useParams();
   const [share, setShare] = useState(null);
@@ -90,6 +95,11 @@ export default function LocationShareView() {
             </div>
             {frame ? (
               <>
+                <div className="ls-map">
+                  <Suspense fallback={null}>
+                    <RemoteLiveMap position={{ lat: frame.lat, lng: frame.lng }} />
+                  </Suspense>
+                </div>
                 <p>Last update {timeAgo(new Date(frameAt).toISOString())} · ±{Math.round(frame.accuracy_m || 0)}m accuracy</p>
                 <Button icon={<ExternalLink size={15} />} onClick={() => window.open(mapsLink, '_blank', 'noopener')}>
                   Open in Google Maps
