@@ -2,6 +2,7 @@ import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
 import PlanPicker from '../components/PlanPicker';
 import { BgPhoto } from '../components/ui';
+import brandGlowBg from '../assets/brand-glow-bg.jpg';
 import './simple-page.css';
 import './pricing.css';
 
@@ -20,7 +21,7 @@ export default function Pricing() {
 
       <div className="pr-hero pr-hero-photo">
         <div className="pr-hero-photo-media">
-          <BgPhoto src="https://loremflickr.com/1600/900/security,control-room?lock=5" className="pr-hero-photo-img" />
+          <BgPhoto src={brandGlowBg} className="pr-hero-photo-img" />
         </div>
         <div className="pr-hero-photo-inner">
           <h1 className="sp-h1">Simple pricing.<br />30 days free, no card required.</h1>

@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
 import { Button, Pill, BgPhoto } from '../components/ui';
-import aboutHero from '../assets/about-hero.jpg';
+import brandGlowBg from '../assets/brand-glow-bg.jpg';
 import './simple-page.css';
 
 export default function About() {
@@ -13,7 +13,7 @@ export default function About() {
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
         <div className="sp-hero-photo-media">
-          <BgPhoto src={aboutHero} className="sp-hero-photo-img" />
+          <BgPhoto src={brandGlowBg} className="sp-hero-photo-img" />
         </div>
         <div className="sp-hero-photo-inner">
           <div className="sp-eyebrow"><Pill tone="good">About Safetee</Pill></div>

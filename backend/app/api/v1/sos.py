@@ -365,7 +365,12 @@ async def list_incoming_alerts(
     result = await db.execute(
         select(SOSEvent, User)
         .join(User, User.id == SOSEvent.user_id)
-        .where(SOSEvent.user_id.in_(owner_ids), not_(already_acked))
+        # A practice drill (see SOSEvent.is_practice) never sends this
+        # contact a real SMS/push, and shouldn't be pullable here either
+        # — otherwise opening the app and polling this endpoint would
+        # show a fake alert as if it were real, defeating the entire
+        # point of a drill being invisible to real contacts.
+        .where(SOSEvent.user_id.in_(owner_ids), not_(already_acked), not_(SOSEvent.is_practice))
         .order_by(SOSEvent.created_at.desc())
         .limit(50)
     )

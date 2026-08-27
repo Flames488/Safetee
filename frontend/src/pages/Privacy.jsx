@@ -1,14 +1,21 @@
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
+import { BgPhoto } from '../components/ui';
+import brandGlowBg from '../assets/brand-glow-bg.jpg';
 import './simple-page.css';
 
 export default function Privacy() {
   return (
     <div className="sp">
       <MarketingNav />
-      <div className="sp-hero">
-        <h1 className="sp-h1">Privacy policy.</h1>
-        <p className="sp-lede">Last updated August 2026. This is a plain-language summary of how Safetee handles your data, not a substitute for reading it if something here matters to you.</p>
+      <div className="sp-hero sp-hero-photo">
+        <div className="sp-hero-photo-media">
+          <BgPhoto src={brandGlowBg} className="sp-hero-photo-img" />
+        </div>
+        <div className="sp-hero-photo-inner">
+          <h1 className="sp-h1">Privacy policy.</h1>
+          <p className="sp-lede">Last updated August 2026. This is a plain-language summary of how Safetee handles your data, not a substitute for reading it if something here matters to you.</p>
+        </div>
       </div>
       <div className="sp-body">
         <div className="sp-section">

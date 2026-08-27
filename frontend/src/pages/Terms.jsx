@@ -1,14 +1,21 @@
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
+import { BgPhoto } from '../components/ui';
+import brandGlowBg from '../assets/brand-glow-bg.jpg';
 import './simple-page.css';
 
 export default function Terms() {
   return (
     <div className="sp">
       <MarketingNav />
-      <div className="sp-hero">
-        <h1 className="sp-h1">Terms of use.</h1>
-        <p className="sp-lede">Last updated August 2026. The short version: use Safetee responsibly, keep your account secure, and never rely on it as your only line to emergency help.</p>
+      <div className="sp-hero sp-hero-photo">
+        <div className="sp-hero-photo-media">
+          <BgPhoto src={brandGlowBg} className="sp-hero-photo-img" />
+        </div>
+        <div className="sp-hero-photo-inner">
+          <h1 className="sp-h1">Terms of use.</h1>
+          <p className="sp-lede">Last updated August 2026. The short version: use Safetee responsibly, keep your account secure, and never rely on it as your only line to emergency help.</p>
+        </div>
       </div>
       <div className="sp-body">
         <div className="sp-section">

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LocateFixed, BatteryMedium, Users, Navigation, MessageSquare, Mic,
-  ChevronRight, ShieldCheck, ShieldAlert, Lightbulb, Clock, UserCheck, AlertCircle, Sparkles,
+  ChevronRight, ShieldCheck, ShieldAlert, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
 import { Avatar, Card, Pill, Button, KpiCard, IconTile, EmptyState, SkeletonRow, ProgressDots } from '../components/ui';
@@ -115,7 +115,6 @@ const ACTIVITY_META = {
 };
 
 const TIPS = [
-  { icon: Lightbulb, text: 'Test your hidden trigger (fake PIN, or shake to alert) somewhere safe so it becomes muscle memory.' },
   { icon: UserCheck, text: 'Keep at least one trusted contact verified: confirming their number first makes delivery more reliable.' },
   { icon: Navigation, text: 'Start a Safe Journey before walking somewhere unfamiliar, even a short distance. It costs nothing and checks in automatically.' },
 ];

@@ -4,6 +4,7 @@ import { Mail, MessageCircle, ShieldAlert, Clock } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
 import { Button, BgPhoto } from '../components/ui';
+import brandGlowBg from '../assets/brand-glow-bg.jpg';
 import './simple-page.css';
 
 export default function Contact() {
@@ -21,7 +22,7 @@ export default function Contact() {
       <MarketingNav />
       <div className="sp-hero sp-hero-photo">
         <div className="sp-hero-photo-media">
-          <BgPhoto src="https://loremflickr.com/1600/900/phone,communication?lock=4" className="sp-hero-photo-img" />
+          <BgPhoto src={brandGlowBg} className="sp-hero-photo-img" />
         </div>
         <div className="sp-hero-photo-inner">
           <h1 className="sp-h1">Get in touch.</h1>
