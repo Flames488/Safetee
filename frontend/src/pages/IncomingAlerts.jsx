@@ -193,6 +193,18 @@ export default function IncomingAlerts() {
         {viewing?.length === 0 && !viewingError && (
           <Card className="hs-card net-empty">Nobody's currently sharing their location with you.</Card>
         )}
+        {viewing?.length > 1 && (
+          <Card className="hs-card">
+            <Link className="hs-row" to="/app/team-map">
+              <PersonTile icon={Users} tone="good" size={32} />
+              <span className="hs-text">
+                <strong>View everyone on one map</strong>
+                <span>{viewing.length} people sharing live</span>
+              </span>
+              <Pill tone="good">Team map</Pill>
+            </Link>
+          </Card>
+        )}
         {viewing?.map((s) => (
           <Card key={s.id} className="hs-card">
             <Link className="hs-row" to={`/track/location/${s.id}`}>

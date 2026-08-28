@@ -36,6 +36,30 @@ export function createDotEl() {
   return el;
 }
 
+// Distinct, colorblind-considerate hues for telling multiple simultaneous
+// people apart on one map (see MultiPersonMap) — green is deliberately
+// first since it's already this app's "self/live" color everywhere else,
+// so a lone person still reads the same as the single-person map.
+export const PERSON_COLORS = ['#22C55E', '#4C8DFF', '#F5A623', '#E85DBB', '#38D9C4', '#C4922C'];
+
+export function colorForIndex(i) {
+  return PERSON_COLORS[i % PERSON_COLORS.length];
+}
+
+// A labeled marker for the multi-person map — an initial in a colored
+// ring, rather than the single-person pulse dot, since color alone stops
+// being enough to tell people apart once there are more than two.
+export function createLabeledPersonEl(name, color) {
+  const el = document.createElement('div');
+  el.className = 'lm-multi-person';
+  const initial = (name || '?').trim().charAt(0).toUpperCase();
+  el.innerHTML = `
+    <span class="lm-multi-person-pulse" style="background:${color}66"></span>
+    <span class="lm-multi-person-badge" style="background:${color}">${initial}</span>
+  `;
+  return el;
+}
+
 export function createDestinationEl() {
   const el = document.createElement('div');
   el.className = 'lm-destination';

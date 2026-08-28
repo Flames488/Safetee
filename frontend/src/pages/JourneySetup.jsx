@@ -14,6 +14,7 @@ export default function JourneySetup() {
   const [destinationCoords, setDestinationCoords] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const searchTimer = useRef(null);
+  const searchRequestId = useRef(0);
   const [duration, setDuration] = useState(30);
   const [contacts, setContacts] = useState(null); // null = loading
   const [notify, setNotify] = useState([]); // real contact ids
@@ -39,12 +40,20 @@ export default function JourneySetup() {
   // Debounced — Photon is free but not meant for a request per keystroke.
   // Typing further after picking a suggestion clears its coordinates
   // rather than silently keeping them attached to now-different text.
+  //
+  // requestId guards against an earlier, slower-to-respond search landing
+  // after a later, faster one and clobbering its fresher results — the
+  // debounce alone only delays when a search *starts*, it doesn't cancel
+  // or sequence in-flight fetches, so this was otherwise possible on
+  // typing across two debounce windows in quick succession.
   const handleDestinationChange = (value) => {
     setDestination(value);
     setDestinationCoords(null);
     clearTimeout(searchTimer.current);
+    const requestId = ++searchRequestId.current;
     searchTimer.current = setTimeout(async () => {
-      setSuggestions(await searchPlaces(value));
+      const results = await searchPlaces(value);
+      if (requestId === searchRequestId.current) setSuggestions(results);
     }, 350);
   };
 

@@ -33,7 +33,12 @@ async def verify_turnstile(token: str | None, remote_ip: str | None) -> None:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(_VERIFY_URL, data=payload)
         result = response.json()
-    except httpx.HTTPError:
+    except (httpx.HTTPError, ValueError):
+        # ValueError covers response.json() on a non-JSON body — an error/
+        # rate-limit page from Cloudflare or something in front of it,
+        # which httpx.HTTPError alone doesn't catch. Previously propagated
+        # as an unhandled 500 on signup/login/forgot-password/recover
+        # instead of the fail-open behavior this function promises.
         return
 
     if not result.get("success"):

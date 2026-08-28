@@ -14,6 +14,16 @@ function loadTurnstileScript() {
       script.onload = () => resolve(window.turnstile);
       script.onerror = reject;
       document.head.appendChild(script);
+    }).catch((err) => {
+      // Without this, a single failed load (CDN hiccup, offline for a
+      // moment) permanently poisons this module-level cache — every
+      // future mount of every Turnstile instance on signup, login,
+      // forgot-password, and recover would keep returning the same dead,
+      // already-rejected promise for the rest of the page session, with
+      // the widget silently never rendering again. Clearing it lets the
+      // next mount (e.g. navigating back to this page) actually retry.
+      scriptPromise = null;
+      throw err;
     });
   }
   return scriptPromise;
@@ -58,6 +68,15 @@ export default function Turnstile({ onToken }) {
         'expired-callback': retry,
         'error-callback': retry,
       });
+    }).catch((err) => {
+      // The script itself never loaded (see loadTurnstileScript) — no
+      // widget to reset here, unlike error-callback above. verify_turnstile
+      // only fails open when no secret key is configured at all; with one
+      // configured (production), an empty token is rejected outright, so
+      // this failure genuinely blocks the form until the next mount
+      // retries the load — logged so it's diagnosable rather than a
+      // silent, unexplained "verification required" on submit.
+      console.error('Turnstile script failed to load:', err);
     });
     return () => {
       cancelled = true;

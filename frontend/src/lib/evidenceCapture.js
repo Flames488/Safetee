@@ -25,15 +25,20 @@ const PHOTO_INTERVAL_MS = 60000;
 // completing, failing, or retrying (audio/photo are small enough to
 // usually resolve one way or the other before this would ever matter).
 // Aborting after this turns a silent hang into a normal failure the
-// existing backoff/retry path in pump() already handles.
-const UPLOAD_TIMEOUT_MS = 30000;
+// existing backoff/retry path in pump() already handles. 45s, not 30s —
+// segments tripled in length (20s→60s) when this was still 30s, so a 60s
+// video blob (~3x the bytes) was meaningfully more likely to blow a
+// timeout sized for the old, much smaller segment on exactly the flaky
+// connection this exists to tolerate.
+const UPLOAD_TIMEOUT_MS = 45000;
 
 // A network outage can last the entire remainder of an SOS event (this is
 // exactly when signal is likely to be bad). Without backoff, capture would
-// keep encoding and attempting to upload a fresh segment every 20s/60s for
+// keep encoding and attempting to upload a fresh segment every 60s for
 // hours, burning battery/CPU on attempts that can't succeed. Doubles the
-// interval per consecutive failure, capped at 6x base (2min for a 20s
-// segment, 6min for photos) — still retrying, just not hammering.
+// interval per consecutive failure, capped at 6x base (6min for audio/
+// video/photo alike now that all three use a 60s-class base interval) —
+// still retrying, just not hammering.
 const MAX_BACKOFF_MULTIPLIER = 6;
 function backoffDelay(baseMs, consecutiveFailures) {
   return baseMs * Math.min(2 ** consecutiveFailures, MAX_BACKOFF_MULTIPLIER);

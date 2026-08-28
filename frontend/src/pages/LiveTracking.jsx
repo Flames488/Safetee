@@ -68,17 +68,39 @@ export default function LiveTracking() {
   // kilometers for the contact watching this journey. Letting the chip
   // stay warm across the whole journey gives it a real chance to refine.
   const latestFixRef = useRef(null);
+  // Resolved once by the watch's first callback — see getPosition below
+  // for why the very first check-in needs this instead of reading
+  // latestFixRef directly.
+  const firstFixResolveRef = useRef(null);
+  const firstFixPromiseRef = useRef(new Promise((resolve) => { firstFixResolveRef.current = resolve; }));
+
   useEffect(() => {
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
-      (pos) => { latestFixRef.current = pos.coords; },
+      (pos) => {
+        latestFixRef.current = pos.coords;
+        firstFixResolveRef.current?.(pos.coords);
+        firstFixResolveRef.current = null;
+      },
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  const getPosition = () => Promise.resolve(latestFixRef.current);
+  // A fresh watchPosition's first callback is always asynchronous, even
+  // with maximumAge set — so checkin() firing immediately at mount would
+  // otherwise always read a still-null latestFixRef on its very first
+  // call, silently writing the hardcoded Lagos fallback as the journey's
+  // real starting point (and skipping the websocket publish entirely
+  // for that tick). Waits briefly for the watch's first fix instead;
+  // every call after the first one already has latestFixRef populated
+  // and returns immediately, unaffected.
+  const getPosition = async () => {
+    if (latestFixRef.current) return latestFixRef.current;
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 5000));
+    return Promise.race([firstFixPromiseRef.current, timeout]);
+  };
 
   // The websocket is what actually makes a notified contact's share link
   // show live movement — the HTTP check-in below (already existed) only

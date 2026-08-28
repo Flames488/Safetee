@@ -77,8 +77,15 @@ export default function ShareLocation() {
   // keep refining for as long as the share is active; each broadcast just
   // reads whatever the watch's most recent (and by then likely much
   // better) fix is.
+  // Depends on whether there's at least one active share, not the raw
+  // count — with 2+ concurrent shares, one ending while another keeps
+  // running still changes activeShares.length (e.g. 2→1), which would
+  // otherwise tear down and restart this whole watch for the share
+  // that's still going, re-introducing the exact cold-start accuracy
+  // problem this effect exists to avoid.
+  const hasActiveShares = activeShares.length > 0;
   useEffect(() => {
-    if (activeShares.length === 0 || !navigator.geolocation) return;
+    if (!hasActiveShares || !navigator.geolocation) return;
     let latestFix = null;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -96,7 +103,7 @@ export default function ShareLocation() {
       navigator.geolocation.clearWatch(watchId);
       clearInterval(interval);
     };
-  }, [activeShares.length]);
+  }, [hasActiveShares]);
 
   useEffect(() => () => {
     connectionsRef.current.forEach((conn) => conn.close());

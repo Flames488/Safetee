@@ -16,6 +16,7 @@ export default function RemoteLiveMap({ position }) {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const hasFramedRef = useRef(false);
+  const styleLoadedRef = useRef(false);
   const [address, setAddress] = useState(null);
   const [mapFailed, setMapFailed] = useState(false);
   const lastGeocodeRef = useRef(0);
@@ -50,6 +51,17 @@ export default function RemoteLiveMap({ position }) {
     const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
     markerRef.current = new Marker({ element: createDotEl() });
+    // Registered exactly once here, not inside the position effect below
+    // — that effect re-runs on every websocket frame, and if it each
+    // registered its own `once('load', ...)` while the (heavier, vector)
+    // style was still loading, multiple stale closures would queue up
+    // and fire in order once 'load' finally happened: the OLDEST queued
+    // position would win the initial jumpTo, then each next-oldest one
+    // would visibly yank the camera again right after. A single flag set
+    // once here means a frame that arrives before the style is ready is
+    // simply skipped — the next frame (another arrives every few
+    // seconds) picks it up instead, with nothing stale left to replay.
+    map.once('load', () => { styleLoadedRef.current = true; });
     return () => {
       clearTimeout(resizeTimer);
       map.remove();
@@ -58,33 +70,28 @@ export default function RemoteLiveMap({ position }) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !position?.lat || !position?.lng) return;
+    if (!map || !styleLoadedRef.current || !position?.lat || !position?.lng) return;
 
-    const place = () => {
-      if (!markerRef.current.getElement().isConnected) {
-        markerRef.current.setLngLat([position.lng, position.lat]).addTo(map);
-      } else {
-        markerRef.current.setLngLat([position.lng, position.lat]);
-      }
-      // Only the very first fix snaps the camera — later updates ease
-      // into place so a viewer who's zoomed/panned around isn't yanked
-      // back to center on every single frame.
-      if (!hasFramedRef.current) {
-        hasFramedRef.current = true;
-        map.jumpTo({ center: [position.lng, position.lat], zoom: 16 });
-      } else {
-        map.easeTo({ center: [position.lng, position.lat], duration: 900 });
-      }
+    if (!markerRef.current.getElement().isConnected) {
+      markerRef.current.setLngLat([position.lng, position.lat]).addTo(map);
+    } else {
+      markerRef.current.setLngLat([position.lng, position.lat]);
+    }
+    // Only the very first fix snaps the camera — later updates ease
+    // into place so a viewer who's zoomed/panned around isn't yanked
+    // back to center on every single frame.
+    if (!hasFramedRef.current) {
+      hasFramedRef.current = true;
+      map.jumpTo({ center: [position.lng, position.lat], zoom: 16 });
+    } else {
+      map.easeTo({ center: [position.lng, position.lat], duration: 900 });
+    }
 
-      const now = Date.now();
-      if (now - lastGeocodeRef.current > 20_000) {
-        lastGeocodeRef.current = now;
-        reverseGeocode(position.lat, position.lng).then((label) => label && setAddress(label));
-      }
-    };
-
-    if (map.isStyleLoaded()) place();
-    else map.once('load', place);
+    const now = Date.now();
+    if (now - lastGeocodeRef.current > 20_000) {
+      lastGeocodeRef.current = now;
+      reverseGeocode(position.lat, position.lng).then((label) => label && setAddress(label));
+    }
   }, [position?.lat, position?.lng]);
 
   return (

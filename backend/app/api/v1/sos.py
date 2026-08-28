@@ -209,6 +209,14 @@ async def create_evidence_upload_url(
 
     event = await _get_event(db, event_id, user.id)
 
+    # Defense-in-depth: SOSActive.jsx already skips capture entirely for a
+    # practice drill (see is_practice), but a stale/tampered client could
+    # still call this directly — nothing about a drill should ever result
+    # in real evidence, let alone the real "evidence available" SMS
+    # notify_contacts_of_evidence sends to real contacts on confirm.
+    if event.is_practice:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Evidence capture is not available for a practice drill")
+
     # Defense-in-depth: the frontend already skips requesting a disabled
     # media type, but a stale/tampered client could still call this
     # directly, so re-check the stored preference here too.
@@ -242,6 +250,9 @@ async def confirm_evidence(
     user: User = Depends(get_current_user),
 ):
     event = await _get_event(db, event_id, user.id)
+
+    if event.is_practice:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Evidence capture is not available for a practice drill")
 
     expected_prefix = f"{user.id}/{event.id}/"
     if not payload.path.startswith(expected_prefix):
