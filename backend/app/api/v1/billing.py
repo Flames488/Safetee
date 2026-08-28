@@ -17,6 +17,7 @@ from app.models.subscription import Subscription
 from app.models.user import User
 from app.schemas.billing import CheckoutRequest, CheckoutResponse, PaymentOut, PlanOut, SubscriptionOut
 from app.services.paystack.client import PaystackClient, PaystackError
+from app.services.telegram.client import notify_admin
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 logger = logging.getLogger("safetee.billing")
@@ -125,6 +126,13 @@ async def _activate_from_verified_payment(db: AsyncSession, payment: Payment, ve
         sub.paystack_authorization_code = authorization["authorization_code"]
 
     await db.commit()
+
+    payer = await db.get(User, payment.user_id)
+    payer_label = f"{payer.full_name} ({payer.phone})" if payer else str(payment.user_id)
+    await notify_admin(
+        f"Payment received: NGN {payment.amount_kobo / 100:,.2f} from {payer_label} "
+        f"({payment.tier.value}, {payment.billing_interval.value})"
+    )
 
 
 @router.post("/webhook", status_code=status.HTTP_200_OK)

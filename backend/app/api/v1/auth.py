@@ -36,6 +36,7 @@ from app.schemas.auth import (
     SignupRequest,
     TokenResponse,
 )
+from app.services.telegram.client import notify_admin
 from app.workers.tasks.auth_tasks import send_password_reset_sms
 from app.workers.tasks.sos_tasks import fanout_sos_alerts
 
@@ -100,6 +101,8 @@ async def signup(payload: SignupRequest, request: Request, db: AsyncSession = De
     ))
     await db.commit()
     await db.refresh(user)
+
+    await notify_admin(f"New signup: {user.full_name} ({user.phone})")
 
     return TokenResponse(
         access_token=create_access_token(str(user.id)),

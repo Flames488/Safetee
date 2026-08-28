@@ -110,6 +110,12 @@ class ContactOut(BaseModel):
     # locations.py's request_location, which takes a target user id, not a
     # contact id — a contact row only exists in the requester's own list).
     matched_user_id: uuid.UUID | None = None
+    # Drives the green "active now" dot on a contact's avatar — the
+    # frontend compares this against a threshold itself (see
+    # ACTIVE_WITHIN_MS in Contacts.jsx) rather than the backend returning
+    # a precomputed boolean, so "now" is always the moment it's rendered,
+    # not the moment this response was generated.
+    last_active_at: datetime | None = None
 
 
 class AccountDeleteRequest(BaseModel):

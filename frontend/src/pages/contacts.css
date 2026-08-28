@@ -46,12 +46,19 @@
 }
 .ct-reorder button:hover:not(:disabled){ background:var(--bg-2); color:var(--ink-1); }
 .ct-reorder button:disabled{ opacity:.25; pointer-events:none; }
+.ct-avatar-wrap{ position:relative; flex-shrink:0; }
 .ct-avatar{
   width:40px; height:40px; border-radius:50%; background:var(--green-soft); color:var(--green);
   display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;
   overflow:hidden;
 }
 .ct-avatar img{ width:100%; height:100%; object-fit:cover; }
+/* Sits on the wrapper (outside .ct-avatar's own overflow:hidden), not
+   inside it — otherwise the circular clip would cut the dot in half. */
+.ct-active-dot{
+  position:absolute; right:-1px; bottom:-1px; width:11px; height:11px; border-radius:50%;
+  background:var(--green); border:2px solid var(--bg-1);
+}
 .ct-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
 .ct-name-row{ display:flex; align-items:center; gap:8px; }
 .ct-name-row strong{ font-size:14px; }

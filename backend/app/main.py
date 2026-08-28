@@ -17,6 +17,7 @@ from app.api.v1 import (
     locations,
     sos,
     system,
+    telegram,
     users,
 )
 from app.core.config import settings
@@ -99,6 +100,7 @@ app.include_router(journeys.router, prefix=settings.api_v1_prefix)
 app.include_router(sos.router, prefix=settings.api_v1_prefix)
 app.include_router(history.router, prefix=settings.api_v1_prefix)
 app.include_router(system.router, prefix=settings.api_v1_prefix)
+app.include_router(telegram.router, prefix=settings.api_v1_prefix)
 app.include_router(ws_router)
 app.include_router(location_ws_router)
 

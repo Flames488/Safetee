@@ -2,15 +2,14 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import require_admin_viewer, require_super_admin, verify_master_password
 from app.db.session import get_db
 from app.models.admin_audit_log import AdminAuditLog
-from app.models.enums import AccountStatus, AdminAction, PaymentStatus, SubscriptionStatus
-from app.models.payment import Payment
+from app.models.enums import AccountStatus, AdminAction, SubscriptionStatus
 from app.models.subscription import Subscription
 from app.models.user import User
 from app.schemas.admin import (
@@ -23,6 +22,7 @@ from app.schemas.admin import (
     AdminUserDetailOut,
     AdminUserOut,
 )
+from app.services.admin_stats import compute_admin_stats
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -57,47 +57,7 @@ async def _get_target(db: AsyncSession, user_id: uuid.UUID, admin: User, action_
 
 @router.get("/stats", response_model=AdminStatsOut)
 async def get_stats(db: AsyncSession = Depends(get_db), _admin: User = Depends(require_admin_viewer)):
-    now = datetime.now(UTC)
-    week_ago = now - timedelta(days=7)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    total_users = (await db.execute(select(func.count()).select_from(User))).scalar_one()
-    signups_last_7_days = (
-        await db.execute(select(func.count()).select_from(User).where(User.created_at >= week_ago))
-    ).scalar_one()
-    active_trials = (
-        await db.execute(
-            select(func.count()).select_from(Subscription).where(Subscription.status == SubscriptionStatus.trialing)
-        )
-    ).scalar_one()
-    active_subscriptions = (
-        await db.execute(
-            select(func.count()).select_from(Subscription).where(Subscription.status == SubscriptionStatus.active)
-        )
-    ).scalar_one()
-    cancelled_subscriptions = (
-        await db.execute(
-            select(func.count())
-            .select_from(Subscription)
-            .where(Subscription.status == SubscriptionStatus.active, Subscription.cancel_at_period_end.is_(True))
-        )
-    ).scalar_one()
-    revenue_this_month_kobo = (
-        await db.execute(
-            select(func.coalesce(func.sum(Payment.amount_kobo), 0)).where(
-                Payment.status == PaymentStatus.success, Payment.paid_at >= month_start
-            )
-        )
-    ).scalar_one()
-
-    return AdminStatsOut(
-        total_users=total_users,
-        signups_last_7_days=signups_last_7_days,
-        active_trials=active_trials,
-        active_subscriptions=active_subscriptions,
-        cancelled_subscriptions=cancelled_subscriptions,
-        revenue_this_month_kobo=revenue_this_month_kobo,
-    )
+    return AdminStatsOut(**await compute_admin_stats(db))
 
 
 @router.get("/users", response_model=list[AdminUserOut])

@@ -10,6 +10,16 @@ import './contacts.css';
 // a progress count, not enforced client-side (the server is the real gate).
 const MAX_CONTACTS = 25;
 
+// Wider than it sounds necessary because last_active_at is only persisted
+// roughly every 15 minutes (see deps.py's _LAST_ACTIVE_THROTTLE) — someone
+// continuously using the app can still have a stamp up to that long ago,
+// and a narrower window here would flicker the dot off on someone who
+// never actually left.
+const ACTIVE_WITHIN_MS = 20 * 60 * 1000;
+function isActiveNow(lastActiveAt) {
+  return Boolean(lastActiveAt) && Date.now() - new Date(lastActiveAt).getTime() < ACTIVE_WITHIN_MS;
+}
+
 export default function Contacts() {
   // null = still loading. Never a fake/fallback list — an empty array is a
   // real, honest "you have no trusted contacts yet" state.
@@ -193,7 +203,10 @@ export default function Contacts() {
                 </button>
               </div>
             )}
-            <div className="ct-avatar mono"><Avatar src={c.avatar_url} name={c.name} /></div>
+            <div className="ct-avatar-wrap">
+              <div className="ct-avatar mono"><Avatar src={c.avatar_url} name={c.name} /></div>
+              {isActiveNow(c.last_active_at) && <span className="ct-active-dot" aria-label={`${c.name} is active now`} />}
+            </div>
             <div className="ct-info">
               <div className="ct-name-row">
                 <strong>{c.name}</strong>

@@ -54,6 +54,7 @@ async def list_contacts(
         contact.is_app_user = matched_user is not None
         contact.avatar_url = matched_user.avatar_url if matched_user else None
         contact.matched_user_id = matched_user.id if matched_user else None
+        contact.last_active_at = matched_user.last_active_at if matched_user else None
         # There's no SMS-OTP contact-verification flow built (is_verified
         # otherwise never gets set at all) — but a phone that matches a
         # registered account has already proven ownership of that number

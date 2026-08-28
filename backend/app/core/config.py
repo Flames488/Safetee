@@ -122,6 +122,31 @@ class Settings(BaseSettings):
     super_admin_phone: str = ""
     admin_master_password: str = ""
 
+    # Telegram admin bot — a chat-based ops dashboard: proactive
+    # notifications (new signups, payments) and natural-language Q&A over
+    # the same data admin.py's /stats and /users already expose. Blank
+    # token disables the bot entirely (webhook route 404s, notification
+    # sends are no-ops) — same fail-open-on-missing-config pattern as
+    # Turnstile/Twilio/Termii elsewhere in this file.
+    telegram_bot_token: str = ""
+    # Verified against Telegram's X-Telegram-Bot-Api-Secret-Token header on
+    # every webhook call — without this, anyone who finds the webhook URL
+    # could POST fake messages and get the bot to answer as if they were
+    # the admin. Set via setWebhook's secret_token param (see
+    # scripts/register_telegram_webhook.py), not something Telegram sends
+    # unprompted.
+    telegram_webhook_secret: str = ""
+    # Only messages from this chat id are ever answered or trigger the AI
+    # agent — the bot has read access to real user/payment data, so this
+    # is the actual access control, not just a notification target.
+    telegram_admin_chat_id: str = ""
+
+    # Groq (OpenAI-compatible chat completions) — powers the Telegram
+    # bot's natural-language Q&A via tool-calling over admin.py's own
+    # queries. Blank disables Q&A; notifications still work without it.
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
