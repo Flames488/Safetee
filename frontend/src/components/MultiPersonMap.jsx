@@ -48,17 +48,18 @@ export default function MultiPersonMap({ people }) {
     // inside an effect that re-runs on every frame stacks up stale
     // closures instead of just picking up the latest one.
     map.once('load', () => setStyleLoaded(true));
-    // Defensive nudges at increasing delays — see RemoteLiveMap.jsx for
-    // why a single early resize() isn't enough: a container-size stall
-    // needs the early one, but a subtler stall where the style/tiles/
-    // worker round-trip genuinely finishes loading yet the render loop
-    // never schedules a paint (so 'load' never fires at all) needs a
-    // later one.
+    // Defensive nudges at increasing delays, using redraw() rather than
+    // triggerRepaint() — see RemoteLiveMap.jsx for why: 'load' only
+    // fires from inside _render() itself, and triggerRepaint() merely
+    // *schedules* that via requestAnimationFrame, which is exactly the
+    // step that can silently never happen. redraw() calls _render()
+    // directly and synchronously instead. Retried at a few delays since
+    // the tile/font/worker round-trip's real-world timing varies.
     const nudgeDelays = [150, 1200, 3000, 6000];
     const nudgeTimers = nudgeDelays.map((delay) =>
       setTimeout(() => {
         map.resize();
-        map.triggerRepaint();
+        map.redraw();
       }, delay)
     );
 

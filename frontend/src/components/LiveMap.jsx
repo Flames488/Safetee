@@ -67,17 +67,18 @@ export default function LiveMap({ destination }) {
       console.error('Map failed to load:', e.error);
       setMapFailed(true);
     });
-    // Defensive nudges at increasing delays — a container with zero size
-    // at construction time (a layout pass not yet settled) needs the
-    // early one; a subtler stall where the style/tiles/worker round-trip
-    // genuinely finishes but the render loop never schedules a paint (so
-    // the canvas stays black even though everything actually loaded)
-    // needs a later one — see RemoteLiveMap.jsx for how this was found.
+    // Defensive nudges at increasing delays, using redraw() rather than
+    // triggerRepaint() — see RemoteLiveMap.jsx for why: a container with
+    // zero size at construction time needs the early one; a subtler
+    // stall where the style/tiles/worker round-trip genuinely finishes
+    // but requestAnimationFrame never delivers the frame that would
+    // actually paint it needs a later one, and redraw() renders directly
+    // and synchronously instead of relying on rAF.
     const nudgeDelays = [150, 1200, 3000, 6000];
     const nudgeTimers = nudgeDelays.map((delay) =>
       setTimeout(() => {
         map.resize();
-        map.triggerRepaint();
+        map.redraw();
       }, delay)
     );
     mapRef.current = map;

@@ -73,14 +73,18 @@ export default function RemoteLiveMap({ position }) {
     // finishes loading (confirmed via map.isStyleLoaded()) but the
     // internal render loop never schedules the frame that would fire
     // 'load' — the map just sits there fully loaded and invisible.
-    // resize()+triggerRepaint() reliably unstuck this once data was
-    // actually ready; retried a few times since the tile/font/worker
-    // round-trip's real-world timing varies well past a single delay.
+    // redraw() specifically, not triggerRepaint() — 'load' only fires
+    // from inside _render() itself (see maplibre-gl's Map#_render), and
+    // triggerRepaint() only *schedules* that via requestAnimationFrame,
+    // which is exactly the step that was silently never happening.
+    // redraw() calls _render() directly and synchronously, so it can't
+    // get stuck the same way. Retried a few times since the tile/font/
+    // worker round-trip's real-world timing varies well past one delay.
     const nudgeDelays = [150, 1200, 3000, 6000];
     const nudgeTimers = nudgeDelays.map((delay) =>
       setTimeout(() => {
         map.resize();
-        map.triggerRepaint();
+        map.redraw();
       }, delay)
     );
     return () => {
