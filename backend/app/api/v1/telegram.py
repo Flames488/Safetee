@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.services.telegram.agent import AgentError, answer
 from app.services.telegram.client import send_message
+from app.services.telegram.memory import append_turns, get_history
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
 logger = logging.getLogger("safetee.telegram")
@@ -42,13 +43,22 @@ async def telegram_webhook(request: Request, db: AsyncSession = Depends(get_db))
         await send_message(chat_id, "Hi — ask me about users, signups, or payments. e.g. \"how many users do we have\" or \"who paid recently\".")
         return {"ok": True}
 
+    history = await get_history(chat_id)
     try:
-        reply = await answer(db, text)
+        reply = await answer(db, text, history)
     except AgentError as err:
         reply = f"Couldn't get that: {err}"
     except Exception:
         logger.exception("Telegram agent failed answering: %s", text)
         reply = "Something went wrong answering that — try again in a moment."
+    else:
+        # Only persisted on a real answer — an error reply isn't useful
+        # context for the next question, and would just waste a turn of
+        # the rolling window.
+        await append_turns(chat_id, [
+            {"role": "user", "content": text},
+            {"role": "assistant", "content": reply},
+        ])
 
     await send_message(chat_id, reply)
     return {"ok": True}

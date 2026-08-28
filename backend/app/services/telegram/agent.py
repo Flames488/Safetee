@@ -27,12 +27,19 @@ class AgentError(Exception):
     pass
 
 
-async def answer(db: AsyncSession, question: str) -> str:
+async def answer(db: AsyncSession, question: str, history: list[dict] | None = None) -> str:
+    """`history` is the last few real user/assistant turns (see
+    memory.py) — not the tool-call plumbing from earlier questions, just
+    what was actually said, so a follow-up like "what about last week"
+    resolves against the previous answer without every prior tool
+    round-trip re-entering the prompt (and its token cost) on every
+    single message."""
     if not settings.groq_api_key:
         raise AgentError("The AI isn't configured yet (missing GROQ_API_KEY).")
 
     messages = [
         {"role": "system", "content": _SYSTEM_PROMPT},
+        *(history or []),
         {"role": "user", "content": question},
     ]
 
