@@ -53,10 +53,6 @@ export default function RemoteLiveMap({ position }) {
       console.error('Map failed to load:', e.error);
       setMapFailed(true);
     });
-    // Defensive against a container that had zero size at construction
-    // time (e.g. a layout pass not yet settled) — MapLibre doesn't always
-    // pick this up on its own once the container's real size resolves.
-    const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
     markerRef.current = new Marker({ element: createDotEl() });
     // Registered exactly once here, not inside the position effect below
@@ -70,8 +66,25 @@ export default function RemoteLiveMap({ position }) {
     // simply skipped — the next frame (another arrives every few
     // seconds) picks it up instead, with nothing stale left to replay.
     map.once('load', () => setStyleLoaded(true));
+    // Defensive nudges at increasing delays — covers two distinct stalls
+    // seen in practice: a container with zero size at construction time
+    // (a layout pass not yet settled, fixed by the early one), and a
+    // subtler one where the style/tiles/worker round-trip genuinely
+    // finishes loading (confirmed via map.isStyleLoaded()) but the
+    // internal render loop never schedules the frame that would fire
+    // 'load' — the map just sits there fully loaded and invisible.
+    // resize()+triggerRepaint() reliably unstuck this once data was
+    // actually ready; retried a few times since the tile/font/worker
+    // round-trip's real-world timing varies well past a single delay.
+    const nudgeDelays = [150, 1200, 3000, 6000];
+    const nudgeTimers = nudgeDelays.map((delay) =>
+      setTimeout(() => {
+        map.resize();
+        map.triggerRepaint();
+      }, delay)
+    );
     return () => {
-      clearTimeout(resizeTimer);
+      nudgeTimers.forEach(clearTimeout);
       map.remove();
     };
   }, []);

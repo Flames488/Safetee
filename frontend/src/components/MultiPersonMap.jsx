@@ -42,17 +42,29 @@ export default function MultiPersonMap({ people }) {
       console.error('Map failed to load:', e.error);
       setMapFailed(true);
     });
-    const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
     // Registered exactly once here, not inside the position effect below —
     // see RemoteLiveMap.jsx for why a `once('load', place)` called from
     // inside an effect that re-runs on every frame stacks up stale
     // closures instead of just picking up the latest one.
     map.once('load', () => setStyleLoaded(true));
+    // Defensive nudges at increasing delays — see RemoteLiveMap.jsx for
+    // why a single early resize() isn't enough: a container-size stall
+    // needs the early one, but a subtler stall where the style/tiles/
+    // worker round-trip genuinely finishes loading yet the render loop
+    // never schedules a paint (so 'load' never fires at all) needs a
+    // later one.
+    const nudgeDelays = [150, 1200, 3000, 6000];
+    const nudgeTimers = nudgeDelays.map((delay) =>
+      setTimeout(() => {
+        map.resize();
+        map.triggerRepaint();
+      }, delay)
+    );
 
     const tick = setInterval(() => setTick((t) => t + 1), 20_000);
     return () => {
-      clearTimeout(resizeTimer);
+      nudgeTimers.forEach(clearTimeout);
       clearInterval(tick);
       markersRef.current.forEach((m) => m.remove());
       markersRef.current.clear();

@@ -67,7 +67,19 @@ export default function LiveMap({ destination }) {
       console.error('Map failed to load:', e.error);
       setMapFailed(true);
     });
-    const resizeTimer = setTimeout(() => map.resize(), 150);
+    // Defensive nudges at increasing delays — a container with zero size
+    // at construction time (a layout pass not yet settled) needs the
+    // early one; a subtler stall where the style/tiles/worker round-trip
+    // genuinely finishes but the render loop never schedules a paint (so
+    // the canvas stays black even though everything actually loaded)
+    // needs a later one — see RemoteLiveMap.jsx for how this was found.
+    const nudgeDelays = [150, 1200, 3000, 6000];
+    const nudgeTimers = nudgeDelays.map((delay) =>
+      setTimeout(() => {
+        map.resize();
+        map.triggerRepaint();
+      }, delay)
+    );
     mapRef.current = map;
 
     markerRef.current = new Marker({ element: createPersonEl(), rotationAlignment: 'map' });
@@ -75,7 +87,7 @@ export default function LiveMap({ destination }) {
     if (!navigator.geolocation) {
       setGpsError(true);
       return () => {
-        clearTimeout(resizeTimer);
+        nudgeTimers.forEach(clearTimeout);
         map.remove();
       };
     }
@@ -119,7 +131,7 @@ export default function LiveMap({ destination }) {
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
-      clearTimeout(resizeTimer);
+      nudgeTimers.forEach(clearTimeout);
       map.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
