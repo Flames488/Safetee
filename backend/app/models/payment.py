@@ -34,6 +34,6 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     # Paystack's own transaction id, only known once they confirm it.
     paystack_transaction_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
-    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
     user = relationship("User", back_populates="payments")
