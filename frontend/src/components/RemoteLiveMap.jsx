@@ -16,7 +16,15 @@ export default function RemoteLiveMap({ position }) {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const hasFramedRef = useRef(false);
-  const styleLoadedRef = useRef(false);
+  // State, not a ref — the position effect below needs to actually
+  // re-run the instant the style finishes loading, including when the
+  // position that arrived before it was ready never changes on the next
+  // broadcast (a stationary sharer, or coarse network-location fixes that
+  // often repeat the exact same value). A ref flip alone doesn't trigger
+  // a re-render, so with a ref here that frame would never get replayed
+  // once loading catches up — the marker would just never appear at all
+  // until some future frame happened to carry a different lat/lng.
+  const [styleLoaded, setStyleLoaded] = useState(false);
   const [address, setAddress] = useState(null);
   const [mapFailed, setMapFailed] = useState(false);
   const lastGeocodeRef = useRef(0);
@@ -61,7 +69,7 @@ export default function RemoteLiveMap({ position }) {
     // once here means a frame that arrives before the style is ready is
     // simply skipped — the next frame (another arrives every few
     // seconds) picks it up instead, with nothing stale left to replay.
-    map.once('load', () => { styleLoadedRef.current = true; });
+    map.once('load', () => setStyleLoaded(true));
     return () => {
       clearTimeout(resizeTimer);
       map.remove();
@@ -70,7 +78,7 @@ export default function RemoteLiveMap({ position }) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !styleLoadedRef.current || !position?.lat || !position?.lng) return;
+    if (!map || !styleLoaded || !position?.lat || !position?.lng) return;
 
     if (!markerRef.current.getElement().isConnected) {
       markerRef.current.setLngLat([position.lng, position.lat]).addTo(map);
@@ -92,7 +100,7 @@ export default function RemoteLiveMap({ position }) {
       lastGeocodeRef.current = now;
       reverseGeocode(position.lat, position.lng).then((label) => label && setAddress(label));
     }
-  }, [position?.lat, position?.lng]);
+  }, [position?.lat, position?.lng, styleLoaded]);
 
   return (
     <div className="lm-wrap">

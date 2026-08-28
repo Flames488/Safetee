@@ -20,6 +20,13 @@ export default function MultiPersonMap({ people }) {
   const [mapFailed, setMapFailed] = useState(false);
   const [, setTick] = useState(0); // re-render every 20s so "last seen" freshness stays live
   const hasFramedRef = useRef(false);
+  // State, not a ref — same reasoning as RemoteLiveMap: the position effect
+  // below needs to actually re-run once the style finishes loading, even
+  // when the people array hasn't changed since the frame that arrived too
+  // early to place. A ref flip alone doesn't trigger a re-render, so a
+  // frame that shows up before the style is ready would otherwise never
+  // get replayed once loading catches up.
+  const [styleLoaded, setStyleLoaded] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -37,6 +44,11 @@ export default function MultiPersonMap({ people }) {
     });
     const resizeTimer = setTimeout(() => map.resize(), 150);
     mapRef.current = map;
+    // Registered exactly once here, not inside the position effect below —
+    // see RemoteLiveMap.jsx for why a `once('load', place)` called from
+    // inside an effect that re-runs on every frame stacks up stale
+    // closures instead of just picking up the latest one.
+    map.once('load', () => setStyleLoaded(true));
 
     const tick = setInterval(() => setTick((t) => t + 1), 20_000);
     return () => {
@@ -50,7 +62,7 @@ export default function MultiPersonMap({ people }) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !styleLoaded) return;
 
     const place = () => {
       const withFix = people.filter((p) => p.position?.lat && p.position?.lng);
@@ -97,10 +109,9 @@ export default function MultiPersonMap({ people }) {
       }
     };
 
-    if (map.isStyleLoaded()) place();
-    else map.once('load', place);
+    place();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(people.map((p) => [p.id, p.position?.lat, p.position?.lng]))]);
+  }, [JSON.stringify(people.map((p) => [p.id, p.position?.lat, p.position?.lng])), styleLoaded]);
 
   const now = Date.now();
 
