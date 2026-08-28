@@ -104,6 +104,12 @@ class ContactOut(BaseModel):
     # own uploaded avatar, looked up server-side (see list_contacts). None
     # for a contact who isn't a registered user, or hasn't set a picture.
     avatar_url: str | None = None
+    # The matched account's own user id — only populated alongside
+    # is_app_user, and only what the frontend needs to call
+    # POST /locations/requests with this contact as the target (see
+    # locations.py's request_location, which takes a target user id, not a
+    # contact id — a contact row only exists in the requester's own list).
+    matched_user_id: uuid.UUID | None = None
 
 
 class AccountDeleteRequest(BaseModel):

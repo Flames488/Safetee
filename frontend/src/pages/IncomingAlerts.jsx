@@ -4,7 +4,9 @@ import { ShieldAlert, MapPin, Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Card, Pill, PersonTile, EmptyState, ErrorState, SkeletonRow, SectionLabel, Button, DurationPicker, KpiCard, useToast } from '../components/ui';
+import RemoteLiveMap from '../components/RemoteLiveMap';
 import { api } from '../lib/api';
+import { connectLocationShare } from '../lib/locationSharing';
 import { markSeen } from '../lib/seenAlerts';
 import { timeLeft } from '../lib/time';
 import './history.css';
@@ -80,6 +82,38 @@ export default function IncomingAlerts() {
   const [requestedIds, setRequestedIds] = useState(() => new Set());
   useEffect(() => {
     api.getWatchers().then(setWatchers).catch(() => setWatchers([]));
+  }, []);
+
+  // A live position preview per share, right in the list — so seeing
+  // roughly where someone is doesn't require clicking into the separate
+  // full-page view first. Connections open/close as `viewing` changes,
+  // same pattern as ShareLocation.jsx's own connection management.
+  const [previewPositions, setPreviewPositions] = useState({});
+  const previewConnectionsRef = useRef(new Map());
+  useEffect(() => {
+    const activeIds = new Set((viewing || []).map((s) => s.id));
+    for (const [id, conn] of previewConnectionsRef.current) {
+      if (!activeIds.has(id)) {
+        conn.close();
+        previewConnectionsRef.current.delete(id);
+        setPreviewPositions((p) => { const next = { ...p }; delete next[id]; return next; });
+      }
+    }
+    for (const share of viewing || []) {
+      if (!previewConnectionsRef.current.has(share.id)) {
+        previewConnectionsRef.current.set(
+          share.id,
+          connectLocationShare(share.id, {
+            onFrame: (frame) => setPreviewPositions((p) => ({ ...p, [share.id]: frame })),
+          })
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewing]);
+  useEffect(() => () => {
+    previewConnectionsRef.current.forEach((conn) => conn.close());
+    previewConnectionsRef.current.clear();
   }, []);
 
   const [respondingId, setRespondingId] = useState(null); // which request's duration picker is open
@@ -214,6 +248,14 @@ export default function IncomingAlerts() {
                 <span>{timeLeft(s.expires_at)}</span>
               </span>
               <Pill tone="good">View live</Pill>
+            </Link>
+            <Link to={`/track/location/${s.id}`}>
+              <RemoteLiveMap
+                position={previewPositions[s.id] ? { lat: previewPositions[s.id].lat, lng: previewPositions[s.id].lng } : null}
+                interactive={false}
+                showAddress={false}
+                className="lm-preview"
+              />
             </Link>
           </Card>
         ))}

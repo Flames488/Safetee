@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Phone, MessageCircle, ShieldCheck, X, Trash2, ChevronUp, ChevronDown, Users } from 'lucide-react';
+import { Plus, Phone, MessageCircle, MapPin, ShieldCheck, X, Trash2, ChevronUp, ChevronDown, Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import { Avatar, Card, Pill, Button, Field, ConfirmDialog, ErrorState, SkeletonRow, useToast } from '../components/ui';
@@ -22,7 +22,27 @@ export default function Contacts() {
   const [deletingId, setDeletingId] = useState(null);
   const [removeTarget, setRemoveTarget] = useState(null);
   const [movingId, setMovingId] = useState(null);
+  const [requestedIds, setRequestedIds] = useState(() => new Set());
+  // Requesting someone's location requires *them* to have added you back
+  // as their own trusted contact (enforced server-side in
+  // POST /locations/requests) — having their number saved here isn't
+  // enough on its own. watcherIds is who's actually done that, so the
+  // button only shows where a request would actually succeed.
+  const [watcherIds, setWatcherIds] = useState(null);
+  useEffect(() => {
+    api.getWatchers().then((list) => setWatcherIds(new Set(list.map((w) => w.user_id)))).catch(() => setWatcherIds(new Set()));
+  }, []);
   const toast = useToast();
+
+  const askForLocation = (contact) => {
+    setRequestedIds((s) => new Set(s).add(contact.id));
+    api.requestLocation(contact.matched_user_id)
+      .then(() => toast(`Location request sent to ${contact.name}.`))
+      .catch((err) => {
+        setRequestedIds((s) => { const next = new Set(s); next.delete(contact.id); return next; });
+        toast(err.message || `Could not request ${contact.name}'s location.`, { tone: 'bad' });
+      });
+  };
 
   const load = () => {
     api.listContacts()
@@ -188,6 +208,15 @@ export default function Contacts() {
             <div className="ct-quick">
               <a href={`tel:${c.phone}`} aria-label={`Call ${c.name}`}><Phone size={15} strokeWidth={2.2} /></a>
               <a href={`sms:${c.phone}`} aria-label={`Message ${c.name}`}><MessageCircle size={15} strokeWidth={2.2} /></a>
+              {c.is_app_user && c.matched_user_id && watcherIds?.has(c.matched_user_id) && (
+                <button
+                  aria-label={requestedIds.has(c.id) ? `Location requested from ${c.name}` : `Request ${c.name}'s location`}
+                  onClick={() => askForLocation(c)}
+                  disabled={requestedIds.has(c.id)}
+                >
+                  <MapPin size={15} strokeWidth={2.2} />
+                </button>
+              )}
               <button
                 aria-label={`Remove ${c.name}`}
                 className="ct-quick-danger"

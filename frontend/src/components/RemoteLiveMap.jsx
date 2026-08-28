@@ -11,7 +11,7 @@ import './live-map.css';
 // itself, since this is someone else's location, not the viewer's own.
 // Same map system as LiveMap so both read as one consistent product
 // instead of "real map here, bare link to Google Maps there."
-export default function RemoteLiveMap({ position }) {
+export default function RemoteLiveMap({ position, interactive = true, showAddress = true, className = '' }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -37,6 +37,7 @@ export default function RemoteLiveMap({ position }) {
       center: [3.3792, 6.5244],
       zoom: 15,
       attributionControl: false,
+      interactive,
     });
     // compact:true alone (no customAttribution) — the style's own OSM/
     // OpenFreeMap/OpenMapTiles credit already covers what's legally
@@ -113,19 +114,19 @@ export default function RemoteLiveMap({ position }) {
     }
 
     const now = Date.now();
-    if (now - lastGeocodeRef.current > 20_000) {
+    if (showAddress && now - lastGeocodeRef.current > 20_000) {
       lastGeocodeRef.current = now;
       reverseGeocode(position.lat, position.lng).then((label) => label && setAddress(label));
     }
   }, [position?.lat, position?.lng, styleLoaded]);
 
   return (
-    <div className="lm-wrap">
+    <div className={`lm-wrap ${className}`.trim()}>
       <div ref={containerRef} className="lm-canvas" />
       {mapFailed && (
         <div className="lm-error">Map view unavailable right now — use "Open in Google Maps" below.</div>
       )}
-      <div className="lm-address mono">{address || 'Locating…'}</div>
+      {showAddress && <div className="lm-address mono">{address || 'Locating…'}</div>}
     </div>
   );
 }

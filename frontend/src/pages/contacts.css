@@ -65,7 +65,8 @@
   display:flex; align-items:center; justify-content:center; color:var(--ink-1);
   transition:border-color .15s ease, color .15s ease, background .15s ease;
 }
-.ct-quick a:hover{ border-color:var(--green-line); color:var(--green); }
+.ct-quick a:hover, .ct-quick button:not(.ct-quick-danger):hover{ border-color:var(--green-line); color:var(--green); }
+.ct-quick button:not(.ct-quick-danger):disabled{ opacity:.4; pointer-events:none; }
 .ct-quick-danger:hover{ border-color:var(--red-line); color:var(--red); background:var(--red-soft); }
 .ct-quick-danger:disabled{ opacity:.4; pointer-events:none; }
 

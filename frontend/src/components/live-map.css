@@ -1,4 +1,11 @@
 .lm-wrap{ position:relative; width:100%; height:100%; border-radius:20px; overflow:hidden; }
+
+/* A small, non-interactive map thumbnail embedded directly in a list row
+   (e.g. "Shared with you") — so a live location reads as visible at a
+   glance instead of forcing a click into a separate full-screen page
+   just to see roughly where someone is. */
+.lm-preview{ height:130px; border-radius:14px; margin-top:10px; pointer-events:none; }
+.lm-preview .lm-address{ font-size:10px; padding:5px 9px; }
 .lm-canvas{ width:100%; height:100%; }
 .lm-canvas .maplibregl-ctrl-attrib{ font-size:9px; background:rgba(8,9,13,.55); color:var(--ink-2); }
 .lm-canvas .maplibregl-ctrl-attrib a{ color:var(--ink-2); }

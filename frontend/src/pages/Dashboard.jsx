@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  LocateFixed, BatteryMedium, Users, Navigation, MessageSquare, Mic,
+  LocateFixed, MapPin, BatteryMedium, Users, Navigation, MessageSquare, Mic,
   ChevronRight, ShieldCheck, ShieldAlert, Clock, UserCheck, AlertCircle, Sparkles,
 } from 'lucide-react';
 import VitalRing from '../components/VitalRing';
@@ -363,6 +363,10 @@ export default function Dashboard() {
 
             <Button full variant="secondary" icon={<LocateFixed size={17} />} onClick={() => navigate('/app/share-location')}>
               Share my location
+            </Button>
+
+            <Button full variant="secondary" icon={<MapPin size={17} />} onClick={() => navigate('/app/contacts')}>
+              Request a location
             </Button>
           </div>
 
