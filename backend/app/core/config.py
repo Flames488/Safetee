@@ -145,7 +145,7 @@ class Settings(BaseSettings):
     # bot's natural-language Q&A via tool-calling over admin.py's own
     # queries. Blank disables Q&A; notifications still work without it.
     groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
 
     @property
     def cors_origins(self) -> list[str]:

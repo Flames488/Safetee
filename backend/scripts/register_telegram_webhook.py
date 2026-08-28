@@ -3,8 +3,13 @@ TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET are set in the environment
 (and again any time either changes) — Telegram doesn't know the webhook
 URL on its own, and won't send anything until this has run at least once.
 
-Usage (from the backend container/venv, with the real env loaded):
-    python scripts/register_telegram_webhook.py [domain]
+Usage (from the backend container/venv, with the real env loaded) — run
+as a module, not as a file path: WORKDIR is /app in the container, and a
+plain `python scripts/register_telegram_webhook.py` only puts /app/scripts
+on sys.path, not /app itself, so `from app.core.config import settings`
+fails with ModuleNotFoundError. `-m` puts the current directory (/app) on
+sys.path instead, which is what actually resolves the app package.
+    python -m scripts.register_telegram_webhook [domain]
 
 `domain` defaults to api.getsafetee.com — the actual deployed API domain,
 not whatever URL was in the original env var list, which pointed at the
