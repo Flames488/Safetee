@@ -108,3 +108,37 @@ async def test_contacts_are_scoped_per_user(client):
     token_b = r.json()["access_token"]
     r = await client.get("/api/v1/contacts", headers={"Authorization": f"Bearer {token_b}"})
     assert r.json() == []
+
+
+async def test_last_active_at_only_shows_for_a_mutual_contact(client):
+    # Merely saving a real user's number as your own contact is enough to
+    # learn is_app_user/avatar_url (that's always been true), but
+    # last_active_at is presence data — it must stay hidden until *they've*
+    # also added you back, matching the same reciprocity
+    # POST /locations/requests enforces server-side (is_trusted_contact_of).
+    a = await client.post(
+        "/api/v1/auth/signup", json={"full_name": "User A", "phone": "+2341111111111", "password": "supersecret123"}
+    )
+    token_a = a.json()["access_token"]
+    b = await client.post(
+        "/api/v1/auth/signup", json={"full_name": "User B", "phone": "+2342222222222", "password": "supersecret123"}
+    )
+    token_b = b.json()["access_token"]
+
+    # A adds B as a contact — not mutual yet.
+    await client.post(
+        "/api/v1/contacts", headers={"Authorization": f"Bearer {token_a}"},
+        json={"name": "User B", "phone": "+2342222222222"},
+    )
+    r = await client.get("/api/v1/contacts", headers={"Authorization": f"Bearer {token_a}"})
+    contact = r.json()[0]
+    assert contact["is_app_user"] is True  # still visible — not the sensitive part
+    assert contact["last_active_at"] is None  # not mutual yet — must stay hidden
+
+    # B adds A back — now mutual.
+    await client.post(
+        "/api/v1/contacts", headers={"Authorization": f"Bearer {token_b}"},
+        json={"name": "User A", "phone": "+2341111111111"},
+    )
+    r = await client.get("/api/v1/contacts", headers={"Authorization": f"Bearer {token_a}"})
+    assert r.json()[0]["last_active_at"] is not None

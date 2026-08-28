@@ -11,6 +11,7 @@ from app.db.session import get_db
 from app.models.contact import TrustedContact
 from app.models.user import User
 from app.schemas.user import ContactCreate, ContactMoveRequest, ContactOut
+from app.services.contact_matching import watched_owner_ids
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
@@ -48,13 +49,24 @@ async def list_contacts(
         matched = (await db.execute(select(User).where(User.phone.in_(phones)))).scalars().all()
         app_users_by_phone = {u.phone: u for u in matched}
 
+    # last_active_at is presence data — unlike is_app_user/avatar_url
+    # (which just reflect a public-ish "this number belongs to a real
+    # account" fact), it's only ever shown for a contact who has *also*
+    # added this user back, matching the reciprocity POST
+    # /locations/requests itself enforces. Otherwise saving a stranger's
+    # number would be enough to see whether they're currently active,
+    # with no consent on their part at all.
+    mutual_ids = await watched_owner_ids(db, user.phone)
+
     dirty = False
     for contact in contacts:
         matched_user = app_users_by_phone.get(normalize_phone(contact.phone))
         contact.is_app_user = matched_user is not None
         contact.avatar_url = matched_user.avatar_url if matched_user else None
         contact.matched_user_id = matched_user.id if matched_user else None
-        contact.last_active_at = matched_user.last_active_at if matched_user else None
+        contact.last_active_at = (
+            matched_user.last_active_at if matched_user and matched_user.id in mutual_ids else None
+        )
         # There's no SMS-OTP contact-verification flow built (is_verified
         # otherwise never gets set at all) — but a phone that matches a
         # registered account has already proven ownership of that number
