@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MessageCircle, ShieldAlert, Clock } from 'lucide-react';
+import { Mail, MessageCircle, Clock } from 'lucide-react';
 import MarketingNav from '../components/MarketingNav';
 import Footer from '../components/Footer';
 import { Button, BgPhoto } from '../components/ui';
@@ -13,7 +13,7 @@ export default function Contact() {
   // No fake "message sent" state — this opens the person's own email client
   // with everything prefilled, so it's a real send, not a form that quietly
   // goes nowhere without a backend behind it.
-  const mailtoHref = `mailto:support@safetee.app?subject=${encodeURIComponent(
+  const mailtoHref = `mailto:support@getsafetee.com?subject=${encodeURIComponent(
     `Message from ${form.name || 'the Safetee site'}`
   )}&body=${encodeURIComponent(`${form.message}\n\nFrom ${form.name}${form.email ? ` (${form.email})` : ''}`)}`;
 
@@ -31,18 +31,11 @@ export default function Contact() {
       </div>
       <div className="sp-body">
         <div className="sp-contact-list">
-          <a className="sp-contact-card" href="mailto:support@safetee.app">
+          <a className="sp-contact-card" href="mailto:support@getsafetee.com">
             <span className="sp-contact-icon"><Mail size={17} strokeWidth={2} /></span>
             <span className="sp-contact-text">
-              <strong>support@safetee.app</strong>
-              <span>General questions and account support. We reply within a day.</span>
-            </span>
-          </a>
-          <a className="sp-contact-card" href="mailto:trust@safetee.app">
-            <span className="sp-contact-icon"><ShieldAlert size={17} strokeWidth={2} /></span>
-            <span className="sp-contact-text">
-              <strong>trust@safetee.app</strong>
-              <span>Report a safety or security concern with the app itself.</span>
+              <strong>support@getsafetee.com</strong>
+              <span>Questions, account support, or a safety/security concern with the app itself. We reply within a day.</span>
             </span>
           </a>
           <a className="sp-contact-card" href="https://wa.me/2348000000000" target="_blank" rel="noreferrer">

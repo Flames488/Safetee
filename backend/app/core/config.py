@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     web_push_public_key: str = ""
     web_push_private_key: str = ""
-    web_push_contact_email: str = "ops@safetee.app"
+    web_push_contact_email: str = "support@getsafetee.com"
 
     sentry_dsn: str = ""
 
